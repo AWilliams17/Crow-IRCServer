@@ -1,4 +1,4 @@
-1: Convert to Python3
+1: Convert to Python3: DONE
 2: Create setup.py
 3: Save current rooms to file and load it on launch
 4: /join #room creates room, makes user operator of it (need to limit it)
