@@ -1,5 +1,5 @@
 from twisted.words.protocols.irc import IRC
-from room import Room
+from server_modules.room import Room
 
 class IRCProtocol(IRC):
 	OUTPUT_DENOTER = "<= "

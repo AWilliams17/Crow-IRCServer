@@ -1,5 +1,5 @@
 from twisted.internet.protocol import Factory
-from irc_protocol import IRCProtocol
+from server_modules.irc_protocol import IRCProtocol
 
 class ChatServer(Factory):
 

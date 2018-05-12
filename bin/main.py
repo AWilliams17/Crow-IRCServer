@@ -1,4 +1,4 @@
-from chat_server import ChatServer
+from server_modules.server import ChatServer
 from twisted.internet import reactor
 
 if __name__ == '__main__':
