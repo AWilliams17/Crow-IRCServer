@@ -4,7 +4,8 @@ from server_modules.irc_protocol import IRCProtocol
 
 class ChatServer(Factory):
     def __init__(self):
-        pass
+        self.users = {}
+        self.channels = {}
 
     def buildProtocol(self, addr):
-        pass
+        return IRCProtocol(self.users, self.channels)

@@ -1,4 +1,5 @@
 
 class IRCChannel:
-    def __init__(self):
-        pass
+    def __init__(self, name):
+        self.channel_name = name
+        self.users = []
