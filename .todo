@@ -2,3 +2,4 @@
 2: Create setup.py
 3: Save current rooms to file and load it on launch
 4: /join #room creates room, makes user operator of it (need to limit it)
+5: add logging
