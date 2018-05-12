@@ -3,4 +3,8 @@ from server_modules.irc_protocol import IRCProtocol
 
 
 class ChatServer(Factory):
-    pass
+    def __init__(self):
+        pass
+
+    def buildProtocol(self, addr):
+        pass
