@@ -1,5 +1,4 @@
-from twisted.words.protocols.irc import IRC, protocol, IRCBadMessage, IRCClient
-from twisted.words.im.ircsupport import irc
+from twisted.words.protocols.irc import IRC, protocol, IRCBadMessage
 from server_modules.irc_channel import IRCChannel
 
 
@@ -9,6 +8,9 @@ class IRCProtocol(IRC):
         self.channels = channels
         self.username = None
         self.nickname = None
+        self.ident = None
+        self.hostmask = None
+        self.user = None
 
     def connectionMade(self):
         server_name = "Test-IRCServer"  # Place Holder!
@@ -46,12 +48,16 @@ class IRCProtocol(IRC):
             self.channels[channel].users = self.username
             self.topic(self.username, self.channels[channel].channel_name, topic=None)
             self.names(self.username, self.channels[channel].channel_name, self.channels[channel].users)
+            self.join(self.user, channel)
 
     def irc_NICK(self, prefix, params):
         self.nickname = params[0]
 
     def irc_USER(self, prefix, params):
         self.username = params[0]
+        self.ident = params[1]
+        self.hostmask = params[2]
+        self.user = "{}!{}@{}".format(self.username, self.ident, self.hostmask)
         self.users[self.username] = [self]
 
     def irc_CAP(self, prefix, params):
