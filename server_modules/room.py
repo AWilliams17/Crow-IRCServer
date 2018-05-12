@@ -4,16 +4,14 @@ class Room:
         self.name = name
         self.users = []
 
-    def addUser(self, user):
+    def add_user(self, user):
         if user in self.users:
-            print
-            "User already in room {}".format(self.name)
+            print("User already in room {}".format(self.name))
         else:
             self.users = self.users + [user]
 
-    def delUser(self, user):
+    def del_user(self, user):
         if user in self.users:
             self.users.remove(user)
         else:
-            print
-            "User not in room {}".format(self.name)
+            print("User not in room {}".format(self.name))

@@ -6,7 +6,7 @@ class ChatServer(Factory):
 
     def __init__(self):
         self.users = {}  # maps user names to Chat instances
-        self.rooms = {}  # mapr rooms to Chat isntances
+        self.rooms = {}  # maps rooms to Chat instances
 
-    def buildProtocol(self, addr):
+    def buildProtocol(self, address):
         return IRCProtocol(self.users, self.rooms)
