@@ -41,15 +41,21 @@ class IRCProtocol(IRC):
             x[0].names(x[2], x[0].channels[channel].channel_name, channel_nicknames)
 
     def irc_PRIVMSG(self, prefix, params):
-        channel = params[0]  # Channel the message occurred on
+        destination = params[0]  # Where to send the message
         message = params[1]  # The message
         sender = self.users[self.username][5]
 
-        # echo the message to everyone in the channel EXCEPT the person who sent it
-        for x in self.channels[channel].users:
-            if x[0] != self:
-                x[0].privmsg(sender, channel, message)
-
+        # if the destination is a channel then echo it to everyone there except the sender
+        if destination[0] == "#":
+            for x in self.channels[destination].users:
+                if x[0] != self:
+                    x[0].privmsg(sender, destination, message)
+        else:  # otherwise, it is a direct message
+            for i in self.users:
+                user_protocol = self.users.get(i)[0]
+                nick_name = self.users.get(i)[2]
+                if user_protocol != self and nick_name == destination:
+                    user_protocol.privmsg(sender, destination, message)
 
 
     def irc_PART(self, prefix, params):
