@@ -6,11 +6,8 @@ class IRCProtocol(IRC):
     def __init__(self, users, channels):
         self.users = users
         self.channels = channels
-        self.username = None
         self.nickname = None
-        self.ident = None
-        self.hostmask = None
-        self.user = None
+        self.username = None
 
     def connectionMade(self):
         server_name = "Test-IRCServer"  # Place Holder!
@@ -20,8 +17,7 @@ class IRCProtocol(IRC):
         pass
 
     def irc_unknown(self, prefix, command, params):
-        print(command)
-        self.sendLine("Error: Unknown command!")
+        self.sendLine("Error: Unknown command: {}{}".format(command, params))
 
     def handle_command(self, data):
         prefix, command, params = self.parsemsg(data)
@@ -43,25 +39,28 @@ class IRCProtocol(IRC):
 
     def irc_JOIN(self, prefix, params):
         channel = params[0]
+        user = "{}!{}@{}".format(
+            self.users[self.username][2],
+            self.users[self.username][3],
+            self.users[self.username][4]
+        )
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
-            self.channels[channel].users = self.username
-            self.topic(self.username, self.channels[channel].channel_name, topic=None)
-            self.names(self.username, self.channels[channel].channel_name, self.channels[channel].users)
-            self.join(self.user, channel)
+
+        self.topic(self.username, self.channels[channel].channel_name, topic="Test")
+        self.join(user, channel)
+        self.channels[channel].users.append(self.users[self.username])
+        self.channels[channel].usernames.append(self.users[self.username][1])
+        self.channels[channel].nicknames.append(self.users[self.username][2])
+
+        self.names(self.username, self.channels[channel].channel_name, self.channels[channel].nicknames)
 
     def irc_NICK(self, prefix, params):
         self.nickname = params[0]
 
     def irc_USER(self, prefix, params):
         self.username = params[0]
-        self.ident = params[1]
-        self.hostmask = params[2]
-        self.user = "{}!{}@{}".format(self.username, self.ident, self.hostmask)
-        self.users[self.username] = [self]
+        ident = params[1]
+        hostmask = params[2]
+        self.users[self.username] = [self, self.username, self.nickname, ident, hostmask]
 
-    def irc_CAP(self, prefix, params):
-        pass
-
-    def irc_MSG(self, prefix, params):
-        pass
