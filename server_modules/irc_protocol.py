@@ -22,7 +22,6 @@ class IRCProtocol(IRC):
     def irc_JOIN(self, prefix, params):
         channel = params[0]
 
-        """
         if channel not in self.channels:  # The channel doesn't exist - create it.
             self.channels[channel] = IRCChannel(channel)
 
@@ -30,12 +29,14 @@ class IRCProtocol(IRC):
 
         self.join(self.users[self.username][5], self.channels[channel].channel_name)
 
+        # Map this protocol instance to the channel's current clients
         self.channels[channel].users.append(self.users[self.username])
-        self.channels[channel].usernames.append(self.users[self.username][1])
-        self.channels[channel].nicknames.append(self.users[self.username][2])
 
-        self.names(self.nickname, self.channels[channel].channel_name, self.channels[channel].nicknames)
-        """
+        # Send the names in the channel to the connecting user.
+        channel_nicknames = []
+        for i in self.channels[channel].users:
+            channel_nicknames.append(i[2])
+        self.names(self.nickname, self.channels[channel].channel_name, channel_nicknames)
 
     def irc_NICK(self, prefix, params):
         self.nickname = params[0]
@@ -52,4 +53,3 @@ class IRCProtocol(IRC):
 
         # ToDo: This can be a dictionary.
         self.users[self.username] = [self, self.username, self.nickname, realname, host, hostmask]
-
