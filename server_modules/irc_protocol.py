@@ -59,8 +59,23 @@ class IRCProtocol(IRC):
 
     def irc_QUIT(self, prefix, params):
         # When a user QUITS the network while in a channel
-        print("Called")
-        print(params)
+
+        # 1: Take all the channels the user is in
+        # 2: Reconstruct their lists without the user in it
+        # 3: Send them the new list
+        # 4: Delete user from the users list
+
+        for channel in self.users[self.username][6]:
+            channel_nicknames = []
+            for i in self.channels[channel].users:
+                if i[0] is not self.users[self.username][0]:
+                    channel_nicknames.append(i[2])
+            for i in self.channels[channel].users:
+                i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
+            self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
+
+        del self.users[self.username]
+
 
     def irc_PART(self, prefix, params):
         # When a user LEAVES a channel
