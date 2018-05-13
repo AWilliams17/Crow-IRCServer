@@ -33,11 +33,24 @@ class IRCProtocol(IRC):
         self.channels[channel].users.append(self.users[self.username])
 
         # Send the names in the channel to the connecting user + everyone else
+        # ToDo: Refactor these loops.
         channel_nicknames = []
         for i in self.channels[channel].users:
             channel_nicknames.append(i[2])
         for x in self.channels[channel].users:
             x[0].names(x[2], x[0].channels[channel].channel_name, channel_nicknames)
+
+    def irc_PRIVMSG(self, prefix, params):
+        channel = params[0]  # Channel the message occurred on
+        message = params[1]  # The message
+        sender = self.users[self.username][5]
+
+        # echo the message to everyone in the channel EXCEPT the person who sent it
+        for x in self.channels[channel].users:
+            if x[0] != self:
+                x[0].privmsg(sender, channel, message)
+
+
 
     def irc_PART(self, prefix, params):
         pass
