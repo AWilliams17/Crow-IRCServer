@@ -19,24 +19,6 @@ class IRCProtocol(IRC):
     def irc_unknown(self, prefix, command, params):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
 
-    def handle_command(self, data):
-        prefix, command, params = self.parsemsg(data)
-        command = command.upper()
-        IRC.handleCommand(self, command, prefix.encode('utf-8'), params)
-
-    def parsemsg(self, s):
-        prefix = ''
-        trailing = []
-        if not s:
-            raise IRCBadMessage("Empty line.")
-        if s[0] == '/':
-            prefix = '/'
-            args = s[1:].split()
-        else:
-            args = s.split()
-        command = args.pop(0)
-        return prefix, command, args
-
     def irc_JOIN(self, prefix, params):
         channel = params[0]
         user = "{}!{}@{}".format(
