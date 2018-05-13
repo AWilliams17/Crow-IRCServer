@@ -32,11 +32,15 @@ class IRCProtocol(IRC):
         # Map this protocol instance to the channel's current clients
         self.channels[channel].users.append(self.users[self.username])
 
-        # Send the names in the channel to the connecting user.
+        # Send the names in the channel to the connecting user + everyone else
         channel_nicknames = []
         for i in self.channels[channel].users:
             channel_nicknames.append(i[2])
-        self.names(self.nickname, self.channels[channel].channel_name, channel_nicknames)
+        for x in self.channels[channel].users:
+            x[0].names(x[2], x[0].channels[channel].channel_name, channel_nicknames)
+
+    def irc_PART(self, prefix, params):
+        pass
 
     def irc_NICK(self, prefix, params):
         self.nickname = params[0]
