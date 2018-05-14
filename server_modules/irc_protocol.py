@@ -57,55 +57,23 @@ class IRCProtocol(IRC):
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
 
-        self.join(self.users[self]["Hostmask"], channel)
-
         # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
-        self.channels[channel].users.append(self.users[self])
-        self.users[self]["Channels"].append(channel)
-
-        channel_nicknames = []
-        for user in self.channels[channel].users:
-            channel_nicknames.append(user["Nickname"])
-        for user in self.channels[channel].users:
-            user["Protocol"].names(user["Hostmask"], channel, channel_nicknames)
+        self.channels[channel].add_user(self.users[self])
 
     def irc_QUIT(self, prefix, params):
-        """
-        # When a user QUITS the network while in a channel
-        if self.username in self.users:
-            for channel in self.users[self.username][6]:
-                channel_nicknames = []
-                for i in self.channels[channel].users:
-                    if i[0] is not self.users[self.username][0]:
-                        channel_nicknames.append(i[2])
-                for i in self.channels[channel].users:
-                    i[0].names(i[1], i[0].channels[channel].channel_name, channel_nicknames)
-                    if i[0] is self:
-                        self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
-            del self.users[self.username]
-        """
-        if self.users[self] in self.users:
+        if self.users[self]["Protocol"] in list(self.users.keys()):
             for channel in self.users[self]["Channels"]:
-                pass
+                channel.remove_user(self.users[self])
+            del self.users[self]
 
         # ToDo: Send Quit message
-        pass
 
     def irc_PART(self, prefix, params):
-        """
-        # When a user LEAVES a channel
         channel = params[0]
-        channel_nicknames = []
-        for i in self.channels[channel].users:
-            if i[0] is not self.users[self.username][0]:
-                channel_nicknames.append(i[2])
-        for i in self.channels[channel].users:
-            i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
-        self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
-        """
+        self.channels[channel].remove_user(self.users[self])
+
         # ToDo: Send Leave message
-        pass
 
     def irc_PRIVMSG(self, prefix, params):
         """
