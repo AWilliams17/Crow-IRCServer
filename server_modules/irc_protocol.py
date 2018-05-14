@@ -1,5 +1,5 @@
 from twisted.words.protocols.irc import IRC, protocol
-from twisted.internet.error import ConnectionClosed
+from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel
 from socket import getfqdn
 import random
@@ -31,21 +31,11 @@ class IRCProtocol(IRC):
         }
 
     def connectionLost(self, reason=protocol.connectionDone):
-        """
-        # Called when the server loses connection with a client (e.g: server dies or the client times out
-        if self.username in self.users and reason is ConnectionClosed:
-            for channel in self.users[self.username][6]:
-                channel_nicknames = []
-                for i in self.channels[channel].users:
-                    if i[0] is not self.users[self.username][0]:
-                        channel_nicknames.append(i[2])
-                for i in self.channels[channel].users:
-                    i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
-                self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
-            del self.users[self.username]
-        """
+        if reason.type is ConnectionLost and self in self.users:
+            for channel in self.users[self]["Channels"]:
+                channel.remove_user(self.users[self])
+            del self.users[self]
         # ToDo: Send Timeout message
-        pass
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
