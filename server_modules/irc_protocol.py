@@ -1,7 +1,10 @@
-from twisted.words.protocols.irc import IRC, protocol
+from twisted.words.protocols.irc import IRC, protocol, ERR_NICKNAMEINUSE, ERR_ERRONEUSNICKNAME
+from twisted.internet.error import ConnectionClosed
 from server_modules.irc_channel import IRCChannel
+from random import randint
 
 
+# ToDo: Jesus Christ DRY
 class IRCProtocol(IRC):
     def __init__(self, users, channels):
         self.users = users
@@ -14,22 +17,18 @@ class IRCProtocol(IRC):
         self.sendLine("You are now connected to %s" % server_name)  # ToDo: Implement the server_name properly.
 
     def connectionLost(self, reason=protocol.connectionDone):
-        # Called when the server loses connection with a client (e.g: server dies or the client disconnects
-        """
-        if self.username in self.users:
-            user = self.users[self.username]
-            channels = user[6]
-            if len(channels) > 0:  # User was in a channel/some channels. Tell them to delete him from their nick list.
-                for channel in channels:
-                    channel_nicknames = []
-                    for i in self.channels[channel].users:
+        # Called when the server loses connection with a client (e.g: server dies or the client times out
+        if self.username in self.users and reason is ConnectionClosed:
+            for channel in self.users[self.username][6]:
+                channel_nicknames = []
+                for i in self.channels[channel].users:
+                    if i[0] is not self.users[self.username][0]:
                         channel_nicknames.append(i[2])
-                        if i[0] is user[0]:
-                            self.channels[channel].users.pop(self.channels[channel].users.index(user))
-                        i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
+                for i in self.channels[channel].users:
+                    i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
+                self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
             del self.users[self.username]
-            """
-        pass
+        # ToDo: Send Timeout message
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
@@ -59,23 +58,18 @@ class IRCProtocol(IRC):
 
     def irc_QUIT(self, prefix, params):
         # When a user QUITS the network while in a channel
-
-        # 1: Take all the channels the user is in
-        # 2: Reconstruct their lists without the user in it
-        # 3: Send them the new list
-        # 4: Delete user from the users list
-
-        for channel in self.users[self.username][6]:
-            channel_nicknames = []
-            for i in self.channels[channel].users:
-                if i[0] is not self.users[self.username][0]:
-                    channel_nicknames.append(i[2])
-            for i in self.channels[channel].users:
-                i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
-            self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
-
-        del self.users[self.username]
-
+        if self.username in self.users:
+            for channel in self.users[self.username][6]:
+                channel_nicknames = []
+                for i in self.channels[channel].users:
+                    if i[0] is not self.users[self.username][0]:
+                        channel_nicknames.append(i[2])
+                for i in self.channels[channel].users:
+                    i[0].names(i[1], i[0].channels[channel].channel_name, channel_nicknames)
+                    if i[0] is self:
+                        self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
+            del self.users[self.username]
+        # ToDo: Send Quit message
 
     def irc_PART(self, prefix, params):
         # When a user LEAVES a channel
@@ -87,7 +81,7 @@ class IRCProtocol(IRC):
         for i in self.channels[channel].users:
             i[0].names(i[2], i[0].channels[channel].channel_name, channel_nicknames)
         self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
-
+        # ToDo: Send Leave message
 
     def irc_PRIVMSG(self, prefix, params):
         destination = params[0]  # Where to send the message
@@ -108,9 +102,20 @@ class IRCProtocol(IRC):
 
     def irc_NICK(self, prefix, params):
         self.nickname = params[0]
+        for i in self.users:
+            if self.users[i][2] == params[0]:
+                self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
+                    self.transport.getHost().host, params[0])
+                )
+        if self.username is not None:
+            self.sendLine(":{} NICK {}".format(self.users[self.username][5], params[0]))
+            self.users[self.username][2] = params[0]
+            self.users[self.username][5] = "{}!{}@{}".format(self.nickname, self.username, self.users[self.username][4])
 
     def irc_USER(self, prefix, params):
         self.username = params[0]
+        while self.username in self.users:
+            self.username = self.username + str(randint(0, 250))
         host = params[2]
         realname = params[3]
         hostmask = "{}!{}@{}".format(  # In the format of nickname!username@host
