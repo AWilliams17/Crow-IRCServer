@@ -27,7 +27,7 @@ class IRCChannel:
         for user in self.users:
             user["Protocol"].names(user["Nickname"], self.channel_name, self.channel_nicks)
 
-    def broadcast(self, message):
+    def send_message(self, message, sender):
         for user in self.users:
-            user["Protocol"].sendLine(message)
-
+            if user["Hostmask"] != sender:
+                user["Protocol"].privmsg(sender, self.channel_name, message)

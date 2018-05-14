@@ -4,3 +4,4 @@
 4: /join #room creates room, makes user operator of it (need to limit it)
 5: add logging
 6: add max_nick_length
+7: make a user class (maybe)

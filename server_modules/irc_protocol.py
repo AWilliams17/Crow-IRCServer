@@ -76,47 +76,18 @@ class IRCProtocol(IRC):
         # ToDo: Send Leave message
 
     def irc_PRIVMSG(self, prefix, params):
-        """
-        destination = params[0]  # Where to send the message
-        message = params[1]  # The message
-        sender = self.users[self.username][5]
+        destination = params[0]
+        message = params[1]
+        sender = self.users[self]["Hostmask"]
 
-        # if the destination is a channel then echo it to everyone there except the sender
         if destination[0] == "#":
-            for x in self.channels[destination].users:
-                if x[0] != self:
-                    x[0].privmsg(sender, destination, message)
-        else:  # otherwise, it is a direct message
+            self.channels[destination].send_message(message, sender)
+        else:
             for i in self.users:
-                user_protocol = self.users.get(i)[0]
-                nick_name = self.users.get(i)[2]
-                if user_protocol != self and nick_name == destination:
-                    user_protocol.privmsg(sender, destination, message)
-
-        #self.sendLine(":{} 432 * {} :Erroneus nickname.".format(
-        #    self.transport.getHost().host, "Praetor")
-        #)
-        #self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
-        #    self.transport.getHost().host, "Praetor")
-        #)
-        #if data == b'NICK Praetor___\r\n':
-        #    self.sendLine(":{} NICK {}".format("Praetor!Praetor@127.0.0.1", "Penguin"))
-
-
-
-        self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
-                            self.transport.getHost().host, attempted_nickname)
-                        )
-
-        self.users[self]["Hostmask"] = "{}!{}@{}".format(  # In the format of nickname!username@host
-                            self.users[self]["Nickname"],
-                            self.users[self]["Username"],
-                            self.transport.getHost().host
-                        )
-
-        self.sendLine(":{} NICK {}".format("Praetor!*@127.0.0.1", "Penguin"))
-        """
-        pass
+                destination_user_protocol = self.users.get(i)["Protocol"]
+                destination_nickname = self.users.get(i)["Nickname"]
+                if self.users[self]["Protocol"] != destination_user_protocol and destination_nickname == destination:
+                    destination_user_protocol.privmsg(sender, destination, message)
 
     # ToDo: ...Refactor this?
     def irc_NICK(self, prefix, params):
