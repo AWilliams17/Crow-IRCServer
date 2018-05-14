@@ -2,12 +2,11 @@ from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel
 from server_modules.irc_user import IRCUser
-import random
-import string
+from random import sample, choice
+from string import ascii_uppercase, ascii_lowercase, digits
 import re
 
 
-# ToDo: Jesus Christ DRY
 class IRCProtocol(IRC):
     def __init__(self, users, channels):
         self.users = users
@@ -101,7 +100,7 @@ class IRCProtocol(IRC):
                 if self.users[self].nickattempts >= 2:
                     self.sendLine("Nickname attempts exceeded(2). A random nickname will be generated for you.")
                     protocol_instance_string = str(self.users[self].protocol).replace(" ", "")
-                    random_nick = ''.join(random.sample(protocol_instance_string, len(protocol_instance_string)))
+                    random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
                     random_nick_s = re.sub("[.<>_]", "", random_nick[:35])
 
                     # This is probably (most-definitely) un-needed, but I am paranoid.
@@ -110,14 +109,14 @@ class IRCProtocol(IRC):
 
                             def generate_junk(amount):
                                 return ''.join([
-                                    random.choice(
-                                        string.ascii_lowercase +
-                                        string.ascii_uppercase +
-                                        string.digits) for i in range(amount)
+                                    choice(
+                                        ascii_lowercase +
+                                        ascii_uppercase +
+                                        digits) for i in range(amount)
                                 ])
 
                             # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under 35
-                            nick = (''.join(random.sample(nick, len(nick))) + generate_junk(15))[:35]
+                            nick = (''.join(sample(nick, len(nick))) + generate_junk(15))[:35]
                             validate_nick(nick, current_nicks)
                         return nick
 
