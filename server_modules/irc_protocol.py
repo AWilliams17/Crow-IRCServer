@@ -23,10 +23,11 @@ class IRCProtocol(IRC):
             "Username": self.username,
             "Nickname": self.nickname,
             "Realname": None,
-            "Host": None,
-            "Hostmask": "*!*@{}".format(self.transport.getHost().host),
+            "Host": self.transport.getHost().host,
+            "Hostmask": None,
             "Channels": None,
-            "Nickattempts": 0
+            "Nickattempts": 0,
+            "Original_Nickname": None
         }
 
     def connectionLost(self, reason=protocol.connectionDone):
@@ -134,58 +135,72 @@ class IRCProtocol(IRC):
         #)
         #if data == b'NICK Praetor___\r\n':
         #    self.sendLine(":{} NICK {}".format("Praetor!Praetor@127.0.0.1", "Penguin"))
+
+
+
+        self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
+                            self.transport.getHost().host, attempted_nickname)
+                        )
+
+        self.users[self]["Hostmask"] = "{}!{}@{}".format(  # In the format of nickname!username@host
+                            self.users[self]["Nickname"],
+                            self.users[self]["Username"],
+                            self.transport.getHost().host
+                        )
+
+        self.sendLine(":{} NICK {}".format("Praetor!*@127.0.0.1", "Penguin"))
         """
         pass
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
 
-        cached_nicknames = []
-        for i in self.users:
-            cached_nicknames.append(self.users[i].get("Nickname"))
+        # ToDo: Put this in a function. The hostmask is changed multiple times. DRY.
+        if self.users[self]["Hostmask"] is None:
+            self.users[self]["Hostmask"] = "{}!{}@{}".format(
+                attempted_nickname,
+                "*",
+                self.users[self]["Host"]
+            )
 
-        if self.users[self]["Nickname"] != attempted_nickname:
-            for i in self.users:
-                if self.users[i].get("Nickname") == attempted_nickname:
-                    if self.users[self]["Nickattempts"] >= 2:
-                        ID = str(self.users[self])
-                        ID_spaceless = ID.strip()
-                        ID_mangled = ''.join(random.sample(ID_spaceless, len(ID_spaceless)))
-                        ID_trimmed = ''.join(
-                            c for c in ID_mangled if c in string.ascii_lowercase or c in string.ascii_uppercase or c
-                            in "0123456789" or c in "_\[]{}^`|"
-                        )
-                        ID_short = ID_trimmed[:35]
-                        # If for some reason the 'random' nickname is already taken, mangle it again.
-                        while ID_short in cached_nicknames:  # This might be bad.
-                            ID_short = ''.join(random.sample(ID_short, len(ID_short)))
-                        self.sendLine("Your nickname has been set to something related to your unique ID.")
-                        self.users[self]["Nickattempts"] = self.users[self]["Nickattempts"] = 0
-                        attempted_nickname = ID_short
-                    else:
-                        self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
-                            self.transport.getHost().host, attempted_nickname)
-                        )
-                        self.users[self]["Nickattempts"] = self.users[self]["Nickattempts"] + 1
-                if list(self.users.keys())[-1] is i:
-                    if self.users[self]["Nickname"] is None:
-                        self.users[self]["Nickname"] = attempted_nickname
-                    else:
-                        self.users[self]["Hostmask"] = "{}!{}@{}".format(  # In the format of nickname!username@host
-                            self.users[self]["Nickname"],
-                            self.users[self]["Username"],
-                            self.transport.getHost().host
-                        )
-                        self.users[self]["Nickname"] = attempted_nickname
-                        self.sendLine(":{} NICK {}".format(self.users[self]["Hostmask"], attempted_nickname))
+        current_nicknames = []
+        for i in self.users:
+            current_nicknames.append(self.users[i].get("Nickname"))
+
+        # The nickname is taken.
+        if attempted_nickname in current_nicknames:
+            # The user instance has no nickname. This is the case on initial connection.
+            if self.users[self]["Nicknames"] is None:
+                # They've had 2 attempts at changing it - Generate one for them.
+                if self.users[self]["Nickattempts"] >= 2:
+                    # Create random nick
+                    # Check if taken
+                    # If it is, create another one.
+                    # Repeat until not taken.
+                    # Send new nick message, set the instance nick, set the hostmask
+                    # Set Nickattempts to 0
+                    pass
+                else:
+                    # Send nick in use
+                    # Add one to nick attempts
+                    # The client will (presumably) send another nick
+                    # Then, it returns back to the top.
+                    pass
+            else:
+                # The user already has a nick, so just send a line telling them its in use and keep things the same.
+                pass
+        else:
+            if self.users[self]["Nickname"] is not None:
+                # Send the new nick message
+                # Set hostmask
+                pass
+            # Set the nickname in the self instance
+            # Set hostmask
+            pass
+
+
 
     def irc_USER(self, prefix, params):
         self.users[self]["Username"] = params[0]
-        self.users[self]["Host"] = params[2]
         self.users[self]["Realname"] = params[3]
-        self.users[self]["Hostmask"] = "{}!{}@{}".format(  # In the format of nickname!username@host
-            self.users[self]["Nickname"],
-            params[0],
-            params[2]
-        )
         self.users[self]["Channels"] = []
