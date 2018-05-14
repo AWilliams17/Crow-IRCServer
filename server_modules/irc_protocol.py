@@ -4,6 +4,7 @@ from server_modules.irc_channel import IRCChannel
 from socket import getfqdn
 import random
 import string
+import re
 
 
 # ToDo: Jesus Christ DRY
@@ -152,6 +153,7 @@ class IRCProtocol(IRC):
         """
         pass
 
+    # ToDo: ...Refactor this?
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
 
@@ -170,37 +172,71 @@ class IRCProtocol(IRC):
         # The nickname is taken.
         if attempted_nickname in current_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
-            if self.users[self]["Nicknames"] is None:
+            if self.users[self]["Nickname"] is None:
                 # They've had 2 attempts at changing it - Generate one for them.
                 if self.users[self]["Nickattempts"] >= 2:
-                    # Create random nick
-                    # Check if taken
-                    # If it is, create another one.
-                    # Repeat until not taken.
-                    # Send new nick message, set the instance nick, set the hostmask
-                    # Set Nickattempts to 0
-                    pass
+                    self.sendLine("Nickname attempts exceeded(2). A random nickname will be generated for you.")
+                    protocol_instance_string = str(self.users[self]["Protocol"]).replace(" ", "")
+                    random_nick = ''.join(random.sample(protocol_instance_string, len(protocol_instance_string)))
+                    random_nick_s = re.sub("[.<>_]", "", random_nick[:50])
+
+                    # This is probably (most-definitely) un-needed, but I am paranoid.
+                    def validate_nick(nick, current_nicks):
+                        if nick in current_nicknames:
+
+                            def generate_junk(amount):
+                                return ''.join([
+                                    random.choice(
+                                        string.ascii_lowercase +
+                                        string.ascii_uppercase +
+                                        string.digits) for i in range(amount)
+                                ])
+
+                            # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under 50
+                            nick = (''.join(random.sample(nick, len(nick))) + generate_junk(25))[:50]
+                            validate_nick(nick, current_nicks)
+                        return nick
+
+                    random_nick_s = validate_nick(random_nick_s, current_nicknames)
+
+                    self.sendLine(":{} NICK {}".format("{}".format(self.users[self]["Hostmask"]), random_nick_s))
+                    self.sendLine("Your nickname has been set to a random string based off your unique ID.")
+                    self.users[self]["Nickname"] = random_nick_s
+                    self.set_host_mask(random_nick_s, self.users[self]["Host"])
+
+                    self.users[self]["Nickattempts"] = 0
                 else:
-                    # Send nick in use
-                    # Add one to nick attempts
-                    # The client will (presumably) send another nick
-                    # Then, it returns back to the top.
-                    pass
+                    self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
+                        self.users[self]["Host"], attempted_nickname)
+                    )
+                    self.users[self]["Nickattempts"] += 1
             else:
                 # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                pass
+                self.sendLine("That nickname is already in use.")
         else:
+            # The user already has connected, therefore he already has a nickname.
             if self.users[self]["Nickname"] is not None:
-                # Send the new nick message
-                # Set hostmask
-                pass
-            # Set the nickname in the self instance
-            # Set hostmask
-            pass
-
-
+                self.sendLine(":{} NICK {}".format("{}".format(self.users[self]["Hostmask"]), attempted_nickname))
+                self.users[self]["Nickname"] = attempted_nickname
+                self.set_host_mask(self.users[self]["Nickname"], self.users[self]["Host"])
+                # ToDo: Send notification to users in channel this user has changed his nickname.
+            if self.users[self]["Nickattempts"] != 0:
+                # This is their first connection: they recently tried an invalid nick, so tell them this one is accepted
+                self.sendLine(":{} NICK {}".format("{}".format(self.users[self]["Hostmask"]), attempted_nickname))
+            self.users[self]["Nickname"] = attempted_nickname
+            self.set_host_mask(self.users[self]["Nickname"], self.users[self]["Host"])
 
     def irc_USER(self, prefix, params):
         self.users[self]["Username"] = params[0]
         self.users[self]["Realname"] = params[3]
         self.users[self]["Channels"] = []
+
+    def set_host_mask(self, nickname, host):
+        username = "*"
+        if self.users[self]["Username"] is not None:
+            username = self.users[self]["Username"]
+        self.users[self]["Hostmask"] = "{}!{}@{}".format(
+            nickname,
+            username,
+            host
+        )
