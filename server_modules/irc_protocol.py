@@ -28,7 +28,6 @@ class IRCProtocol(IRC):
             "Hostmask": None,
             "Channels": None,
             "Nickattempts": 0,
-            "Original_Nickname": None
         }
 
     def connectionLost(self, reason=protocol.connectionDone):
@@ -52,30 +51,24 @@ class IRCProtocol(IRC):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
 
     def irc_JOIN(self, prefix, params):
-        """
+        # self.topic(self.username, self.channels[channel].channel_name, topic="Test")  # ToDo: Topics
         channel = params[0]
-
-        if channel not in self.channels:  # The channel doesn't exist - create it.
+        # The channel doesn't exist on the network - create it.
+        if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
 
-        self.topic(self.username, self.channels[channel].channel_name, topic="Test")  # ToDo: Topics
+        self.join(self.users[self]["Hostmask"], channel)
 
-        self.join(self.users[self.username][5], self.channels[channel].channel_name)
-
-        # Map this protocol instance to the channel's current clients
+        # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
-        self.channels[channel].users.append(self.users[self.username])
-        self.users[self.username][6].append(channel)
+        self.channels[channel].users.append(self.users[self])
+        self.users[self]["Channels"].append(channel)
 
-        # Send the names in the channel to the connecting user + everyone else
-        # ToDo: Refactor these loops.
         channel_nicknames = []
-        for i in self.channels[channel].users:
-            channel_nicknames.append(i[2])
-        for x in self.channels[channel].users:
-            x[0].names(x[2], x[0].channels[channel].channel_name, channel_nicknames)
-        """
-        pass
+        for user in self.channels[channel].users:
+            channel_nicknames.append(user["Nickname"])
+        for user in self.channels[channel].users:
+            user["Protocol"].names(user["Hostmask"], channel, channel_nicknames)
 
     def irc_QUIT(self, prefix, params):
         """
@@ -92,6 +85,10 @@ class IRCProtocol(IRC):
                         self.channels[channel].users.pop(self.channels[channel].users.index(self.users[self.username]))
             del self.users[self.username]
         """
+        if self.users[self] in self.users:
+            for channel in self.users[self]["Channels"]:
+                pass
+
         # ToDo: Send Quit message
         pass
 
@@ -156,6 +153,10 @@ class IRCProtocol(IRC):
     # ToDo: ...Refactor this?
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
+        # ToDo: Max_Nick_Length
+        if len(attempted_nickname) > 35:
+            attempted_nickname = attempted_nickname[:35]
+            self.sendLine("Nickname exceeded max char limit(35). It has been trimmed to: {}".format(attempted_nickname))
 
         # ToDo: Put this in a function. The hostmask is changed multiple times. DRY.
         if self.users[self]["Hostmask"] is None:
@@ -178,7 +179,7 @@ class IRCProtocol(IRC):
                     self.sendLine("Nickname attempts exceeded(2). A random nickname will be generated for you.")
                     protocol_instance_string = str(self.users[self]["Protocol"]).replace(" ", "")
                     random_nick = ''.join(random.sample(protocol_instance_string, len(protocol_instance_string)))
-                    random_nick_s = re.sub("[.<>_]", "", random_nick[:50])
+                    random_nick_s = re.sub("[.<>_]", "", random_nick[:35])
 
                     # This is probably (most-definitely) un-needed, but I am paranoid.
                     def validate_nick(nick, current_nicks):
@@ -192,8 +193,8 @@ class IRCProtocol(IRC):
                                         string.digits) for i in range(amount)
                                 ])
 
-                            # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under 50
-                            nick = (''.join(random.sample(nick, len(nick))) + generate_junk(25))[:50]
+                            # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under 35
+                            nick = (''.join(random.sample(nick, len(nick))) + generate_junk(15))[:35]
                             validate_nick(nick, current_nicks)
                         return nick
 
@@ -212,7 +213,7 @@ class IRCProtocol(IRC):
                     self.users[self]["Nickattempts"] += 1
             else:
                 # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                self.sendLine("That nickname is already in use.")
+                self.sendLine("The nickname {} is already in use.".format(attempted_nickname))
         else:
             # The user already has connected, therefore he already has a nickname.
             if self.users[self]["Nickname"] is not None:
