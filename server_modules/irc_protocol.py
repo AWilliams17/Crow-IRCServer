@@ -1,10 +1,9 @@
-from twisted.words.protocols.irc import IRC, protocol, RPL_NAMREPLY, RPL_ENDOFNAMES
+from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel
 from server_modules.irc_user import IRCUser
 from random import sample, choice
 from string import ascii_uppercase, ascii_lowercase, digits
-from socket import getfqdn
 
 
 class IRCProtocol(IRC):
@@ -32,6 +31,8 @@ class IRCProtocol(IRC):
 
     def irc_JOIN(self, prefix, params):
         # self.topic(self.username, self.channels[channel].channel_name, topic="Test")  # ToDo: Topics
+        # ToDo: Restrict users that have no nicknames from joining
+        # ToDo: On join set proper hostmask
         channel = params[0].lower()
         if channel[0] != "#":
             self.sendLine("Error: Channel name must start with a '#'")
