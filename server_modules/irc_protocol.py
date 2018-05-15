@@ -1,5 +1,6 @@
 from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
+from twisted.internet import threads, defer, reactor
 from server_modules.irc_channel import IRCChannel
 from server_modules.irc_user import IRCUser
 from random import sample, choice
@@ -23,7 +24,8 @@ class IRCProtocol(IRC):
             for channel in self.users[self].channels:
                 channel.remove_user(self.users[self])
                 # ToDo: Move this to irc_channel
-                channel.send_line(":{} QUIT :Client Timed Out\r\n".format(self.users[self].hostmask))
+                self.channels[channel].send_line(":{} QUIT :Client Timed Out\r\n".format(self.users[self].hostmask))
+            # ToDo: Fix keyerror
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
@@ -33,6 +35,7 @@ class IRCProtocol(IRC):
         # self.topic(self.username, self.channels[channel].channel_name, topic="Test")  # ToDo: Topics
         # ToDo: Restrict users that have no nicknames from joining
         # ToDo: On join set proper hostmask
+        # ToDo: Fix the stupid nickname list thing on first join
         channel = params[0].lower()
         if channel[0] != "#":
             self.sendLine("Error: Channel name must start with a '#'")
@@ -50,7 +53,8 @@ class IRCProtocol(IRC):
             for channel in self.users[self].channels:
                 channel.remove_user(self.users[self])
                 # ToDo: Move this to irc_channel
-                channel.send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
+                self.channels[channel].send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
+            # ToDo: Keyerror
             del self.users[self]
 
         # ToDo: Send Quit message
@@ -59,11 +63,10 @@ class IRCProtocol(IRC):
         channel = params[0]
         self.channels[channel].remove_user(self.users[self])
         # ToDo: Move this to irc_channel
-        channel.send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
+        # ToDo: Make it an enum
+        self.channels[channel].send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
 
     def irc_PRIVMSG(self, prefix, params):
-        #self.sendLine(":Praetor!Praetor@127.0.0.1 QUIT :Client Quit\r\n")
-        #self.sendLine(":Praetor!Praetor@127.0.0.1 QUIT :Client Quit\r\n")
         destination = params[0]
         message = params[1]
         sender = self.users[self].hostmask

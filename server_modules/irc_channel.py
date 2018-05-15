@@ -37,6 +37,7 @@ class IRCChannel:
 
     def send_message(self, message, sender):
         for user in self.users:
+            print("DDDDDDDD")
             if user.hostmask != sender:
                 user.protocol.privmsg(sender, self.channel_name, message)
 
