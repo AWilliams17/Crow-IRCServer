@@ -24,7 +24,9 @@ class IRCChannel:
         self.channel_nicks = []
 
     def add_user(self, user):
+        # This user is already in the channel
         if user in self.users:
+            user.protocol.sendLine("You are already in that channel.")
             return
 
         if user.nickname is None:

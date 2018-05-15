@@ -4,9 +4,6 @@ from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from random import sample, choice
 from string import ascii_uppercase, ascii_lowercase, digits
-from twisted.internet import reactor
-
-from twisted.internet.threads import deferToThread, blockingCallFromThread
 # ToDo: Implement CAP
 # ToDo: Implement WHO
 # ToDo: Implement WHOIS
@@ -39,9 +36,7 @@ class IRCProtocol(IRC):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
 
     def irc_JOIN(self, prefix, params):
-        #self.set_host_mask(self.users[self].nickname, self.users[self].host)  # Ensure they have a proper hostmask
-
-        self.users[self].set_host_mask(self.users[self].nickname)
+        self.users[self].hostmask = self.users[self].nickname
 
         channel = params[0].lower()
         if channel[0] != "#":
@@ -88,8 +83,7 @@ class IRCProtocol(IRC):
             self.sendLine("Nickname exceeded max char limit(35). It has been trimmed to: {}".format(attempted_nickname))
 
         if self.users[self].hostmask is None:
-            #self.set_host_mask(attempted_nickname, self.users[self].host)
-            self.users[self].set_host_mask(attempted_nickname)
+            self.users[self].hostmask = attempted_nickname
 
         current_nicknames = []
         for i in self.users:
@@ -106,7 +100,6 @@ class IRCProtocol(IRC):
                     random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
                     random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>_'`")])
 
-                    # This is probably (most-definitely) un-needed, but I am paranoid - Make sure it's not taken again.
                     def validate_nick(nick, current_nicks):
                         if nick in current_nicknames:
 
@@ -128,7 +121,7 @@ class IRCProtocol(IRC):
                     self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), random_nick_s))
                     self.sendLine("Your nickname has been set to a random string based on your unique ID.")
                     self.users[self].nickname = random_nick_s
-                    self.users[self].set_host_mask(random_nick_s)
+                    self.users[self].hostmask = random_nick_s
 
                     self.users[self].nickattempts = 0
                     # If they haven't tried twice yet, give them a chance to set it.
@@ -147,7 +140,7 @@ class IRCProtocol(IRC):
                     channel.rename_user(self.users[self], attempted_nickname)
                 self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), attempted_nickname))
                 self.users[self].nickname = attempted_nickname
-                self.users[self].set_host_mask(self.users[self].nickname)
+                self.users[self].hostmask = self.users[self].nickname
 
             if self.users[self].nickattempts != 0:
                 # This is their first connection: they recently tried an invalid nick, so tell them this one is accepted
@@ -155,7 +148,7 @@ class IRCProtocol(IRC):
                 self.users[self].nickattempts = 0
             # ToDo: Fix this
             self.users[self].nickname = attempted_nickname
-            self.users[self].set_host_mask(self.users[self].nickname)
+            self.users[self].hostmask = self.users[self].nickname
 
     def irc_USER(self, prefix, params):
         self.users[self].username = params[0]
