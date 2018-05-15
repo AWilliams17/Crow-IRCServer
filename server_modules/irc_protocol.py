@@ -1,9 +1,10 @@
-from twisted.words.protocols.irc import IRC, protocol
+from twisted.words.protocols.irc import IRC, protocol, RPL_NAMREPLY, RPL_ENDOFNAMES
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel
 from server_modules.irc_user import IRCUser
 from random import sample, choice
 from string import ascii_uppercase, ascii_lowercase, digits
+from socket import getfqdn
 
 
 class IRCProtocol(IRC):
@@ -22,15 +23,19 @@ class IRCProtocol(IRC):
         if reason.type is ConnectionLost and self in self.users:
             for channel in self.users[self].channels:
                 channel.remove_user(self.users[self])
+                # ToDo: Move this to irc_channel
+                channel.send_line(":{} QUIT :Client Timed Out\r\n".format(self.users[self].hostmask))
             del self.users[self]
-        # ToDo: Send Timeout message
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
 
     def irc_JOIN(self, prefix, params):
         # self.topic(self.username, self.channels[channel].channel_name, topic="Test")  # ToDo: Topics
-        channel = params[0]
+        channel = params[0].lower()
+        if channel[0] != "#":
+            self.sendLine("Error: Channel name must start with a '#'")
+            return
         # The channel doesn't exist on the network - create it.
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
@@ -43,6 +48,8 @@ class IRCProtocol(IRC):
         if self.users[self].protocol in list(self.users.keys()):
             for channel in self.users[self].channels:
                 channel.remove_user(self.users[self])
+                # ToDo: Move this to irc_channel
+                channel.send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
             del self.users[self]
 
         # ToDo: Send Quit message
@@ -50,10 +57,12 @@ class IRCProtocol(IRC):
     def irc_PART(self, prefix, params):
         channel = params[0]
         self.channels[channel].remove_user(self.users[self])
-
-        # ToDo: Send Leave message
+        # ToDo: Move this to irc_channel
+        channel.send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
 
     def irc_PRIVMSG(self, prefix, params):
+        #self.sendLine(":Praetor!Praetor@127.0.0.1 QUIT :Client Quit\r\n")
+        #self.sendLine(":Praetor!Praetor@127.0.0.1 QUIT :Client Quit\r\n")
         destination = params[0]
         message = params[1]
         sender = self.users[self].hostmask
@@ -67,7 +76,7 @@ class IRCProtocol(IRC):
                 if self.users[self].protocol != destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(sender, destination, message)
 
-    # ToDo: ...Refactor this?
+    # ToDo: ...Refactor this? Probably a lot of this can be used to irc_user
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
         # ToDo: Max_Nick_Length
@@ -75,13 +84,8 @@ class IRCProtocol(IRC):
             attempted_nickname = attempted_nickname[:35]
             self.sendLine("Nickname exceeded max char limit(35). It has been trimmed to: {}".format(attempted_nickname))
 
-        # ToDo: Put this in a function. The hostmask is changed multiple times. DRY.
         if self.users[self].hostmask is None:
-            self.users[self].hostmask = "{}!{}@{}".format(
-                attempted_nickname,
-                "*",
-                self.users[self].host
-            )
+            self.set_host_mask(attempted_nickname, self.users[self].host)
 
         current_nicknames = []
         for i in self.users:
@@ -98,7 +102,7 @@ class IRCProtocol(IRC):
                     random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
                     random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>_'`")])
 
-                    # This is probably (most-definitely) un-needed, but I am paranoid.
+                    # This is probably (most-definitely) un-needed, but I am paranoid - Make sure it's not taken again.
                     def validate_nick(nick, current_nicks):
                         if nick in current_nicknames:
 
@@ -123,6 +127,7 @@ class IRCProtocol(IRC):
                     self.set_host_mask(random_nick_s, self.users[self].host)
 
                     self.users[self].nickattempts = 0
+                    # If they haven't tried twice yet, give them a chance to set it.
                 else:
                     self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
                         self.users[self].host, attempted_nickname)
@@ -134,13 +139,15 @@ class IRCProtocol(IRC):
         else:
             # The user already has connected, therefore he already has a nickname.
             if self.users[self].nickname is not None:
+                for channel in self.users[self].channels:
+                    channel.rename_user(self.users[self], attempted_nickname)
                 self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), attempted_nickname))
                 self.users[self].nickname = attempted_nickname
                 self.set_host_mask(self.users[self].nickname, self.users[self].host)
-                # ToDo: Send notification to users in channel this user has changed his nickname.
             if self.users[self].nickattempts != 0:
                 # This is their first connection: they recently tried an invalid nick, so tell them this one is accepted
                 self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), attempted_nickname))
+                self.users[self].nickattempts = 0
             self.users[self].nickname = attempted_nickname
             self.set_host_mask(self.users[self].nickname, self.users[self].host)
 

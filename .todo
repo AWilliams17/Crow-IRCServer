@@ -5,3 +5,4 @@
 5: add logging
 6: add max_nick_length
 7: add config file
+8: ensure RFC compliance

@@ -15,19 +15,31 @@ class IRCChannel:
         user.channels.append(self)
         self.channel_nicks.append(user.nickname)
         self.users.append(user)
-        self.send_names()
+        for user_ in self.users:
+            if user_ != user:
+                user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
+            self.send_names(user)
 
     def remove_user(self, user):
         self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
         user.channels.remove(self)
-        self.send_names()
 
-    def send_names(self):
-        for user in self.users:
-            user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)
+    def send_names(self, user):
+        user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)
+
+    def rename_user(self, user, new_nick):
+        self.channel_nicks.remove(user.nickname)
+        self.channel_nicks.append(new_nick)
+        for user_ in self.users:
+            if user_.protocol is not user:
+                user_.protocol.sendLine(":{} NICK {}".format(user.hostmask, new_nick))
 
     def send_message(self, message, sender):
         for user in self.users:
             if user.hostmask != sender:
                 user.protocol.privmsg(sender, self.channel_name, message)
+
+    def send_line(self, line):
+        for user in self.users:
+            user.protocol.sendLine(line)
