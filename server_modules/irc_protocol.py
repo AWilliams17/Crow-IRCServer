@@ -2,8 +2,6 @@ from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
-from random import sample, choice
-from string import ascii_uppercase, ascii_lowercase, digits
 # ToDo: Implement CAP
 # ToDo: Implement WHO
 # ToDo: Implement WHOIS

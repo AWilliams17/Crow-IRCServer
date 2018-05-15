@@ -1,14 +1,15 @@
 # Twisted-IRC-server
-This is basic IRC Server implementation based on Twisted python library.
+This is an (incomplete) Python3 Twisted IRC server implementation.
 
-Procedure to Setup Server:
-- Install Python (Duh)
-- Install pip
-- Install twisted (pip install twisted)
-- Install Service Indetity (pip install service_identity)
+A lot of commands are not implemented yet, and there is no customization,
+but joining/creating IRC channels, private messaging users, changing your nick,
+all work.
 
-To run the server:
-python ircd.py
+The code is kind of a mess right now too.
 
-Currently hosted at 35.167.104.132 on port 9399. Use telnet to have fun:
-$telnet 35.167.104.132 9399
+This started as a fork of d34thh4ck3r's Twisted-IRC-server, but I went ahead
+and rewrote it as what currently was written in the fork didn't really work
+correctly.
+
+This is the first time I've written a server with Twisted so I imagine
+I may have done some things wrong.
