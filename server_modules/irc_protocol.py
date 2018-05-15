@@ -4,7 +4,6 @@ from server_modules.irc_channel import IRCChannel
 from server_modules.irc_user import IRCUser
 from random import sample, choice
 from string import ascii_uppercase, ascii_lowercase, digits
-import re
 
 
 class IRCProtocol(IRC):
@@ -97,7 +96,7 @@ class IRCProtocol(IRC):
                     self.sendLine("Nickname attempts exceeded(2). A random nickname will be generated for you.")
                     protocol_instance_string = str(self.users[self].protocol).replace(" ", "")
                     random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
-                    random_nick_s = re.sub("[.<>_]", "", random_nick[:35])
+                    random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>_'`")])
 
                     # This is probably (most-definitely) un-needed, but I am paranoid.
                     def validate_nick(nick, current_nicks):
@@ -119,7 +118,7 @@ class IRCProtocol(IRC):
                     random_nick_s = validate_nick(random_nick_s, current_nicknames)
 
                     self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), random_nick_s))
-                    self.sendLine("Your nickname has been set to a random string based off your unique ID.")
+                    self.sendLine("Your nickname has been set to a random string based on your unique ID.")
                     self.users[self].nickname = random_nick_s
                     self.set_host_mask(random_nick_s, self.users[self].host)
 
