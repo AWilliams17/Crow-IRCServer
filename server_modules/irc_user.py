@@ -8,3 +8,7 @@ class IRCUser:
         self.hostmask = hostmask
         self.channels = channels
         self.nickattempts = nickattempts
+
+
+
+

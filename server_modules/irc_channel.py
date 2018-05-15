@@ -1,3 +1,15 @@
+from enum import Enum
+# ToDo: Kick, Kicked Methods + Reasons
+
+
+# Is there a better way to go about this?
+class QuitReason(Enum):
+        LEFT = ":{} QUIT :User Left Channel\r\n"
+        DISCONNECTED = ":{} QUIT :User Disconnected\r\n"
+        TIMEOUT = ":{} QUIT :User Timed Out\r\n"
+        UNSPECIFIED = ":{} QUIT :Unspecified Reason\r\n"
+
+
 class IRCChannel:
     def __init__(self, name):
         self.channel_name = name
@@ -20,7 +32,8 @@ class IRCChannel:
                 user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
             self.send_names(user)
 
-    def remove_user(self, user):
+    def remove_user(self, user, reason=QuitReason.UNSPECIFIED):
+        self.send_line(reason.value.format(user.hostmask))
         self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
         user.channels.remove(self)
@@ -37,7 +50,6 @@ class IRCChannel:
 
     def send_message(self, message, sender):
         for user in self.users:
-            print("DDDDDDDD")
             if user.hostmask != sender:
                 user.protocol.privmsg(sender, self.channel_name, message)
 

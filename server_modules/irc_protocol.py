@@ -1,7 +1,6 @@
 from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
-from twisted.internet import threads, defer, reactor
-from server_modules.irc_channel import IRCChannel
+from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from random import sample, choice
 from string import ascii_uppercase, ascii_lowercase, digits
@@ -22,9 +21,7 @@ class IRCProtocol(IRC):
     def connectionLost(self, reason=protocol.connectionDone):
         if reason.type is ConnectionLost and self in self.users:
             for channel in self.users[self].channels:
-                channel.remove_user(self.users[self])
-                # ToDo: Move this to irc_channel
-                self.channels[channel].send_line(":{} QUIT :Client Timed Out\r\n".format(self.users[self].hostmask))
+                channel.remove_user(self.users[self], reason=QuitReason.TIMEOUT)
             # ToDo: Fix keyerror
             del self.users[self]
 
@@ -51,9 +48,7 @@ class IRCProtocol(IRC):
     def irc_QUIT(self, prefix, params):
         if self.users[self].protocol in list(self.users.keys()):
             for channel in self.users[self].channels:
-                channel.remove_user(self.users[self])
-                # ToDo: Move this to irc_channel
-                self.channels[channel].send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
+                channel.remove_user(self.users[self], reason=QuitReason.DISCONNECTED)
             # ToDo: Keyerror
             del self.users[self]
 
@@ -61,10 +56,7 @@ class IRCProtocol(IRC):
 
     def irc_PART(self, prefix, params):
         channel = params[0]
-        self.channels[channel].remove_user(self.users[self])
-        # ToDo: Move this to irc_channel
-        # ToDo: Make it an enum
-        self.channels[channel].send_line(":{} QUIT :Client Quit\r\n".format(self.users[self].hostmask))
+        self.channels[channel].remove_user(self.users[self], reason=QuitReason.LEFT)
 
     def irc_PRIVMSG(self, prefix, params):
         destination = params[0]
