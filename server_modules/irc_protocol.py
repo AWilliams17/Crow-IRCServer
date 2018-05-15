@@ -11,15 +11,12 @@ class IRCProtocol(IRC):
     def __init__(self, users, channels):
         self.users = users
         self.channels = channels
-        self.nickname = None
-        self.username = None
-        self.previous = None
 
     def connectionMade(self):
         server_name = "Test-IRCServer"  # Place Holder!
         self.sendLine("You are now connected to %s" % server_name)  # ToDo: Implement the server_name properly.
         self.users[self] = IRCUser(
-            self, self.username, self.nickname, None, self.transport.getPeer().host, None, None, 0
+            self, None, None, None, self.transport.getPeer().host, None, None, 0
         )
 
     def connectionLost(self, reason=protocol.connectionDone):
