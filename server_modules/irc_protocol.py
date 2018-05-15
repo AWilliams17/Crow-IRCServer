@@ -19,10 +19,13 @@ class IRCProtocol(IRC):
         )
 
     def connectionLost(self, reason=protocol.connectionDone):
-        if reason.type is ConnectionLost and self in self.users:
-            for channel in self.users[self].channels:
-                channel.remove_user(self.users[self], reason=QuitReason.TIMEOUT)
-            # ToDo: Fix keyerror
+        if self in self.users:
+            if self.users[self].channels is not None:
+                for channel in self.users[self].channels:
+                    quit_reason = QuitReason.UNSPECIFIED
+                    if reason.type == ConnectionLost:
+                        quit_reason = QuitReason.TIMEOUT
+                    channel.remove_user(self.users[self], reason=quit_reason)
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
@@ -46,13 +49,10 @@ class IRCProtocol(IRC):
         self.channels[channel].add_user(self.users[self])
 
     def irc_QUIT(self, prefix, params):
-        if self.users[self].protocol in list(self.users.keys()):
+        if self in self.users:
             for channel in self.users[self].channels:
                 channel.remove_user(self.users[self], reason=QuitReason.DISCONNECTED)
-            # ToDo: Keyerror
             del self.users[self]
-
-        # ToDo: Send Quit message
 
     def irc_PART(self, prefix, params):
         channel = params[0]
