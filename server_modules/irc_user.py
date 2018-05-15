@@ -9,6 +9,12 @@ class IRCUser:
         self.channels = channels
         self.nickattempts = nickattempts
 
-
-
-
+    def set_host_mask(self, nickname):
+        username = "*"
+        if self.username is not None:
+            username = self.username
+        self.hostmask = "{}!{}@{}".format(
+            nickname,
+            username,
+            self.host
+        )

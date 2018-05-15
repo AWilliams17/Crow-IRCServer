@@ -4,6 +4,13 @@ from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from random import sample, choice
 from string import ascii_uppercase, ascii_lowercase, digits
+from twisted.internet import reactor
+
+from twisted.internet.threads import deferToThread, blockingCallFromThread
+# ToDo: Implement CAP
+# ToDo: Implement WHO
+# ToDo: Implement WHOIS
+# ToDo: Implement MODE
 
 
 class IRCProtocol(IRC):
@@ -32,10 +39,10 @@ class IRCProtocol(IRC):
         self.sendLine("Error: Unknown command: {}{}".format(command, params))
 
     def irc_JOIN(self, prefix, params):
-        # self.topic(self.username, self.channels[channel].channel_name, topic="Test")  # ToDo: Topics
-        # ToDo: Restrict users that have no nicknames from joining
-        # ToDo: On join set proper hostmask
-        # ToDo: Fix the stupid nickname list thing on first join
+        #self.set_host_mask(self.users[self].nickname, self.users[self].host)  # Ensure they have a proper hostmask
+
+        self.users[self].set_host_mask(self.users[self].nickname)
+
         channel = params[0].lower()
         if channel[0] != "#":
             self.sendLine("Error: Channel name must start with a '#'")
@@ -75,13 +82,14 @@ class IRCProtocol(IRC):
     # ToDo: ...Refactor this? Probably a lot of this can be used to irc_user
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
-        # ToDo: Max_Nick_Length
+
         if len(attempted_nickname) > 35:
             attempted_nickname = attempted_nickname[:35]
             self.sendLine("Nickname exceeded max char limit(35). It has been trimmed to: {}".format(attempted_nickname))
 
         if self.users[self].hostmask is None:
-            self.set_host_mask(attempted_nickname, self.users[self].host)
+            #self.set_host_mask(attempted_nickname, self.users[self].host)
+            self.users[self].set_host_mask(attempted_nickname)
 
         current_nicknames = []
         for i in self.users:
@@ -120,7 +128,7 @@ class IRCProtocol(IRC):
                     self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), random_nick_s))
                     self.sendLine("Your nickname has been set to a random string based on your unique ID.")
                     self.users[self].nickname = random_nick_s
-                    self.set_host_mask(random_nick_s, self.users[self].host)
+                    self.users[self].set_host_mask(random_nick_s)
 
                     self.users[self].nickattempts = 0
                     # If they haven't tried twice yet, give them a chance to set it.
@@ -139,25 +147,17 @@ class IRCProtocol(IRC):
                     channel.rename_user(self.users[self], attempted_nickname)
                 self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), attempted_nickname))
                 self.users[self].nickname = attempted_nickname
-                self.set_host_mask(self.users[self].nickname, self.users[self].host)
+                self.users[self].set_host_mask(self.users[self].nickname)
+
             if self.users[self].nickattempts != 0:
                 # This is their first connection: they recently tried an invalid nick, so tell them this one is accepted
                 self.sendLine(":{} NICK {}".format("{}".format(self.users[self].hostmask), attempted_nickname))
                 self.users[self].nickattempts = 0
+            # ToDo: Fix this
             self.users[self].nickname = attempted_nickname
-            self.set_host_mask(self.users[self].nickname, self.users[self].host)
+            self.users[self].set_host_mask(self.users[self].nickname)
 
     def irc_USER(self, prefix, params):
         self.users[self].username = params[0]
         self.users[self].realname = params[3]
         self.users[self].channels = []
-
-    def set_host_mask(self, nickname, host):
-        username = "*"
-        if self.users[self].username is not None:
-            username = self.users[self].username
-        self.users[self].hostmask = "{}!{}@{}".format(
-            nickname,
-            username,
-            host
-        )

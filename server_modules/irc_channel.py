@@ -1,5 +1,12 @@
 from enum import Enum
+# http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
 # ToDo: Kick, Kicked Methods + Reasons
+# ToDo: Implement invite list
+# ToDo: Implement Bans + Reasons
+# ToDo: Implement passwords
+# ToDo: Send topic in add_user (self.topic(self.username, self.channels[channel].channel_name, topic="Test"))
+# ToDo: Max Clients
+# ToDo: Allow the owner of the channel to delete it
 
 
 # Is there a better way to go about this?
@@ -22,6 +29,7 @@ class IRCChannel:
 
         if user.nickname is None:
             user.protocol.sendLine("Failed to join channel: Your nickname is not set.")
+            return
 
         user.protocol.join(user.hostmask, self.channel_name)
         user.channels.append(self)
@@ -30,7 +38,7 @@ class IRCChannel:
         for user_ in self.users:
             if user_ != user:
                 user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
-            self.send_names(user)
+        self.send_names(user)
 
     def remove_user(self, user, reason=QuitReason.UNSPECIFIED):
         self.send_line(reason.value.format(user.hostmask))
