@@ -36,8 +36,6 @@ class IRCProtocol(IRC):
         self.sendLine("Error: Unknown command: '{} {}'".format(command, params))
 
     def irc_JOIN(self, prefix, params):
-        self.users[self].hostmask = self.users[self].nickname
-
         channel = params[0].lower()
         if channel[0] != "#":
             self.sendLine("Error: Channel name must start with a '#'")

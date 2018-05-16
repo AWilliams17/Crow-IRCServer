@@ -33,6 +33,9 @@ class IRCChannel:
             user.protocol.sendLine("Failed to join channel: Your nickname is not set.")
             return
 
+        if user.hostmask is None:
+            user.hostmask = user.nickname
+
         user.protocol.join(user.hostmask, self.channel_name)
         user.channels.append(self)
         self.channel_nicks.append(user.nickname)
