@@ -34,10 +34,20 @@ class IRCUser:
 
     @nickname.setter
     def nickname(self, desired_nickname):
+        illegal_characters = set(".<>'`()")
+
+        error = None
         if len(desired_nickname) > 35:
-            error = "Error: Nickname exceeded max char limit (35)."
+            error = "Error: Nickname exceeded max char limit (35)"
             if self.__nickname is None:
                 error = error + " Use /nick to set a new nick."
+        if any((c in illegal_characters) for c in desired_nickname):
+            error = ":{} 436 * {} :Erroneous Nickname ".format(self.host, desired_nickname)
+            if self.nickname is None:
+                error = ":{} 432 * {} :Erroneous Nickname ".format(self.host, self.nickname)
+                self.nickattempts += 1
+
+        if error is not None:
             raise ValueError(error)
 
         if self.__nickname is not None:
@@ -57,7 +67,7 @@ class IRCUser:
     def rename_to_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
-        random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>_'`")])
+        random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>'`()")])
 
         def validate_nick(nick, current_nicks):
             if nick in current_nicknames:
@@ -76,5 +86,4 @@ class IRCUser:
 
         random_nick_s = validate_nick(random_nick_s, current_nicknames)
         self.nickname = random_nick_s
-        self.protocol.sendLine("Your nickname has been set to a random string based on your unique ID.")
 

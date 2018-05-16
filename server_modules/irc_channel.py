@@ -43,7 +43,7 @@ class IRCChannel:
         self.send_names(user)
 
     def remove_user(self, user, reason=QuitReason.UNSPECIFIED):
-        self.send_line(reason.value.format(user.hostmask))
+        self.broadcast_line(reason.value.format(user.hostmask))
         self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
         user.channels.remove(self)
@@ -58,11 +58,11 @@ class IRCChannel:
             if user_.protocol is not user:
                 user_.protocol.sendLine(":{} NICK {}".format(user.hostmask, new_nick))
 
-    def send_message(self, message, sender):
+    def broadcast_message(self, message, sender):
         for user in self.users:
             if user.hostmask != sender:
                 user.protocol.privmsg(sender, self.channel_name, message)
 
-    def send_line(self, line):
+    def broadcast_line(self, line):
         for user in self.users:
             user.protocol.sendLine(line)
