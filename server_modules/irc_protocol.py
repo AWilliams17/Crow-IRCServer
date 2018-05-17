@@ -58,21 +58,13 @@ class IRCProtocol(IRC):
     def irc_PRIVMSG(self, prefix, params):
         param_count = len(params)
 
-        # ToDo: Also this is horrible
-        error = None
-        if param_count < 2:
-            error = ":{} 461 <privmsg> :Not enough parameters.".format(self.users[self].hostmask)
-
+        # error = ":{} 461 <privmsg> :Not enough parameters.".format(self.users[self].hostmask)
+        # error = ":{} 414 <mask> :Wildcards (? and *) not allowed in destination.".format(self.users[self].hostmask)
+        # error = ":{} 404 <channel name> :Channel does not exist.".format(self.users[self].hostmask)
+        
         destination = params[0]
         message = params[1]
         sender = self.users[self].hostmask
-
-        if "*" in params[0] or "?" in params[0]:
-            error = ":{} 414 <mask> :Wildcards (? and *) not allowed in destination.".format(self.users[self].hostmask)
-
-        if error is not None:
-            self.sendLine(error)
-            return
 
         if destination[0] == "#":
             self.channels[destination].broadcast_message(message, sender)

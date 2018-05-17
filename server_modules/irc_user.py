@@ -56,7 +56,7 @@ class IRCUser:
 
     @nickname.setter
     def nickname(self, desired_nickname):
-        illegal_characters = set(".<>'`()?*")
+        illegal_characters = set(".<>'`()?*#")
 
         error = None
         if len(desired_nickname) > 35:
@@ -89,7 +89,7 @@ class IRCUser:
     def rename_to_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
-        random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>'`()?*")])
+        random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>'`()?*#")])
 
         def validate_nick(nick, current_nicks):
             if nick in current_nicknames:
