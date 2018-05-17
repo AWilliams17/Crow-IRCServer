@@ -55,25 +55,42 @@ class IRCProtocol(IRC):
         self.channels[channel].remove_user(self.users[self], reason=QuitReason.LEFT)
 
     # ToDo: Really there should just be a method for this in irc_user
+    # ToDo: Try to refactor this further
     def irc_PRIVMSG(self, prefix, params):
-        param_count = len(params)
-
-        # error = ":{} 461 <privmsg> :Not enough parameters.".format(self.users[self].hostmask)
-        # error = ":{} 414 <mask> :Wildcards (? and *) not allowed in destination.".format(self.users[self].hostmask)
-        # error = ":{} 404 <channel name> :Channel does not exist.".format(self.users[self].hostmask)
-        
-        destination = params[0]
-        message = params[1]
         sender = self.users[self].hostmask
+        param_count = len(params)
+        destination = None
+        message = None
+        error = None
 
-        if destination[0] == "#":
-            self.channels[destination].broadcast_message(message, sender)
+        if param_count < 2:
+            error = "Error: Not enough parameters.".format(sender)
         else:
-            for i in self.users:
-                destination_user_protocol = self.users.get(i).protocol
-                destination_nickname = self.users.get(i).nickname
-                if self.users[self].protocol != destination_user_protocol and destination_nickname == destination:
-                    destination_user_protocol.privmsg(sender, destination, message)
+            destination = params[0]
+            message = params[1]
+
+        if error is None and destination is not None:
+            if "*" in destination or "?" in destination:
+                error = "Error: Wildcards (? and *) not allowed in destination.".format(sender)
+            if error is None and destination[0] == "#":
+                if destination not in self.channels:
+                    error = "Error: Channel does not exist.".format(sender)
+                if error is None and self.users[self] not in self.channels[destination].users:
+                    error = "Error: You cannot send messages to a channel you are not in."
+            if error is None and destination[0] != "#":
+                error = "User not found."
+                for i in self.users:
+                    destination_user_protocol = self.users.get(i).protocol
+                    destination_nickname = self.users.get(i).nickname
+                    if self.users[self].protocol != destination_user_protocol and destination_nickname == destination:
+                        destination_user_protocol.privmsg(sender, destination, message)
+                        return
+
+        if error is not None:
+            self.sendLine(error)
+            return
+
+        self.channels[destination].broadcast_message(message, sender)
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
@@ -118,3 +135,4 @@ class IRCProtocol(IRC):
         except ValueError as e:
             self.sendLine(str(e))
             self.transport.loseConnection()
+
