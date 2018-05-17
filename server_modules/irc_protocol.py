@@ -6,6 +6,7 @@ from server_modules.irc_user import IRCUser
 # ToDo: Implement WHO
 # ToDo: Implement WHOIS
 # ToDo: Implement MODE
+# ToDo: Are ping/pongs even working?
 
 
 class IRCProtocol(IRC):
@@ -25,7 +26,7 @@ class IRCProtocol(IRC):
                 if reason.type == ConnectionLost:
                     quit_reason = QuitReason.TIMEOUT
                 channel.remove_user(self.users[self], reason=quit_reason)
-        del self.users[self]
+            del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine("Error: Unknown command: '{} {}'".format(command, params))
@@ -33,8 +34,8 @@ class IRCProtocol(IRC):
     def irc_JOIN(self, prefix, params):
         channel = params[0].lower()
         if channel[0] != "#":
-            self.sendLine("Error: Channel name must start with a '#'")
-            return
+            channel = "#" + channel
+
         # The channel doesn't exist on the network - create it.
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
@@ -66,6 +67,8 @@ class IRCProtocol(IRC):
                 destination_nickname = self.users.get(i).nickname
                 if self.users[self].protocol != destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(sender, destination, message)
+
+
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
