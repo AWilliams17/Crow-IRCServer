@@ -32,11 +32,16 @@ class IRCProtocol(IRC):
         self.sendLine("Error: Unknown command: '{} {}'".format(command, params))
 
     def irc_JOIN(self, prefix, params):
+        if len(params) != 1:
+            self.sendLine("Error: maximum/minimum 1 parameter.")
+            return
+
         channel = params[0].lower()
         if channel[0] != "#":
             channel = "#" + channel
 
         # The channel doesn't exist on the network - create it.
+        # ToDo: Add too many channels message along with config option for it
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
 
