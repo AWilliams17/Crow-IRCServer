@@ -16,21 +16,16 @@ class IRCProtocol(IRC):
     def connectionMade(self):
         server_name = "Test-IRCServer"  # Place Holder!
         self.sendLine("You are now connected to %s" % server_name)  # ToDo: Implement the server_name properly.
-        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host, None, None, 0)
+        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host, None, [], 0)
 
     def connectionLost(self, reason=protocol.connectionDone):
         if self in self.users:
-            if self.users[self].channels is not None:
-                for channel in self.users[self].channels:
-                    quit_reason = QuitReason.UNSPECIFIED
-                    if reason.type == ConnectionLost:
-                        quit_reason = QuitReason.TIMEOUT
-                    channel.remove_user(self.users[self], reason=quit_reason)
-            del self.users[self]
-
-    #def dataReceived(self, data):
-    #    print(data)
-    #    print(str(len(data)))
+            for channel in self.users[self].channels:
+                quit_reason = QuitReason.UNSPECIFIED
+                if reason.type == ConnectionLost:
+                    quit_reason = QuitReason.TIMEOUT
+                channel.remove_user(self.users[self], reason=quit_reason)
+        del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine("Error: Unknown command: '{} {}'".format(command, params))
@@ -108,6 +103,10 @@ class IRCProtocol(IRC):
                 self.sendLine(str(err))
 
     def irc_USER(self, prefix, params):
-        self.users[self].username = params[0]
-        self.users[self].realname = params[3]
-        self.users[self].channels = []
+        try:
+            self.users[self].username = params
+        except AttributeError as ae:
+            self.sendLine(str(ae))
+        except ValueError as e:
+            self.sendLine(str(e))
+            self.transport.loseConnection()

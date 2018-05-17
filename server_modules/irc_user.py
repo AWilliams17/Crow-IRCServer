@@ -5,7 +5,7 @@ from string import ascii_lowercase, ascii_uppercase, digits
 class IRCUser:
     def __init__(self, protocol, username, nickname, realname, host, hostmask, channels, nickattempts):
         self.protocol = protocol
-        self.username = username
+        self.__username = username
         self.__nickname = nickname
         self.realname = realname
         self.host = host
@@ -27,6 +27,28 @@ class IRCUser:
             username,
             self.host
         )
+
+    @property
+    def username(self):
+        return self.__username
+
+    @username.setter
+    def username(self, params):
+        illegal_characters = set(".<>'`()")
+        username = params[0]
+        username_length = len(username)
+        realname = params[3]
+        if self.__username is not None:
+            raise AttributeError("Client already has a username.")
+        if username_length == 0:
+            raise ValueError("Username can not be blank.")
+        if username_length > 35:
+            raise ValueError("Username can not be greater than 35 characters.")
+        if any((c in illegal_characters) for c in username):
+            raise ValueError("Illegal characters in username.")
+        self.__username = username
+        self.realname = realname
+
 
     @property
     def nickname(self):
