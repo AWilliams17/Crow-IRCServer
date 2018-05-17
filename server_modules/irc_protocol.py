@@ -54,10 +54,25 @@ class IRCProtocol(IRC):
         channel = params[0]
         self.channels[channel].remove_user(self.users[self], reason=QuitReason.LEFT)
 
+    # ToDo: Really there should just be a method for this in irc_user
     def irc_PRIVMSG(self, prefix, params):
+        param_count = len(params)
+
+        # ToDo: Also this is horrible
+        error = None
+        if param_count < 2:
+            error = ":{} 461 <privmsg> :Not enough parameters.".format(self.users[self].hostmask)
+
         destination = params[0]
         message = params[1]
         sender = self.users[self].hostmask
+
+        if "*" in params[0] or "?" in params[0]:
+            error = ":{} 414 <mask> :Wildcards (? and *) not allowed in destination.".format(self.users[self].hostmask)
+
+        if error is not None:
+            self.sendLine(error)
+            return
 
         if destination[0] == "#":
             self.channels[destination].broadcast_message(message, sender)
@@ -67,8 +82,6 @@ class IRCProtocol(IRC):
                 destination_nickname = self.users.get(i).nickname
                 if self.users[self].protocol != destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(sender, destination, message)
-
-
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
