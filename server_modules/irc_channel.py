@@ -5,7 +5,6 @@ from enum import Enum
 # ToDo: Implement Bans + Reasons
 # ToDo: Implement passwords
 # ToDo: Send topic in add_user (self.topic(self.username, self.channels[channel].channel_name, topic="Test"))
-# ToDo: Max Clients
 # ToDo: Allow the owner of the channel to delete it
 
 

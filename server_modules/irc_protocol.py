@@ -2,6 +2,7 @@ from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
+# ToDo: IRCUser is a massive mess, as well as irc_NICK
 # ToDo: Implement CAP
 # ToDo: Implement WHO
 # ToDo: Implement WHOIS
@@ -16,9 +17,10 @@ class IRCProtocol(IRC):
         self.config = config
 
     def connectionMade(self):
-        server_name = "Test-IRCServer"  # Place Holder!
-        self.sendLine("You are now connected to %s" % server_name)  # ToDo: Implement the server_name properly.
-        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host, None, [], 0)
+        server_name = self.config.ServerSettings['ServerName']
+        max_nick_length = self.config.NicknameSettings['Max_Length']
+        self.sendLine("You are now connected to %s" % server_name)
+        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host, None, [], 0, max_nick_length)
 
     def connectionLost(self, reason=protocol.connectionDone):
         if self in self.users:
@@ -42,7 +44,6 @@ class IRCProtocol(IRC):
             channel = "#" + channel
 
         # The channel doesn't exist on the network - create it.
-        # ToDo: Add too many channels message along with config option for it
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
 
@@ -99,6 +100,7 @@ class IRCProtocol(IRC):
         self.channels[destination].broadcast_message(message, sender)
 
     def irc_NICK(self, prefix, params):
+        reserved_nicknames = self.config.NicknameSettings["ReservedNicknames"]
         attempted_nickname = params[0]
         if self.users[self].hostmask is None:
             self.users[self].hostmask = attempted_nickname
@@ -111,12 +113,12 @@ class IRCProtocol(IRC):
             in_use_nicknames.append(self.users[i].nickname)
 
         # The nickname is taken.
-        if attempted_nickname in in_use_nicknames:
+        if attempted_nickname in in_use_nicknames or attempted_nickname in reserved_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
             if self.users[self].nickname is None:
                 # They've had 2 attempts at changing it - Generate one for them.
                 if self.users[self].nickattempts != 2:
-                    self.sendLine(":{} 433 * {} :Nickname is already in use.".format(
+                    self.sendLine(":{} 433 * {} :Nickname is already in use/is not allowed".format(
                         self.users[self].host, attempted_nickname)
                     )
                     self.users[self].nickattempts += 1
@@ -126,7 +128,7 @@ class IRCProtocol(IRC):
                     self.sendLine("Your nickname has been set to a random string based on your unique ID.")
             else:
                 # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                self.sendLine("The nickname {} is already in use.".format(attempted_nickname))
+                self.sendLine("The nickname {} is already in use/is not allowed.".format(attempted_nickname))
         else:
             try:
                 self.users[self].nickname = attempted_nickname

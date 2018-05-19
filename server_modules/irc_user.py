@@ -3,7 +3,7 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 
 class IRCUser:
-    def __init__(self, protocol, username, nickname, realname, host, hostmask, channels, nickattempts):
+    def __init__(self, protocol, username, nickname, realname, host, hostmask, channels, nickattempts, nick_length):
         self.protocol = protocol
         self.__username = username
         self.__nickname = nickname
@@ -12,6 +12,7 @@ class IRCUser:
         self.__hostmask = hostmask
         self.channels = channels
         self.nickattempts = nickattempts
+        self.nick_length = nick_length
 
     @property
     def hostmask(self):
@@ -42,8 +43,8 @@ class IRCUser:
             raise AttributeError("Client already has a username.")
         if username_length == 0:
             raise ValueError("Username can not be blank.")
-        if username_length > 35:
-            raise ValueError("Username can not be greater than 35 characters.")
+        if username_length > self.nick_length:
+            raise ValueError("Username can not be greater than {} characters.".format(str(self.nick_length)))
         if any((c in illegal_characters) for c in username):
             raise ValueError("Illegal characters in username.")
         self.__username = username
@@ -59,8 +60,8 @@ class IRCUser:
         illegal_characters = set(".<>'`()?*#")
 
         error = None
-        if len(desired_nickname) > 35:
-            error = "Error: Nickname exceeded max char limit (35)"
+        if len(desired_nickname) > self.nick_length:
+            error = "Error: Nickname exceeded max char limit ({})".format(str(self.nick_length))
             if self.__nickname is None:
                 error = error + " Use /nick to set a new nick."
         if any((c in illegal_characters) for c in desired_nickname):
@@ -89,7 +90,7 @@ class IRCUser:
     def rename_to_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
-        random_nick_s = ''.join([c for c in random_nick[:35] if c not in set(".<>'`()?*#")])
+        random_nick_s = ''.join([c for c in random_nick[:self.nick_length] if c not in set(".<>'`()?*#")])
 
         def validate_nick(nick, current_nicks):
             if nick in current_nicknames:
@@ -101,8 +102,8 @@ class IRCUser:
                             digits) for i in range(amount)
                     ])
 
-                # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under 35
-                nick = (''.join(sample(nick, len(nick))) + generate_junk(15))[:35]
+                # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under nick length
+                nick = (''.join(sample(nick, len(nick))) + generate_junk(15))[:self.nick_length]
                 validate_nick(nick, current_nicks)
             return nick
 
