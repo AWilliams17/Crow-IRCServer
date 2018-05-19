@@ -22,8 +22,7 @@ class IRCUser:
     def hostmask(self):
         return self.__hostmask
 
-    @hostmask.setter
-    def hostmask(self, nickname):
+    def set_hostmask(self, nickname):
         username = "*"
         if self.username is not None:
             username = self.username
@@ -57,7 +56,7 @@ class IRCUser:
 
     def set_nickname(self, desired_nickname):
         if self.hostmask is None:
-            self.hostmask = desired_nickname
+            self.set_hostmask(desired_nickname)
 
         if desired_nickname == self.nickname:
             return None
@@ -76,7 +75,7 @@ class IRCUser:
                     randomized_nick = self._generate_random_nick(in_use_nicknames)
                     previous_hostmask = self.hostmask  # Store this since it's going to be changed
                     self.__nickname = randomized_nick
-                    self.hostmask = self.nickname
+                    self.set_hostmask(self.nickname)
                     output = "Nickname attempts exceeded(2). A random nickname was generated for you."
                     output += "\n:{} NICK {}".format(previous_hostmask, randomized_nick)
                     return output
@@ -105,7 +104,7 @@ class IRCUser:
             output = ":{} NICK {}".format(self.hostmask, desired_nickname)  # Tell them it was accepted.
 
         self.__nickname = desired_nickname
-        self.hostmask = desired_nickname
+        self.set_hostmask(desired_nickname)
         return output  # Return any errors/any rename notices.
 
     def _generate_random_nick(self, current_nicknames):

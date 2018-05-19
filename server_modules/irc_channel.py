@@ -33,7 +33,7 @@ class IRCChannel:
             return
 
         if user.hostmask is None:
-            user.hostmask = user.nickname
+            user.set_hostmask(user.nickname)
 
         user.protocol.join(user.hostmask, self.channel_name)
         user.channels.append(self)
