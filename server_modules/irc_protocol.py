@@ -19,8 +19,10 @@ class IRCProtocol(IRC):
     def connectionMade(self):
         server_name = self.config.ServerSettings['ServerName']
         max_nick_length = self.config.NicknameSettings['MaxLength']
+        max_user_length = self.config.UserSettings['MaxLength']
         self.sendLine("You are now connected to %s" % server_name)
-        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host, None, [], 0, max_nick_length)
+        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host,
+                                   None, [], 0, max_nick_length, max_user_length)
 
     def connectionLost(self, reason=protocol.connectionDone):
         if self in self.users:
@@ -106,14 +108,11 @@ class IRCProtocol(IRC):
         if results is not None:
             self.sendLine(results)
 
-
-
     def irc_USER(self, prefix, params):
-        try:
-            self.users[self].username = params
-        except AttributeError as ae:
-            self.sendLine(str(ae))
-        except ValueError as e:
-            self.sendLine(str(e))
-            self.transport.loseConnection()
+        username = params[0]
+        realname = params[3]
 
+        results = self.users[self].set_username(username, realname)
+        if results is not None:  # Their username is invalid. Boot them.
+            self.sendLine(results)
+            self.transport.loseConnection()

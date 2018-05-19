@@ -1,6 +1,5 @@
 from configparser import ConfigParser
 from os import getcwd, path
-# ToDo: Make Max Clients work
 
 
 class IRCConfig:

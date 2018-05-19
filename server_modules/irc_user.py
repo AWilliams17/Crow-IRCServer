@@ -5,7 +5,8 @@ from string import ascii_lowercase, ascii_uppercase, digits
 class IRCUser:
     illegal_characters = set(".<>'`()?*#")
 
-    def __init__(self, protocol, username, nickname, realname, host, hostmask, channels, nickattempts, nick_length):
+    def __init__(self, protocol, username, nickname, realname, host, hostmask, channels,
+                 nickattempts, nick_length, user_length):
         self.protocol = protocol
         self.__username = username
         self.__nickname = nickname
@@ -15,6 +16,7 @@ class IRCUser:
         self.channels = channels
         self.nickattempts = nickattempts
         self.nick_length = nick_length
+        self.user_length = user_length
 
     @property
     def hostmask(self):
@@ -35,24 +37,19 @@ class IRCUser:
     def username(self):
         return self.__username
 
-    @username.setter
-    def username(self, params):
-        illegal_characters = set(".<>'`()")
-        username = params[0]
+    def set_username(self, username, realname):
         username_length = len(username)
-        realname = params[3]
 
-        if self.__username is not None:
-            raise AttributeError("Client already has a username.")
         if username_length == 0:
-            raise ValueError("Username can not be blank.")
-        if username_length > self.nick_length:
-            raise ValueError("Username can not be greater than {} characters.".format(str(self.nick_length)))
-        if any((c in illegal_characters) for c in username):
-            raise ValueError("Illegal characters in username.")
+            return "Username can not be blank."
+        if username_length > self.user_length:
+            return "Username can not be greater than {} characters.".format(str(self.user_length))
+        if any((c in self.illegal_characters) for c in username):
+            return "Illegal characters in username."
 
         self.__username = username
         self.realname = realname
+        return None
 
     @property
     def nickname(self):
