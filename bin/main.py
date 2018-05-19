@@ -18,5 +18,5 @@ if __name__ == '__main__':
 		exit()
 
 	# ToDo: Allow custom ports
-	reactor.listenTCP(6667, ChatServer(config))
+	reactor.listenTCP(config.ServerSettings['Port'], ChatServer(config))
 	reactor.run()

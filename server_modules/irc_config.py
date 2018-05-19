@@ -38,16 +38,15 @@ class IRCConfig:
         errors = None
         with open(self._config_path, 'w') as crow_ini:
             self._crow_config.add_section("ServerSettings")
-            self._crow_config.set("ServerSettings", "Port", "0")
+            self._crow_config.set("ServerSettings", "Port", "6667")
             self._crow_config.add_section("ChannelSettings")
-            self._crow_config.set("ChannelSettings", "Max_Channels", "0")
-            self._crow_config.set("ChannelSettings", "Max_Connected", "0")
+            self._crow_config.set("ChannelSettings", "Max_Channels", "35")
+            self._crow_config.set("ChannelSettings", "Max_Connected", "50")
             self._crow_config.add_section("NicknameSettings")
-            self._crow_config.set("NicknameSettings", "Reserved_Nicknames", "")
-            self._crow_config.set("NicknameSettings", "Max_Length", "0")
+            self._crow_config.set("NicknameSettings", "Reserved_Nicknames", "Admin,Owner")
+            self._crow_config.set("NicknameSettings", "Max_Length", "35")
             try:
                 self._crow_config.write(crow_ini)
             except Exception as e:
                 errors = str(e)
         return errors
-
