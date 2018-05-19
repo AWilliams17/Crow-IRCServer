@@ -51,7 +51,9 @@ class IRCProtocol(IRC):
 
         # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
-        self.channels[channel].add_user(self.users[self])
+        results = self.channels[channel].add_user(self.users[self])
+        if results is not None:
+            self.sendLine(results)
 
     def irc_QUIT(self, prefix, params):
         if self in self.users:
@@ -63,8 +65,6 @@ class IRCProtocol(IRC):
         channel = params[0]
         self.channels[channel].remove_user(self.users[self], reason=QuitReason.LEFT)
 
-    # ToDo: Really there should just be a method for this in irc_user
-    # ToDo: Try to refactor this further
     def irc_PRIVMSG(self, prefix, params):
         param_count = len(params)
 

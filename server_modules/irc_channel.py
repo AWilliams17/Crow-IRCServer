@@ -25,12 +25,10 @@ class IRCChannel:
     def add_user(self, user):
         # This user is already in the channel
         if user in self.users:
-            user.protocol.sendLine("You are already in that channel.")
-            return
+            return "You are already in that channel."
 
         if user.nickname is None:
-            user.protocol.sendLine("Failed to join channel: Your nickname is not set.")
-            return
+            return "Failed to join channel: Your nickname is not set."
 
         if user.hostmask is None:
             user.set_hostmask(user.nickname)
@@ -43,6 +41,7 @@ class IRCChannel:
             if user_ != user:
                 user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
         self.send_names(user)
+        return None
 
     def remove_user(self, user, reason=QuitReason.UNSPECIFIED):
         self.broadcast_line(reason.value.format(user.hostmask))
