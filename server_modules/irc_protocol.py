@@ -2,7 +2,6 @@ from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
-# ToDo: IRCUser is a massive mess, as well as irc_NICK
 # ToDo: Implement CAP
 # ToDo: Implement WHO
 # ToDo: Implement WHOIS
