@@ -10,9 +10,10 @@ from server_modules.irc_user import IRCUser
 
 
 class IRCProtocol(IRC):
-    def __init__(self, users, channels):
+    def __init__(self, users, channels, config):
         self.users = users
         self.channels = channels
+        self.config = config
 
     def connectionMade(self):
         server_name = "Test-IRCServer"  # Place Holder!

@@ -4,9 +4,10 @@ from collections import OrderedDict
 
 
 class ChatServer(Factory):
-    def __init__(self):
+    def __init__(self, config):
         self.users = OrderedDict()
         self.channels = OrderedDict()
+        self.config = config
 
     def buildProtocol(self, addr):
-        return IRCProtocol(self.users, self.channels)
+        return IRCProtocol(self.users, self.channels, self.config)

@@ -1,33 +1,53 @@
 from configparser import ConfigParser
-from os import getcwd, path, makedirs
+from os import getcwd, path
 
 
-def read_config():
-    crow_config = ConfigParser()
-    crow_path = getcwd().split("/bin")[0]
-    crow_config_path = crow_path + "/crow.ini"
+class IRCConfig:
+    def __init__(self):
+        self.ServerSettings = None
+        self.ChannelSettings = None
+        self.NicknameSettings = None
+        self._crow_config = ConfigParser()
+        self._crow_path = getcwd().split("/bin")[0]
+        self._config_path = self._crow_path + "/crow.ini"
 
-    if not path.exists(crow_config_path):
-        return None
+    def config_exists(self):
+        return path.exists(self._config_path)
 
-    return str(crow_config.read(crow_config_path))
-
-
-def _create_config(crow_config_path, crow_config):
-    with open(crow_config_path, 'w') as crow_ini:
-        result = None
-        crow_config.add_section("ServerSettings")
-        crow_config.set("ServerSettings", "Port", "0")
-        crow_config.add_section("ChannelSettings")
-        crow_config.set("ChannelSettings", "Max_Channels", "0")
-        crow_config.set("ChannelSettings", "Max_Connected", "0")
-        crow_config.add_section("NicknameSettings")
-        crow_config.set("NicknameSettings", "Reserved_Nicknames", "0")
-        crow_config.set("NicknameSettings", "Max_Length", "0")
+    def read_config(self):
+        self._crow_config.read(self._config_path)
+        errors = None
         try:
-            crow_config.write(crow_ini)
+            self.ServerSettings = {
+                "Port": int(self._crow_config['ServerSettings']['Port'])
+            }
+            self.ChannelSettings = {
+                "MaxChannels": int(self._crow_config['ChannelSettings']['Max_Channels']),
+                "MaxConnected": int(self._crow_config['ChannelSettings']['Max_Connected'])
+            }
+            self.NicknameSettings = {
+                "ReservedNicknames": [n for n in str(self._crow_config['NicknameSettings']['Reserved_Nicknames']).split(',')],
+                "MaxLength": int(self._crow_config['NicknameSettings']['Max_Length'])
+            }
         except Exception as e:
-            result = str(e)
+            errors = str(e)
 
-        return result
+        return errors
+
+    def create_config(self):
+        errors = None
+        with open(self._config_path, 'w') as crow_ini:
+            self._crow_config.add_section("ServerSettings")
+            self._crow_config.set("ServerSettings", "Port", "0")
+            self._crow_config.add_section("ChannelSettings")
+            self._crow_config.set("ChannelSettings", "Max_Channels", "0")
+            self._crow_config.set("ChannelSettings", "Max_Connected", "0")
+            self._crow_config.add_section("NicknameSettings")
+            self._crow_config.set("NicknameSettings", "Reserved_Nicknames", "")
+            self._crow_config.set("NicknameSettings", "Max_Length", "0")
+            try:
+                self._crow_config.write(crow_ini)
+            except Exception as e:
+                errors = str(e)
+        return errors
 
