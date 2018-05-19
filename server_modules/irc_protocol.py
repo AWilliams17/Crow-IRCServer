@@ -107,9 +107,7 @@ class IRCProtocol(IRC):
         if attempted_nickname == self.users[self].nickname:
             return
 
-        in_use_nicknames = []
-        for i in self.users:
-            in_use_nicknames.append(self.users[i].nickname)
+        in_use_nicknames = [x.nickname for x in self.users]
 
         # The nickname is taken.
         if attempted_nickname in in_use_nicknames:
