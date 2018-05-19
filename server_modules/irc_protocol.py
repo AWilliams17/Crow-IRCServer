@@ -100,7 +100,6 @@ class IRCProtocol(IRC):
         self.channels[destination].broadcast_message(message, sender)
 
     def irc_NICK(self, prefix, params):
-        reserved_nicknames = self.config.NicknameSettings["ReservedNicknames"]
         attempted_nickname = params[0]
         if self.users[self].hostmask is None:
             self.users[self].hostmask = attempted_nickname
@@ -113,7 +112,7 @@ class IRCProtocol(IRC):
             in_use_nicknames.append(self.users[i].nickname)
 
         # The nickname is taken.
-        if attempted_nickname in in_use_nicknames or attempted_nickname in reserved_nicknames:
+        if attempted_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
             if self.users[self].nickname is None:
                 # They've had 2 attempts at changing it - Generate one for them.
