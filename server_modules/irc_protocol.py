@@ -66,40 +66,16 @@ class IRCProtocol(IRC):
     # ToDo: Really there should just be a method for this in irc_user
     # ToDo: Try to refactor this further
     def irc_PRIVMSG(self, prefix, params):
-        sender = self.users[self].hostmask
         param_count = len(params)
-        destination = None
-        message = None
-        error = None
 
         if param_count < 2:
-            error = "Error: Not enough parameters.".format(sender)
+            self.sendLine("Error: Not enough parameters (2 required)")
+        elif param_count > 2:
+            self.sendLine("Error: Too many parameters (max: 2)")
         else:
-            destination = params[0]
-            message = params[1]
-
-        if error is None and destination is not None:
-            if "*" in destination or "?" in destination:
-                error = "Error: Wildcards (? and *) not allowed in destination.".format(sender)
-            if error is None and destination[0] == "#":
-                if destination not in self.channels:
-                    error = "Error: Channel does not exist.".format(sender)
-                if error is None and self.users[self] not in self.channels[destination].users:
-                    error = "Error: You cannot send messages to a channel you are not in."
-            if error is None and destination[0] != "#":
-                error = "User not found."
-                for i in self.users:
-                    destination_user_protocol = self.users.get(i).protocol
-                    destination_nickname = self.users.get(i).nickname
-                    if self.users[self].protocol != destination_user_protocol and destination_nickname == destination:
-                        destination_user_protocol.privmsg(sender, destination, message)
-                        return
-
-        if error is not None:
-            self.sendLine(error)
-            return
-
-        self.channels[destination].broadcast_message(message, sender)
+            results = self.users[self].send_msg(params[0], params[1])
+            if results is not None:
+                self.sendLine(results)
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]

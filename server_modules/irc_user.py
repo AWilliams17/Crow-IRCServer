@@ -107,6 +107,26 @@ class IRCUser:
         self.set_hostmask(desired_nickname)
         return output  # Return any errors/any rename notices.
 
+    def send_msg(self, destination, message):
+        if "*" in destination or "?" in destination:
+            return "Error: Wildcards (? and *) not allowed in destination."
+        if destination[0] == "#":
+            if destination not in self.protocol.channels:
+                return "Error: Channel does not exist."
+            if self not in self.protocol.channels[destination].users:
+                return "Error: You cannot send messages to a channel you are not in."
+            else:
+                self.protocol.channels[destination].broadcast_message(message, self.hostmask)
+                return None
+        if destination[0] != "#":
+            for i in self.protocol.users:
+                destination_user_protocol = self.protocol.users.get(i).protocol
+                destination_nickname = self.protocol.users.get(i).nickname
+                if self.protocol != destination_user_protocol and destination_nickname == destination:
+                    destination_user_protocol.privmsg(self.hostmask, destination, message)
+                    return None
+            return "Error: User not found."
+
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
