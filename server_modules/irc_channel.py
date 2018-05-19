@@ -22,6 +22,12 @@ class IRCChannel:
         self.users = []
         self.channel_nicks = []
 
+    def __str__(self):
+        host_list = [x.hostmask for x in self.users]
+        return "ChannelName: {}\nHostMaskList: {}\nNickList: {}\n".format(
+            self.channel_name, host_list, self.channel_nicks
+        )
+
     def add_user(self, user):
         # This user is already in the channel
         if user in self.users:

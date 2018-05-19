@@ -18,6 +18,11 @@ class IRCUser:
         self.nick_length = nick_length
         self.user_length = user_length
 
+    def __str__(self):
+        return "Username: {}\nNickname: {}\nHostmask: {}\nChannels: {}\nNickattempts: {}\n".format(
+            self.username, self.nickname, self.hostmask, self.channels, self.nickname
+        )
+
     @property
     def hostmask(self):
         return self.__hostmask
