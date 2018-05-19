@@ -102,35 +102,10 @@ class IRCProtocol(IRC):
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
 
-        try:
-            self.users[self].nickname = attempted_nickname
-        except ValueError as err:
-            self.sendLine(str(err))
+        results = self.users[self].set_nickname(attempted_nickname)
+        if results is not None:
+            self.sendLine(results)
 
-        """
-        # The nickname is taken.
-        if attempted_nickname in in_use_nicknames:
-            # The user instance has no nickname. This is the case on initial connection.
-            if self.users[self].nickname is None:
-                # They've had 2 attempts at changing it - Generate one for them.
-                if self.users[self].nickattempts != 2:
-                    self.sendLine(":{} 433 * {} :Nickname is already in use/is not allowed".format(
-                        self.users[self].host, attempted_nickname)
-                    )
-                    self.users[self].nickattempts += 1
-                else:
-                    self.sendLine("Nickname attempts exceeded(2). A random nickname will be generated for you.")
-                    self.users[self].rename_to_random_nick(in_use_nicknames)
-                    self.sendLine("Your nickname has been set to a random string based on your unique ID.")
-            else:
-                # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                self.sendLine("The nickname {} is already in use/is not allowed.".format(attempted_nickname))
-        else:
-            try:
-                self.users[self].nickname = attempted_nickname
-            except ValueError as err:
-                self.sendLine(str(err))
-        """
 
     def irc_USER(self, prefix, params):
         try:
