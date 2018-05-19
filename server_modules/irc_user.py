@@ -59,14 +59,13 @@ class IRCUser:
         return self.__nickname
 
     def set_nickname(self, desired_nickname):
-        output = None
         if self.hostmask is None:
             self.hostmask = desired_nickname
 
         if desired_nickname == self.nickname:
-            return
+            return None
 
-        in_use_nicknames = [x.nickname for x in self.protocol.users]
+        in_use_nicknames = [x.users[x].nickname for x in self.protocol.users if x.users[x].nickname is not None]
 
         if desired_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
@@ -74,29 +73,32 @@ class IRCUser:
                 # They've had 2 attempts at changing it - Generate one for them.
                 if self.nickattempts != 2:
                     self.nickattempts += 1
-                    return ":{} 433 * {} :Nickname is already in use/is not allowed".format(
+                    return ":{} 433 * {} :Nickname is already in use".format(
                         self.host, desired_nickname)
                 else:
-                    self.rename_to_random_nick(in_use_nicknames)
-                    return "Nickname attempts exceeded(2). A random nickname was generated for you."
+                    randomized_nick = self._generate_random_nick(in_use_nicknames)
+                    previous_hostmask = self.hostmask  # Store this since it's going to be changed
+                    self.__nickname = randomized_nick
+                    self.hostmask = self.nickname
+                    output = "Nickname attempts exceeded(2). A random nickname was generated for you."
+                    output += "\n:{} NICK {}".format(previous_hostmask, randomized_nick)
+                    return output
             else:
                 # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                return "The nickname {} is already in use/is not allowed.".format(desired_nickname)
+                return "The nickname {} is already in use.".format(desired_nickname)
 
-        # ToDo: Can this be made the same as the one below?
         if len(desired_nickname) > self.nick_length:
-            error = "Error: Nickname exceeded max char limit ({})".format(str(self.nick_length))
             if self.__nickname is None:
-                error += " Use /nick to set a new nick."
-            return error
-
+                return ":{} 432 * {} :Erroneous Nickname".format(self.host, self.nickname)
+            return ":{} 436 * {} :Erroneous Nickname - Exceeded max char limit {} ".format(self.host, desired_nickname,
+                                                                                           self.nick_length)
         if any((c in self.illegal_characters) for c in desired_nickname):
-            error = ":{} 436 * {} :Erroneous Nickname ".format(self.host, desired_nickname)
             if self.nickname is None:
                 self.nickattempts += 1
-                error += ":{} 432 * {} :Erroneous Nickname ".format(self.host, self.nickname)
-            return error
+                return ":{} 432 * {} :Erroneous Nickname".format(self.host, self.nickname)
+            return ":{} 436 * {} :Erroneous Nickname - Illegal characters".format(self.host, desired_nickname)
 
+        output = None
         if self.nickname is not None or self.nickattempts != 0:  # They are renaming themselves.
             if self.channels is not None:  # Send rename notice to any channels they're in
                 for connected_channel in self.channels:
@@ -109,7 +111,7 @@ class IRCUser:
         self.hostmask = desired_nickname
         return output  # Return any errors/any rename notices.
 
-    def rename_to_random_nick(self, current_nicknames):
+    def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
         random_nick_s = ''.join([c for c in random_nick[:self.nick_length] if c not in self.illegal_characters])
@@ -130,5 +132,5 @@ class IRCUser:
             return nick
 
         random_nick_s = validate_nick(random_nick_s, current_nicknames)
-        self.__nickname = random_nick_s
+        return random_nick_s
 

@@ -18,7 +18,7 @@ class IRCProtocol(IRC):
 
     def connectionMade(self):
         server_name = self.config.ServerSettings['ServerName']
-        max_nick_length = self.config.NicknameSettings['Max_Length']
+        max_nick_length = self.config.NicknameSettings['MaxLength']
         self.sendLine("You are now connected to %s" % server_name)
         self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host, None, [], 0, max_nick_length)
 
@@ -105,6 +105,7 @@ class IRCProtocol(IRC):
         results = self.users[self].set_nickname(attempted_nickname)
         if results is not None:
             self.sendLine(results)
+
 
 
     def irc_USER(self, prefix, params):
