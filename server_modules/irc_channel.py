@@ -8,7 +8,6 @@ from enum import Enum
 # ToDo: Allow the owner of the channel to delete it
 
 
-# Is there a better way to go about this?
 class QuitReason(Enum):
         LEFT = ":{} QUIT :User Left Channel\r\n"
         DISCONNECTED = ":{} QUIT :User Disconnected\r\n"
@@ -54,6 +53,19 @@ class IRCChannel:
         self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
         user.channels.remove(self)
+
+    def who(self, user, user_host, server_host):
+        member_info = []
+        if user.nickname not in self.channel_nicks:
+            return None
+        #a 7-tuple
+        #    containing their username, their hostmask, the server to which they
+        #    are connected, their nickname, the letter "H" or "G" (standing for
+        #    "Here" or "Gone"), the hopcount from C{user} to this member, and
+        #    this member's real name.
+        for _user in self.users:  # ToDo: Don't hardcode the hopcount and H/G
+            member_info.append((_user.username, _user.hostmask, server_host, _user.nickname, "H", 0, _user.realname))
+        return member_info
 
     def send_names(self, user):
         user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)

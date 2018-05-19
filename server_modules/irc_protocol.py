@@ -3,10 +3,9 @@ from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 # ToDo: Implement CAP
-# ToDo: Implement WHO
 # ToDo: Implement WHOIS
 # ToDo: Implement MODE
-# ToDo: Are ping/pongs even working?
+# ToDo: Implement PING/PONG (since I guess it doesn't work?)
 
 
 class IRCProtocol(IRC):
@@ -91,3 +90,27 @@ class IRCProtocol(IRC):
         if results is not None:  # Their username is invalid. Boot them.
             self.sendLine(results)
             self.transport.loseConnection()
+
+    def irc_CAP(self, prefix, params):
+        pass
+
+    def irc_WHO(self, prefix, params):
+        if params[0] in self.channels:
+            results = self.channels[params[0]].who(
+                self.users[self],
+                self.users[self].hostmask,
+                self.transport.getHost().host)
+            if results is not None:
+                self.who(self.users[self].nickname, params[0], results)
+                return
+        self.sendLine(":{} 315 {} {} :End of /WHO list.".format(
+            self.users[self].hostmask,
+            self.users[self].nickname,
+            params[0])
+        )
+
+    def irc_WHOIS(self, prefix, params):
+        pass
+
+    def irc_MODE(self, prefix, params):
+        pass
