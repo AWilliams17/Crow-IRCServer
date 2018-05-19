@@ -101,14 +101,13 @@ class IRCProtocol(IRC):
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
-        if self.users[self].hostmask is None:
-            self.users[self].hostmask = attempted_nickname
 
-        if attempted_nickname == self.users[self].nickname:
-            return
+        try:
+            self.users[self].nickname = attempted_nickname
+        except ValueError as err:
+            self.sendLine(str(err))
 
-        in_use_nicknames = [x.nickname for x in self.users]
-
+        """
         # The nickname is taken.
         if attempted_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
@@ -131,6 +130,7 @@ class IRCProtocol(IRC):
                 self.users[self].nickname = attempted_nickname
             except ValueError as err:
                 self.sendLine(str(err))
+        """
 
     def irc_USER(self, prefix, params):
         try:
