@@ -152,6 +152,9 @@ class IRCUser:
             channel.set_away(self, reason)
         return result
 
+    def set_op(self):
+        self.operator = True
+
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))

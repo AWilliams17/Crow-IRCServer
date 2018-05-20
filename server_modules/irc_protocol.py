@@ -148,3 +148,8 @@ class IRCProtocol(IRC):
     def irc_MODE(self, prefix, params):
         pass
 
+    def irc_OPER(self, prefix, params):
+        if len(params) != 2:
+            self.sendLine("Error: 2 Parameters required.")
+            return
+
