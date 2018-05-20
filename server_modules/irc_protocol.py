@@ -13,12 +13,12 @@ class IRCProtocol(IRC):
         self.users = users
         self.channels = channels
         self.config = config
+        self.server_name = self.config.ServerSettings['ServerName']
 
     def connectionMade(self):
-        server_name = self.config.ServerSettings['ServerName']
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
-        self.sendLine("You are now connected to %s" % server_name)
+        self.sendLine("You are now connected to %s" % self.server_name)
         self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host,
                                    None, [], 0, max_nick_length, max_user_length)
 
@@ -94,6 +94,7 @@ class IRCProtocol(IRC):
     def irc_CAP(self, prefix, params):
         pass
 
+    # ToDo: Refactor.
     def irc_WHO(self, prefix, params):
         if params[0] in self.channels:
             results = self.channels[params[0]].who(
@@ -109,8 +110,21 @@ class IRCProtocol(IRC):
             params[0])
         )
 
+    # ToDo: Refactor.
     def irc_WHOIS(self, prefix, params):
-        pass
+        for user in self.users:
+            if self.users[user].nickname == params[0]:
+                user_channels = [x.channel_name for x in self.users[user].channels]
+                if len(user_channels) == 0:
+                    user_channels.append("User is not in any channels.")
+                self.whois(
+                    self.users[self].nickname, params[0], self.users[user].username,
+                    self.users[user].hostmask, self.users[user].realname, self.server_name,
+                    "SERVER_DESC_HERE", False, 0, 0, user_channels
+                )
+                return
+                # ToDo: Implement Server Description, implement signon time, implement seconds since user last sent msg
+        self.sendLine("{} :No such user.".format(params[0]))
 
     def irc_MODE(self, prefix, params):
         pass
