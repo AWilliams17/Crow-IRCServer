@@ -14,6 +14,7 @@ class IRCProtocol(IRC):
         self.channels = channels
         self.config = config
         self.server_name = self.config.ServerSettings['ServerName']
+        self.server_description = self.config.ServerSettings['ServerDescription']
 
     def connectionMade(self):
         max_nick_length = self.config.NicknameSettings['MaxLength']
@@ -120,11 +121,14 @@ class IRCProtocol(IRC):
                 self.whois(
                     self.users[self].nickname, params[0], self.users[user].username,
                     self.users[user].hostmask, self.users[user].realname, self.server_name,
-                    "SERVER_DESC_HERE", False, 0, 0, user_channels
+                    self.server_description, False, 0, 0, user_channels
                 )
                 return
                 # ToDo: Implement Server Description, implement signon time, implement seconds since user last sent msg
         self.sendLine("{} :No such user.".format(params[0]))
+
+    def irc_AWAY(self, prefix, params):
+        pass
 
     def irc_MODE(self, prefix, params):
         pass
