@@ -9,10 +9,10 @@ from enum import Enum
 
 
 class QuitReason(Enum):
-        LEFT = ":{} QUIT :User Left Channel\r\n"
-        DISCONNECTED = ":{} QUIT :User Disconnected\r\n"
-        TIMEOUT = ":{} QUIT :User Timed Out\r\n"
-        UNSPECIFIED = ":{} QUIT :Unspecified Reason\r\n"
+        LEFT = ":{} QUIT :{}\r\n"
+        DISCONNECTED = ":{} QUIT :{}\r\n"
+        TIMEOUT = ":{} QUIT :{}\r\n"
+        UNSPECIFIED = ":{} QUIT :{}\r\n"
 
 
 class IRCChannel:
@@ -48,8 +48,16 @@ class IRCChannel:
         self.send_names(user)
         return None
 
-    def remove_user(self, user, reason=QuitReason.UNSPECIFIED):
-        self.broadcast_line(reason.value.format(user.hostmask))
+    def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):
+        if reason == QuitReason.LEFT.value and leave_message is None:
+            leave_message = "User Left Channel."
+        elif reason == QuitReason.DISCONNECTED.value and leave_message is None:
+            leave_message = "User Quit Network."
+        elif reason == QuitReason.TIMEOUT.value:
+            leave_message = "User Timed Out."
+        elif reason == QuitReason.UNSPECIFIED.value:
+            leave_message = "Unspecified Reason."
+        self.broadcast_line(reason.value.format(user.hostmask, leave_message))
         self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
         user.channels.remove(self)

@@ -5,7 +5,6 @@ from server_modules.irc_user import IRCUser
 from time import time
 # ToDo: Implement CAP
 # ToDo: Implement MODE
-# ToDo: Implement Leave reasons
 # ToDo: Implement max clients
 # ToDo: Implement PING/PONG (since I guess it doesn't work?)
 
@@ -60,14 +59,20 @@ class IRCProtocol(IRC):
             self.sendLine(results)
 
     def irc_QUIT(self, prefix, params):
+        leave_message = None
+        if len(params) == 1:
+            leave_message = params[0]
         if self in self.users:
             for channel in self.users[self].channels:
-                channel.remove_user(self.users[self], reason=QuitReason.DISCONNECTED)
+                channel.remove_user(self.users[self], leave_message, reason=QuitReason.DISCONNECTED)
             del self.users[self]
 
     def irc_PART(self, prefix, params):
         channel = params[0]
-        self.channels[channel].remove_user(self.users[self], reason=QuitReason.LEFT)
+        leave_message = None
+        if len(params) == 2:
+            leave_message = params[1]
+        self.channels[channel].remove_user(self.users[self], leave_message, reason=QuitReason.LEFT)
 
     def irc_PRIVMSG(self, prefix, params):
         param_count = len(params)
