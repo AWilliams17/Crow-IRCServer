@@ -33,7 +33,7 @@ class IRCProtocol(IRC):
                 quit_reason = QuitReason.UNSPECIFIED
                 if reason.type == ConnectionLost:
                     quit_reason = QuitReason.TIMEOUT
-                channel.remove_user(self.users[self], reason=quit_reason)
+                channel.remove_user(self.users[self], None, reason=quit_reason)
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
@@ -142,7 +142,7 @@ class IRCProtocol(IRC):
         reason = "Unspecified"
         if len(params) != 0:
             reason = params[0]
-        self.users[self].away(reason)
+        self.sendLine(self.users[self].away(reason))
 
     def irc_MODE(self, prefix, params):
         pass

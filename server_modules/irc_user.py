@@ -140,12 +140,17 @@ class IRCUser:
             return "Error: User not found."
 
     def away(self, reason):
+        result = None
         if self.status == "G":
             self.status = "H"
+            result = "{} 305 :You are no longer marked as being away".format(self.hostmask)
+            reason = None
         else:
             self.status = "G"
+            result = "{} 306 :You have been marked as being away".format(self.hostmask)
         for channel in self.channels:
             channel.set_away(self, reason)
+        return result
 
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")

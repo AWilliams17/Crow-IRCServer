@@ -73,8 +73,11 @@ class IRCChannel:
         return member_info
 
     def set_away(self, user, reason):
+        message = ":{} AWAY :{}".format(user.hostmask, reason)
+        if reason is None:
+            message = ":{} AWAY".format(user.hostmask)
         for user_ in self.users:
-            user_.protocol.sendLine(":{} AWAY :{}".format(user.hostmask, reason))
+            user_.protocol.sendLine(message)
 
     def send_names(self, user):
         user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)
