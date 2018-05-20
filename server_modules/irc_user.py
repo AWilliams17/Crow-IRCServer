@@ -64,7 +64,7 @@ class IRCUser:
     def nickname(self):
         return self.__nickname
 
-    def set_nickname(self, desired_nickname):
+    def set_nickname(self, desired_nickname, server_hostname):
         if self.hostmask is None:
             self.set_hostmask(desired_nickname)
 
@@ -80,7 +80,7 @@ class IRCUser:
                 if self.nickattempts != 2:
                     self.nickattempts += 1
                     return ":{} 433 * {} :Nickname is already in use".format(
-                        self.host, desired_nickname)
+                        server_hostname, desired_nickname)
                 else:
                     randomized_nick = self._generate_random_nick(in_use_nicknames)
                     previous_hostmask = self.hostmask  # Store this since it's going to be changed
@@ -94,15 +94,17 @@ class IRCUser:
                 return "The nickname {} is already in use.".format(desired_nickname)
 
         if len(desired_nickname) > self.nick_length:
+            error = ":Erroneous Nickname - Exceeded max char limit {}".format(self.nick_length)
             if self.__nickname is None:
-                return ":{} 432 * {} :Erroneous Nickname".format(self.host, self.nickname)
-            return ":{} 436 * {} :Erroneous Nickname - Exceeded max char limit {} ".format(self.host, desired_nickname,
-                                                                                           self.nick_length)
+                return ":{} 432 * {} :{}".format(server_hostname, self.nickname, error)
+            return ":{} 436 * {} :{} ".format(server_hostname, desired_nickname, error)
+
         if any((c in self.illegal_characters) for c in desired_nickname):
+            error = ":Erroneous Nickname - Illegal characters".format(self.nick_length)
             if self.nickname is None:
                 self.nickattempts += 1
-                return ":{} 432 * {} :Erroneous Nickname".format(self.host, self.nickname)
-            return ":{} 436 * {} :Erroneous Nickname - Illegal characters".format(self.host, desired_nickname)
+                return ":{} 432 * {} :{}".format(server_hostname, self.nickname, error)
+            return ":{} 436 * {} :{}".format(server_hostname, desired_nickname, error)
 
         output = None
         if self.nickname is not None or self.nickattempts != 0:  # They are renaming themselves.
@@ -119,12 +121,12 @@ class IRCUser:
 
     def send_msg(self, destination, message):
         if "*" in destination or "?" in destination:
-            return "Error: Wildcards (? and *) not allowed in destination."
+            return "Error: Wildcards (? and *) not allowed in destination."  # ToDo: BAD CHAN MASK
         if destination[0] == "#":
             if destination not in self.protocol.channels:
-                return "Error: Channel does not exist."
+                return "Error: Channel does not exist."  # ToDo: Should be NOSUCHCHANNEL
             if self not in self.protocol.channels[destination].users:
-                return "Error: You cannot send messages to a channel you are not in."
+                return "Error: You cannot send messages to a channel you are not in."  # ToDo: ERR_CANNOTSENDTOCHAN
             else:
                 self.protocol.channels[destination].broadcast_message(message, self.hostmask)
                 self.last_msg_time = time()
@@ -137,7 +139,7 @@ class IRCUser:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
                     return None
-            return "Error: User not found."
+            return "Error: User not found."  # ToDo: ERR_NOSUCHNICK
 
     def away(self, reason):
         result = None

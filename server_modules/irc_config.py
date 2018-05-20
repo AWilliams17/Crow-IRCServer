@@ -23,7 +23,8 @@ class IRCConfig:
             self.ServerSettings = {
                 "Port": int(self._config['ServerSettings']['Port']),
                 "ServerName": self._config['ServerSettings']['ServerName'],
-                "ServerDescription": self._config['ServerSettings']['ServerDescription']
+                "ServerDescription": self._config['ServerSettings']['ServerDescription'],
+                "ServerWelcome": self._config['ServerSettings']['ServerWelcome']
             }
             self.UserSettings = {
                 "MaxLength": int(self._config['UserSettings']['MaxLength']),
@@ -44,6 +45,7 @@ class IRCConfig:
             self._config.set("ServerSettings", "Port", "6667")
             self._config.set("ServerSettings", "ServerName", "Crow IRC")
             self._config.set("ServerSettings", "ServerDescription", "WIP IRC Server implementation w/ Twisted.")
+            self._config.set("ServerSettings", "ServerWelcome", "Welcome to Crow IRC")
             self._config.add_section("NicknameSettings")
             self._config.set("NicknameSettings", "MaxLength", "35")
             self._config.add_section("UserSettings")

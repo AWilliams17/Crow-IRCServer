@@ -1,4 +1,4 @@
-from twisted.words.protocols.irc import IRC, protocol
+from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
@@ -41,11 +41,11 @@ class IRCProtocol(IRC):
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
-        self.sendLine("Error: Unknown command: '{} {}'".format(command, params))
+        self.sendLine("Error: Unknown command: '{} {}'".format(command, params))  # ToDo: Should be UnknownCommand
 
     def irc_JOIN(self, prefix, params):
         if len(params) != 1:
-            self.sendLine("Error: maximum/minimum 1 parameter.")
+            self.sendLine("Error: maximum/minimum 1 parameter.")  # ToDo: Should be Not enough parameters
             return
 
         channel = params[0].lower()
@@ -82,9 +82,9 @@ class IRCProtocol(IRC):
         param_count = len(params)
 
         if param_count < 2:
-            self.sendLine("Error: Not enough parameters (2 required)")
+            self.sendLine("Error: Not enough parameters (2 required)")  # ToDo: Should be not enough parameters
         elif param_count > 2:
-            self.sendLine("Error: Too many parameters (max: 2)")
+            self.sendLine("Error: Too many parameters (max: 2)")  # ToDo: Should be not enough parameters
         else:
             results = self.users[self].send_msg(params[0], params[1])
             if results is not None:
@@ -93,14 +93,20 @@ class IRCProtocol(IRC):
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
 
-        results = self.users[self].set_nickname(attempted_nickname)
+        if self.users[self].nickname is None and self.users[self].nickattempts == 0:
+            self.sendLine(":{} {} {} :{}".format(
+                self.hostname, RPL_WELCOME,
+                attempted_nickname,
+                self.config.ServerSettings["ServerWelcome"] + " {}".format(attempted_nickname))
+            )
+
+        results = self.users[self].set_nickname(attempted_nickname, self.hostname)
         if results is not None:
             self.sendLine(results)
 
     def irc_USER(self, prefix, params):
         username = params[0]
         realname = params[3]
-
         results = self.users[self].set_username(username, realname)
         if results is not None:  # Their username is invalid. Boot them.
             self.sendLine(results)
@@ -114,13 +120,12 @@ class IRCProtocol(IRC):
         if params[0] in self.channels:
             results = self.channels[params[0]].who(
                 self.users[self],
-                self.users[self].hostmask,
                 self.transport.getHost().host)
             if results is not None:
                 self.who(self.users[self].nickname, params[0], results)
                 return
         self.sendLine(":{} 315 {} {} :End of /WHO list.".format(
-            self.users[self].hostmask,
+            self.hostname,
             self.users[self].nickname,
             params[0])
         )
@@ -139,7 +144,7 @@ class IRCProtocol(IRC):
                     self.users[user].sign_on_time, user_channels
                 )
                 return
-        self.sendLine("{} :No such user.".format(params[0]))
+        self.sendLine("{} :No such user.".format(params[0]))  # ToDo: Should be 401
 
     def irc_AWAY(self, prefix, params):
         reason = "Unspecified"

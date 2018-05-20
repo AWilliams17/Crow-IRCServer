@@ -30,10 +30,10 @@ class IRCChannel:
     def add_user(self, user):
         # This user is already in the channel
         if user in self.users:
-            return "You are already in that channel."
+            return
 
         if user.nickname is None:
-            return "Failed to join channel: Your nickname is not set."
+            return "Failed to join channel: Your nickname is not set."  # ToDo: 431
 
         if user.hostmask is None:
             user.set_hostmask(user.nickname)
@@ -62,7 +62,7 @@ class IRCChannel:
         self.users.remove(user)
         user.channels.remove(self)
 
-    def who(self, user, user_host, server_host):
+    def who(self, user, server_host):
         member_info = []
         if user.nickname not in self.channel_nicks:
             return None
