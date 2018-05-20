@@ -58,9 +58,15 @@ class IRCChannel:
         member_info = []
         if user.nickname not in self.channel_nicks:
             return None
-        for _user in self.users:  # ToDo: Don't hardcode the hopcount and H/G
-            member_info.append((_user.username, _user.hostmask, server_host, _user.nickname, "H", 0, _user.realname))
+        for _user in self.users:  # ToDo: Don't hardcode the hopcount
+            member_info.append((
+                _user.username, _user.hostmask, server_host, _user.nickname, _user.status, 0, _user.realname
+            ))
         return member_info
+
+    def set_away(self, user, reason):
+        for user_ in self.users:
+            user_.protocol.sendLine(":{} AWAY :{}".format(user.hostmask, reason))
 
     def send_names(self, user):
         user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)

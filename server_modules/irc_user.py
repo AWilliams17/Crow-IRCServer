@@ -20,6 +20,8 @@ class IRCUser:
         self.nickattempts = nickattempts
         self.nick_length = nick_length
         self.user_length = user_length
+        self.status = "H"
+        self.operator = False
 
     def __str__(self):
         return "Username: {}\nNickname: {}\nHostmask: {}\nChannels: {}\nNickattempts: {}\n".format(
@@ -136,6 +138,14 @@ class IRCUser:
                     self.last_msg_time = time()
                     return None
             return "Error: User not found."
+
+    def away(self, reason):
+        if self.status == "G":
+            self.status = "H"
+        else:
+            self.status = "G"
+        for channel in self.channels:
+            channel.set_away(self, reason)
 
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")

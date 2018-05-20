@@ -4,8 +4,9 @@ from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from time import time
 # ToDo: Implement CAP
-# ToDo: Implement WHOIS
 # ToDo: Implement MODE
+# ToDo: Implement Leave reasons
+# ToDo: Implement max clients
 # ToDo: Implement PING/PONG (since I guess it doesn't work?)
 
 
@@ -129,10 +130,14 @@ class IRCProtocol(IRC):
                     self.users[user].sign_on_time, user_channels
                 )
                 return
+            # ToDo: False = is the user an operator. Placeholder until operators implemented.
         self.sendLine("{} :No such user.".format(params[0]))
 
     def irc_AWAY(self, prefix, params):
-        pass
+        reason = "Unspecified"
+        if len(params) != 0:
+            reason = params[0]
+        self.users[self].away(reason)
 
     def irc_MODE(self, prefix, params):
         pass

@@ -24,11 +24,11 @@ class IRCConfig:
                 "ServerDescription": str(self._crow_config['ServerSettings']['ServerDescription'])
             }
             self.UserSettings = {
-                "MaxLength": int(self._crow_config['UserSettings']['Max_Length']),
-                "MaxClients": int(self._crow_config['UserSettings']['Max_Clients'])
+                "MaxLength": int(self._crow_config['UserSettings']['MaxLength']),
+                "MaxClients": int(self._crow_config['UserSettings']['MaxClients']),
             }
             self.NicknameSettings = {
-                "MaxLength": int(self._crow_config['NicknameSettings']['Max_Length'])
+                "MaxLength": int(self._crow_config['NicknameSettings']['MaxLength'])
             }
         except Exception as e:
             errors = str(e)
@@ -42,10 +42,10 @@ class IRCConfig:
             self._crow_config.set("ServerSettings", "ServerName", "Crow IRC")
             self._crow_config.set("ServerSettings", "ServerDescription", "WIP IRC Server implementation w/ Twisted.")
             self._crow_config.add_section("NicknameSettings")
-            self._crow_config.set("NicknameSettings", "Max_Length", "35")
+            self._crow_config.set("NicknameSettings", "MaxLength", "35")
             self._crow_config.add_section("UserSettings")
-            self._crow_config.set("UserSettings", "Max_Length", "35")
-            self._crow_config.set("UserSettings", "Max_Clients", "5")
+            self._crow_config.set("UserSettings", "MaxLength", "35")
+            self._crow_config.set("UserSettings", "MaxClients", "5")
             try:
                 self._crow_config.write(crow_ini)
             except Exception as e:
