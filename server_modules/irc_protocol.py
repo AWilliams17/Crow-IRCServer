@@ -18,11 +18,14 @@ class IRCProtocol(IRC):
         self.server_description = self.config.ServerSettings['ServerDescription']
 
     def connectionMade(self):
+        current_time_posix = time()
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
         self.sendLine("You are now connected to %s" % self.server_name)
-        self.users[self] = IRCUser(self, None, None, None, time(), self.transport.getPeer().host,
-                                   None, [], 0, max_nick_length, max_user_length)
+        self.users[self] = IRCUser(
+            self, None, None, None, current_time_posix, current_time_posix,
+            self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length
+        )
 
     def connectionLost(self, reason=protocol.connectionDone):
         if self in self.users:
@@ -122,10 +125,10 @@ class IRCProtocol(IRC):
                 self.whois(
                     self.users[self].nickname, params[0], self.users[user].username,
                     self.users[user].hostmask, self.users[user].realname, self.server_name,
-                    self.server_description, False, 0, self.users[user].sign_on_time, user_channels
+                    self.server_description, False, time() - self.users[user].last_msg_time,
+                    self.users[user].sign_on_time, user_channels
                 )
                 return
-                # ToDo: implement seconds since user last sent msg
         self.sendLine("{} :No such user.".format(params[0]))
 
     def irc_AWAY(self, prefix, params):

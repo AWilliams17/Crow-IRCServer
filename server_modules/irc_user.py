@@ -1,3 +1,4 @@
+from time import time
 from random import sample, choice
 from string import ascii_lowercase, ascii_uppercase, digits
 
@@ -5,13 +6,14 @@ from string import ascii_lowercase, ascii_uppercase, digits
 class IRCUser:
     illegal_characters = set(".<>'`()?*#")
 
-    def __init__(self, protocol, username, nickname, realname, sign_on_time, host, hostmask, channels,
+    def __init__(self, protocol, username, nickname, realname, sign_on_time, last_msg_time, host, hostmask, channels,
                  nickattempts, nick_length, user_length):
         self.protocol = protocol
         self.__username = username
         self.__nickname = nickname
         self.realname = realname
         self.sign_on_time = sign_on_time
+        self.last_msg_time = last_msg_time
         self.host = host
         self.__hostmask = hostmask
         self.channels = channels
@@ -123,6 +125,7 @@ class IRCUser:
                 return "Error: You cannot send messages to a channel you are not in."
             else:
                 self.protocol.channels[destination].broadcast_message(message, self.hostmask)
+                self.last_msg_time = time()
                 return None
         if destination[0] != "#":
             for i in self.protocol.users:
@@ -130,6 +133,7 @@ class IRCUser:
                 destination_nickname = self.protocol.users.get(i).nickname
                 if self.protocol != destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
+                    self.last_msg_time = time()
                     return None
             return "Error: User not found."
 
