@@ -5,12 +5,13 @@ from string import ascii_lowercase, ascii_uppercase, digits
 class IRCUser:
     illegal_characters = set(".<>'`()?*#")
 
-    def __init__(self, protocol, username, nickname, realname, host, hostmask, channels,
+    def __init__(self, protocol, username, nickname, realname, sign_on_time, host, hostmask, channels,
                  nickattempts, nick_length, user_length):
         self.protocol = protocol
         self.__username = username
         self.__nickname = nickname
         self.realname = realname
+        self.sign_on_time = sign_on_time
         self.host = host
         self.__hostmask = hostmask
         self.channels = channels

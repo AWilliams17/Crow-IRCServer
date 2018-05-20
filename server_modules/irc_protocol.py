@@ -2,6 +2,7 @@ from twisted.words.protocols.irc import IRC, protocol
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
+from time import time
 # ToDo: Implement CAP
 # ToDo: Implement WHOIS
 # ToDo: Implement MODE
@@ -20,7 +21,7 @@ class IRCProtocol(IRC):
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
         self.sendLine("You are now connected to %s" % self.server_name)
-        self.users[self] = IRCUser(self, None, None, None, self.transport.getPeer().host,
+        self.users[self] = IRCUser(self, None, None, None, time(), self.transport.getPeer().host,
                                    None, [], 0, max_nick_length, max_user_length)
 
     def connectionLost(self, reason=protocol.connectionDone):
@@ -121,10 +122,10 @@ class IRCProtocol(IRC):
                 self.whois(
                     self.users[self].nickname, params[0], self.users[user].username,
                     self.users[user].hostmask, self.users[user].realname, self.server_name,
-                    self.server_description, False, 0, 0, user_channels
+                    self.server_description, False, 0, self.users[user].sign_on_time, user_channels
                 )
                 return
-                # ToDo: Implement Server Description, implement signon time, implement seconds since user last sent msg
+                # ToDo: implement seconds since user last sent msg
         self.sendLine("{} :No such user.".format(params[0]))
 
     def irc_AWAY(self, prefix, params):
