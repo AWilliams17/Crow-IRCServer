@@ -3,6 +3,7 @@ from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from time import time
+from socket import getfqdn
 # ToDo: Refactor more
 # ToDo: Implement CAP
 # ToDo: Implement MODE
@@ -17,6 +18,8 @@ class IRCProtocol(IRC):
         self.config = config
         self.server_name = self.config.ServerSettings['ServerName']
         self.server_description = self.config.ServerSettings['ServerDescription']
+        self.operators = self.config.UserSettings["Operators"]
+        self.hostname = getfqdn()
 
     def connectionMade(self):
         current_time_posix = time()
@@ -132,11 +135,10 @@ class IRCProtocol(IRC):
                 self.whois(
                     self.users[self].nickname, params[0], self.users[user].username,
                     self.users[user].hostmask, self.users[user].realname, self.server_name,
-                    self.server_description, False, time() - self.users[user].last_msg_time,
+                    self.server_description, self.users[self].operator, time() - self.users[user].last_msg_time,
                     self.users[user].sign_on_time, user_channels
                 )
                 return
-            # ToDo: False = is the user an operator. Placeholder until operators implemented.
         self.sendLine("{} :No such user.".format(params[0]))
 
     def irc_AWAY(self, prefix, params):
@@ -148,8 +150,17 @@ class IRCProtocol(IRC):
     def irc_MODE(self, prefix, params):
         pass
 
-    def irc_OPER(self, prefix, params):
+    def irc_OPER(self, prefix, params):  # ToDo: ERR_NOOPERHOST
+        user_nickname = self.users[self].nickname
         if len(params) != 2:
-            self.sendLine("Error: 2 Parameters required.")
+            self.sendLine(":{} 461 {} OPER :Not enough parameters".format(self.hostname, user_nickname))
             return
+        username = params[0]
+        password = params[1]
+        if username in self.operators:
+            if self.operators[username] == password:
+                self.users[self].set_op()
+                self.sendLine(":{} 381 {} :You are now an IRC operator".format(self.hostname, user_nickname))
+                return
+        self.sendLine(":{} 464 {} :Password Incorrect".format(self.hostname, user_nickname))
 
