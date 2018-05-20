@@ -3,6 +3,7 @@ from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from time import time
+# ToDo: Refactor more
 # ToDo: Implement CAP
 # ToDo: Implement MODE
 # ToDo: Implement max clients
@@ -146,3 +147,4 @@ class IRCProtocol(IRC):
 
     def irc_MODE(self, prefix, params):
         pass
+
