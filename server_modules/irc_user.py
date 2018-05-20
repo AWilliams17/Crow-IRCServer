@@ -7,7 +7,7 @@ class IRCUser:
     illegal_characters = set(".<>'`()?*#")
 
     def __init__(self, protocol, username, nickname, realname, sign_on_time, last_msg_time, host, hostmask, channels,
-                 nickattempts, nick_length, user_length):
+                 nickattempts, nick_length, user_length, server_host):
         self.protocol = protocol
         self.__username = username
         self.__nickname = nickname
@@ -20,6 +20,7 @@ class IRCUser:
         self.nickattempts = nickattempts
         self.nick_length = nick_length
         self.user_length = user_length
+        self.server_host = server_host
         self.status = "H"
         self.operator = False
 
@@ -50,11 +51,13 @@ class IRCUser:
         username_length = len(username)
 
         if username_length == 0:
-            return "Username can not be blank."
+            return ":{} NOTICE {} :***Username can not be nothing.***".format(self.server_host, self.nickname)
         if username_length > self.user_length:
-            return "Username can not be greater than {} characters.".format(str(self.user_length))
+            return ":{} NOTICE {} :***Username can not be greater than {} characters.***".format(
+                self.server_host, self.nickname, self.user_length
+            )
         if any((c in self.illegal_characters) for c in username):
-            return "Illegal characters in username."
+            return ":{} NOTICE {} :***Illegal Characters in Username.***".format(self.server_host, self.nickname)
 
         self.__username = username
         self.realname = realname
@@ -64,7 +67,7 @@ class IRCUser:
     def nickname(self):
         return self.__nickname
 
-    def set_nickname(self, desired_nickname, server_hostname):
+    def set_nickname(self, desired_nickname):
         if self.hostmask is None:
             self.set_hostmask(desired_nickname)
 
@@ -80,7 +83,7 @@ class IRCUser:
                 if self.nickattempts != 2:
                     self.nickattempts += 1
                     return ":{} 433 * {} :Nickname is already in use".format(
-                        server_hostname, desired_nickname)
+                        self.server_host, desired_nickname)
                 else:
                     randomized_nick = self._generate_random_nick(in_use_nicknames)
                     previous_hostmask = self.hostmask  # Store this since it's going to be changed
@@ -91,20 +94,20 @@ class IRCUser:
                     return output
             else:
                 # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                return "The nickname {} is already in use.".format(desired_nickname)
+                return ":{} NOTICE {} :***Nickname is already in use.***".format(self.server_host, self.nickname)
 
         if len(desired_nickname) > self.nick_length:
             error = ":Erroneous Nickname - Exceeded max char limit {}".format(self.nick_length)
             if self.__nickname is None:
-                return ":{} 432 * {} :{}".format(server_hostname, self.nickname, error)
-            return ":{} 436 * {} :{} ".format(server_hostname, desired_nickname, error)
+                return ":{} 432 * {} :{}".format(self.server_host, self.nickname, error)
+            return ":{} 436 * {} :{} ".format(self.server_host, desired_nickname, error)
 
         if any((c in self.illegal_characters) for c in desired_nickname):
             error = ":Erroneous Nickname - Illegal characters".format(self.nick_length)
             if self.nickname is None:
                 self.nickattempts += 1
-                return ":{} 432 * {} :{}".format(server_hostname, self.nickname, error)
-            return ":{} 436 * {} :{}".format(server_hostname, desired_nickname, error)
+                return ":{} 432 * {} :{}".format(self.server_host, self.nickname, error)
+            return ":{} 436 * {} :{}".format(self.server_host, desired_nickname, error)
 
         output = None
         if self.nickname is not None or self.nickattempts != 0:  # They are renaming themselves.
@@ -121,12 +124,14 @@ class IRCUser:
 
     def send_msg(self, destination, message):
         if "*" in destination or "?" in destination:
-            return "Error: Wildcards (? and *) not allowed in destination."  # ToDo: BAD CHAN MASK
+            return "{} 415 {} {} :No wildcards in destination..".format(self.server_host, self.nickname, destination)
         if destination[0] == "#":
             if destination not in self.protocol.channels:
-                return "Error: Channel does not exist."  # ToDo: Should be NOSUCHCHANNEL
+                return "{} 401 {} {} :No such channel.".format(self.server_host, self.nickname, destination)
             if self not in self.protocol.channels[destination].users:
-                return "Error: You cannot send messages to a channel you are not in."  # ToDo: ERR_CANNOTSENDTOCHAN
+                return "{} 404 {} {} :Cannot send to channel you are not in.".format(
+                    self.server_host, self.nickname, destination
+                )
             else:
                 self.protocol.channels[destination].broadcast_message(message, self.hostmask)
                 self.last_msg_time = time()
@@ -139,7 +144,7 @@ class IRCUser:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
                     return None
-            return "Error: User not found."  # ToDo: ERR_NOSUCHNICK
+            return "{} 401 {} {} :No such user.".format(self.server_host, self.nickname, destination)
 
     def away(self, reason):
         result = None

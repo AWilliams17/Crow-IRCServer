@@ -28,7 +28,7 @@ class IRCProtocol(IRC):
         self.sendLine("You are now connected to %s" % self.server_name)
         self.users[self] = IRCUser(
             self, None, None, None, current_time_posix, current_time_posix,
-            self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length
+            self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length, self.hostname
         )
 
     def connectionLost(self, reason=protocol.connectionDone):
@@ -100,7 +100,7 @@ class IRCProtocol(IRC):
                 self.config.ServerSettings["ServerWelcome"] + " {}".format(attempted_nickname))
             )
 
-        results = self.users[self].set_nickname(attempted_nickname, self.hostname)
+        results = self.users[self].set_nickname(attempted_nickname)
         if results is not None:
             self.sendLine(results)
 
@@ -144,7 +144,7 @@ class IRCProtocol(IRC):
                     self.users[user].sign_on_time, user_channels
                 )
                 return
-        self.sendLine("{} :No such user.".format(params[0]))  # ToDo: Should be 401
+        self.sendLine("{} 401 {} {} :No such user.".format(self.hostname, self.users[self].nickname, params[0]))
 
     def irc_AWAY(self, prefix, params):
         reason = "Unspecified"
