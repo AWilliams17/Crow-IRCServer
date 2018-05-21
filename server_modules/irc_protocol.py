@@ -5,9 +5,9 @@ from server_modules.irc_user import IRCUser
 from server_modules.irc_rpl import RPLHelper
 from time import time
 from socket import getfqdn
+from hashlib import sha256
 # ToDo: !-->Refactor<--!
 # ToDo: Make +I Work
-# ToDo: Make -(mode) remove modes + -o unset operator status
 # ToDo: Implement CAP
 # ToDo: Implement max clients
 # ToDo: Implement PING/PONG (since I guess it doesn't work?)
@@ -59,6 +59,7 @@ class IRCProtocol(IRC):
         # The channel doesn't exist on the network - create it.
         if channel not in self.channels:
             self.channels[channel] = IRCChannel(channel)
+            self.channels[channel].channel_owner = []
 
         # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
@@ -154,20 +155,38 @@ class IRCProtocol(IRC):
         self.sendLine(self.users[self].away(reason))
 
     def irc_MODE(self, prefix, params):
-        print(params)
         location = None
         nick = None
         mode = None
+
         if len(params) == 3:
             if params[0][0] == "#":
                 location = self.channels[params[0]]
             nick = params[1]
             mode = params[2]
         elif len(params) == 2:
-            nick = params[0]
-            mode = params[1]
+            if len(params[1]) > 2:
+                location = params[0]
+                nick = params[1]
+                if location[0] != "#":
+                    self.sendLine(self.rplhelper.err_notonchannel("You must share a channel with this user."))
+                    return
+                if location not in [x for x in self.channels]:
+                    self.sendLine(self.rplhelper.err_nosuchchannel(location))
+                    return
+                location = self.channels[location]
+                self.sendLine(self.users[self].get_modes(nick, location))
+                return
+            else:
+                nick = params[0]
+                mode = params[1]
         elif len(params) == 1:
-            # location = self.channels[location]  # ToDo: Channel modes
+            if params[0][0] != "#":
+                nick = params[0]
+                self.sendLine(self.users[self].get_modes(nick))
+            else:
+                location = self.channels[params[0]]
+                #self.sendLine(self.channels[params[0]].get_modes(location))
             return
 
         result = self.users[self].set_mode(location, nick, mode, self.user_modes)
@@ -184,7 +203,13 @@ class IRCProtocol(IRC):
         if username in self.operators:
             if self.operators[username] == password:
                 self.users[self].set_op()
-                self.irc_MODE(None, [user_nickname, "+o"])
+                self.irc_MODE(self.user_modes, [user_nickname, "+o"])
                 self.sendLine(self.rplhelper.rpl_youreoper())
                 return
         self.sendLine(self.rplhelper.err_passwordmismatch())
+
+    def irc_CHOPER(self, prefix, params):
+        pass
+
+    def irc_CHOWNER(self, prefix, params):
+        pass

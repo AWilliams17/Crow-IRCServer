@@ -1,7 +1,7 @@
 from twisted.words.protocols.irc import ERR_NOSUCHNICK, ERR_NOSUCHCHANNEL, ERR_UNKNOWNCOMMAND, ERR_UNKNOWNMODE, \
     ERR_NICKNAMEINUSE, ERR_NEEDMOREPARAMS, RPL_YOUREOPER, ERR_PASSWDMISMATCH, ERR_ERRONEUSNICKNAME, \
     ERR_USERSDONTMATCH, ERR_NOPRIVILEGES, ERR_BADCHANMASK, ERR_CANNOTSENDTOCHAN, ERR_NONICKNAMEGIVEN, \
-    RPL_AWAY, RPL_UNAWAY
+    ERR_NOTONCHANNEL, RPL_AWAY, RPL_UNAWAY, RPL_UMODEIS
 
 
 class RPLHelper:
@@ -18,6 +18,21 @@ class RPLHelper:
 
     def rpl_unaway(self):
         return ":{} {} :You are no longer marked as being away".format(self.user_hostmask, RPL_UNAWAY)
+
+    def rpl_umodeis(self, nick, modes):
+        """
+        :param nick: The nick of the user who's modes are being checked
+        :param modes: A list of the user's modes
+        """
+        return ":{} {} {} :{}'s modes are: +{}".format(
+            self.server_hostname, RPL_UMODEIS, self.user_nickname, nick, modes
+        )
+
+    def err_notonchannel(self, description):
+        """
+        :param description: Describe why this was returned.
+        """
+        return ":{} {} {} :{}".format(self.server_hostname, ERR_NOTONCHANNEL, self.user_nickname, description)
 
     def err_nonicknamegiven(self, description):
         """
@@ -95,7 +110,7 @@ class RPLHelper:
         """
         :param mode: The mode which was not found.
         """
-        return ":{} {} {} {} :Unknown Mode".format(self.server_hostname, ERR_UNKNOWNMODE, self.user_nickname, mode)
+        return ":{} {} {} :{} - Unknown Mode".format(self.server_hostname, ERR_UNKNOWNMODE, self.user_nickname, mode)
 
     def err_usersdontmatach(self, mode):
         """
@@ -105,11 +120,12 @@ class RPLHelper:
             self.server_hostname, ERR_USERSDONTMATCH, self.user_nickname, mode
         )
 
-    def err_noprivleges(self, command):
+    def err_noprivileges(self, error="You're not an IRC operator"):
         """
-        :param command: The command which requires elevated privleges.
+        :param error: Optionally, explain why this was returned.
+        :param command: The command which requires elevated privileges.
         """
-        return ":{} {} {} {} :Permission Denied- You're not an IRC operator".format(
-            self.server_hostname, ERR_NOPRIVILEGES, self.user_nickname, command
+        return ":{} {} {} :Permission Denied - {}".format(
+            self.server_hostname, ERR_NOPRIVILEGES, self.user_nickname, error
         )
 

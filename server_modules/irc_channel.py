@@ -20,6 +20,11 @@ class IRCChannel:
         self.channel_name = name
         self.users = []
         self.channel_nicks = []
+        self.channel_modes = []
+        self.channel_owner = []
+        self.channel_ops = []
+        self.channel_owner_account = {}
+        self.channel_op_accounts = {}
 
     def __str__(self):
         host_list = [x.hostmask for x in self.users]

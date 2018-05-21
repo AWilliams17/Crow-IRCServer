@@ -4,7 +4,7 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 
 class IRCUser:
-    illegal_characters = set(".<>'`()?*#")
+    illegal_characters = set(".<>'`()?*#+-")
 
     def __init__(self, protocol, username, nickname, realname, sign_on_time, last_msg_time, host, hostmask, channels,
                  nickattempts, nick_length, user_length, rplhelper, serverhost):
@@ -161,40 +161,76 @@ class IRCUser:
     def set_op(self):
         self.operator = True
 
-    # ToDo: This all needs to be re-written
+    # ToDo: This can be majorly improved.
     def set_mode(self, location, nick, mode, valid_modes):
-        # mode_change = ":{} MODE {} :{}".format(self.nickname, nick, mode)
-        """
-        So modes are only echoed out to the person setting the mode.
-        For setting another person's mode I'll assume it's common practice
-        to also echo out to the person who issued the mode command.
+        if len(mode) < 2:
+            return
+        mode_modifier = mode[0]
+        mode_char = mode[1]
+        mode_change_message = ":{} MODE {} :{}".format(self.nickname, nick, mode)
+        target_user_instance = None
+        target_user_protocol = None
+        change_other_user_mode = False
+        add_mode = False
 
-        So,
-        1: Check if the user is trying to change the mode on someone else. If he is, check if he's an oper. If
-        he is not an oper, then return an error. Otherwise, set the bool "change_other_mode" to true.
-        2: Restrict the o flag, unless the user himself is an operator - in that case, only allow him to remove it
-        from himself. Oper or no, you can't add +o to someone else. They must have an oper account.
-        3: Check if there's a +/- infront of the mode character. If there isn't, return an error.
-        4: If it's a +, set the adding bool to true. Otherwise leave it at false. Eitherway, strip it out, leave just
-        the mode character.
-        5: Now, check if the mode char is a valid mode char. if it isn't, return an error.
+        if nick != self.nickname:
+            if self.operator is False:
+                return self.rplhelper.err_noprivileges("You must be an operator to change another user's privileges.")
+            if location is None or nick not in location.channel_nicks:
+                return self.rplhelper.err_notonchannel("You must share a channel with this user.")
+            change_other_user_mode = True
+            target_user_instance = [x for x in location.users if x.nickname == nick][0]
+            target_user_protocol = target_user_instance.protocol
 
-        So at this point, what we know so far about the mode change:
-        -It's a valid mode
-        -The user has privileges to issue this command.
+        if mode_modifier == "+":
+            add_mode = True
+        if mode_char not in valid_modes or mode_modifier != "-" and add_mode is False:
+            return self.rplhelper.err_unknownmode(mode_char)
 
-        6: Now, if change_other_mode is true, then take the channel passed in location and see if the nick for the target
-        user is in there. If it isn't, return an error. If no location was passed (location is None), tell the issuer
-        he can't change a user's mode if he's not in the channel with him. Otherwise, do the steps below,
-        only for the target. Either way, return the mode change message to the person issuing the command.
-        7: If adding is true:
-            1: Check if the mode is not already in the user's modes. If it is, return.
-            2: Otherwise, add it to their current modes, send the mode change message
-        8: If it isn't:
-            1: Check if the mode is in the user's modes. If it is, return.
-            2: Otherwise, remove the mode from their modes. Send the mode change message.
-        """
-        pass
+        if mode_char == "o":
+            if nick != self.nickname:
+                return self.rplhelper.err_noprivileges("You can not change another user's operator status.")
+            elif self.operator is False:
+                return self.rplhelper.err_noprivileges()
+            else:
+                if add_mode is False:
+                    # Strip user op status and return
+                    self.operator = False
+                    return mode_change_message + "\r\nYou are no longer an operator."
+                elif mode_char not in self.modes:
+                    self.modes.append(mode_char)
+                    return mode_change_message
+                return  # Do nothing, they're trying to add +o when they already have it.
+
+        if change_other_user_mode is True:
+            target_has_mode = mode_char in target_user_instance.modes
+            if target_has_mode is False and add_mode:
+                target_user_instance.modes.append(mode_char)
+            elif target_has_mode and add_mode is False:
+                target_user_instance.modes.remove(mode_char)
+            else:
+                return
+            target_user_protocol.sendLine(mode_change_message)
+        else:
+            if add_mode is True and mode_char not in self.modes:
+                self.modes.append(mode_char)
+            elif add_mode is False and mode_char in self.modes:
+                self.modes.remove(mode_char)
+            else:
+                return
+
+        return mode_change_message
+
+    def get_modes(self, nick, location=None):
+        modes = self.modes
+        if nick != self.nickname and self.operator is True:
+            if location not in self.channels or nick not in location.channel_nicks:
+                return self.rplhelper.err_notonchannel("You must share a channel with this user.")
+            target_user_instance = [x for x in location.users if x.nickname == nick][0]
+            modes = target_user_instance.modes
+        elif nick != self.nickname and self.operator is False:
+            return self.rplhelper.err_noprivileges()
+        return self.rplhelper.rpl_umodeis(nick, modes)
 
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
