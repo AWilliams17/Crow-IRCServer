@@ -5,6 +5,7 @@ from server_modules.irc_user import IRCUser
 from time import time
 from socket import getfqdn
 # ToDo: Refactor more
+# ToDo: Make RPC helper
 # ToDo: Implement CAP
 # ToDo: Implement MODE
 # ToDo: Implement max clients
@@ -20,6 +21,7 @@ class IRCProtocol(IRC):
         self.server_description = self.config.ServerSettings['ServerDescription']
         self.operators = self.config.UserSettings["Operators"]
         self.hostname = getfqdn()
+        self.user_modes = ['+I', '+o']  # ToDo: More
 
     def connectionMade(self):
         current_time_posix = time()
@@ -41,11 +43,11 @@ class IRCProtocol(IRC):
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
-        self.sendLine("Error: Unknown command: '{} {}'".format(command, params))  # ToDo: Should be UnknownCommand
+        self.sendLine(":{} 421 {} {} :Unknown Command".format(self.hostname, self.users[self].nickname, command))
 
     def irc_JOIN(self, prefix, params):
         if len(params) != 1:
-            self.sendLine("Error: maximum/minimum 1 parameter.")  # ToDo: Should be Not enough parameters
+            self.sendLine(":{} 461 {} JOIN :Not enough parameters".format(self.hostname, self.users[self].nickname))
             return
 
         channel = params[0].lower()
@@ -82,9 +84,7 @@ class IRCProtocol(IRC):
         param_count = len(params)
 
         if param_count < 2:
-            self.sendLine("Error: Not enough parameters (2 required)")  # ToDo: Should be not enough parameters
-        elif param_count > 2:
-            self.sendLine("Error: Too many parameters (max: 2)")  # ToDo: Should be not enough parameters
+            self.sendLine(":{} 461 {} PRIVMSG :Not enough parameters".format(self.hostname, self.users[self].nickname))
         else:
             results = self.users[self].send_msg(params[0], params[1])
             if results is not None:
@@ -92,7 +92,6 @@ class IRCProtocol(IRC):
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
-
         if self.users[self].nickname is None and self.users[self].nickattempts == 0:
             self.sendLine(":{} {} {} :{}".format(
                 self.hostname, RPL_WELCOME,
@@ -153,7 +152,27 @@ class IRCProtocol(IRC):
         self.sendLine(self.users[self].away(reason))
 
     def irc_MODE(self, prefix, params):
-        pass
+        location = None
+        nick = None
+        mode = None
+        if len(params) == 3:
+            if params[0][0] == "#":
+                location = self.channels[params[0]]
+            nick = params[1]
+            mode = params[2]
+        elif len(params) == 2:
+            nick = params[0]
+            mode = params[1]
+        elif len(params) == 1:
+            #location = self.channels[location]
+            return
+
+        if mode[0] != '+':
+            mode = '+' + mode.lower()
+
+        result = self.users[self].set_mode(location, nick, mode, self.user_modes)
+        if result is not None:
+            self.sendLine(result)
 
     def irc_OPER(self, prefix, params):  # ToDo: ERR_NOOPERHOST
         user_nickname = self.users[self].nickname
@@ -165,7 +184,7 @@ class IRCProtocol(IRC):
         if username in self.operators:
             if self.operators[username] == password:
                 self.users[self].set_op()
+                self.irc_MODE("", [user_nickname, "+o"])
                 self.sendLine(":{} 381 {} :You are now an IRC operator".format(self.hostname, user_nickname))
                 return
         self.sendLine(":{} 464 {} :Password Incorrect".format(self.hostname, user_nickname))
-
