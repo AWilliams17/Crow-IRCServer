@@ -143,7 +143,7 @@ class IRCProtocol(IRC):
                     self.users[user].sign_on_time, user_channels
                 )
                 return
-        self.sendLine("{} 401 {} {} :No such user.".format(self.hostname, self.users[self].nickname, params[0]))
+        self.sendLine("{} 401 {} {} :No such nick.".format(self.hostname, self.users[self].nickname, params[0]))
 
     def irc_AWAY(self, prefix, params):
         reason = "Unspecified"

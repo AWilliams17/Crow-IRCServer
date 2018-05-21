@@ -145,7 +145,7 @@ class IRCUser:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
                     return None
-            return "{} 401 {} {} :No such user.".format(self.server_host, self.nickname, destination)
+            return "{} 401 {} {} :No such nick.".format(self.server_host, self.nickname, destination)
 
     def away(self, reason):
         result = None
@@ -168,24 +168,30 @@ class IRCUser:
     def set_mode(self, location, nick, mode, valid_modes=None):
         if valid_modes is not None:
             if mode not in valid_modes:
-                return "a"  # Unknown mode
+                return ":{} 472 {} {} :Unknown Mode".format(self.server_host, self.nickname, mode)
             if nick != self.nickname and self.operator is False:
-                return "b"  # User is not operator
+                return ":{} 502 {} {} :Cant change mode for other users".format(self.server_host, self.nickname, mode)
             if mode == "+o" and self.operator is False:
-                return "c"  # Can't make others/yourself an OP if you aren't an OP!
+                return ":{} 481 {} {} :Permission Denied- You're not an IRC operator".format(
+                    self.server_host, self.nickname, mode
+                )
 
         mode_change = ":{} MODE {} :{}".format(self.nickname, nick, mode)
 
         if location is not None:
+            if nick not in location.channel_nicks:
+                return ":{} 401 {} {} :No such nick.".format(self.server_host, self.nickname, nick)
+            location.broadcast_line(mode_change)
+            return None
+        if nick != self.nickname:
             matches = [x for x in self.protocol.users if x.users[x].nickname == nick]
             if len(matches) != 1:
-                return ""  # User not found
-            if location in self.channels:
-                if nick in location.channel_nicks:
-                    location.broadcast_line(mode_change)
-                    return None
-                return ""  # User not in channel
-            return ""  # Can't change mode if you aren't in the channel
+                return ":{} 401 {} {} :No such nick.".format(self.server_host, self.nickname, nick)
+            user_protocol = matches[0]
+            user_protocol.sendLine(mode_change)
+            if mode == "+o":
+                user_protocol.users[user_protocol].set_op()
+                user_protocol.sendLine(":{} 381 {} :You are now an IRC operator".format(self.server_host, nick))
 
         return mode_change
 
