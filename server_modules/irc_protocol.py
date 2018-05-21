@@ -154,6 +154,7 @@ class IRCProtocol(IRC):
         self.sendLine(self.users[self].away(reason))
 
     def irc_MODE(self, prefix, params):
+        print(params)
         location = None
         nick = None
         mode = None

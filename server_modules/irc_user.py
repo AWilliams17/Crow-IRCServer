@@ -184,8 +184,9 @@ class IRCUser:
         -The user has privileges to issue this command.
 
         6: Now, if change_other_mode is true, then take the channel passed in location and see if the nick for the target
-        user is in there. If it isn't, return an error. Otherwise, do the steps below, only for the target. Either way,
-        return the mode change message to the person issuing the command.
+        user is in there. If it isn't, return an error. If no location was passed (location is None), tell the issuer
+        he can't change a user's mode if he's not in the channel with him. Otherwise, do the steps below,
+        only for the target. Either way, return the mode change message to the person issuing the command.
         7: If adding is true:
             1: Check if the mode is not already in the user's modes. If it is, return.
             2: Otherwise, add it to their current modes, send the mode change message
