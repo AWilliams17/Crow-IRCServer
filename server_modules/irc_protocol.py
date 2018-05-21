@@ -23,7 +23,7 @@ class IRCProtocol(IRC):
         self.operators = self.config.UserSettings["Operators"]
         self.hostname = getfqdn()
         self.rplhelper = RPLHelper(self.hostname, None, None)
-        self.user_modes = ['+I', '+o']  # ToDo: More
+        self.user_modes = ['I', 'o']  # ToDo: More
 
     def connectionMade(self):
         current_time_posix = time()
@@ -166,11 +166,8 @@ class IRCProtocol(IRC):
             nick = params[0]
             mode = params[1]
         elif len(params) == 1:
-            #location = self.channels[location]  # ToDo: Channel modes
+            # location = self.channels[location]  # ToDo: Channel modes
             return
-
-        if mode[0] != '+':
-            mode = '+' + mode.lower()
 
         result = self.users[self].set_mode(location, nick, mode, self.user_modes)
         if result is not None:
@@ -186,7 +183,7 @@ class IRCProtocol(IRC):
         if username in self.operators:
             if self.operators[username] == password:
                 self.users[self].set_op()
-                self.irc_MODE("", [user_nickname, "+o"])
+                self.irc_MODE(None, [user_nickname, "+o"])
                 self.sendLine(self.rplhelper.rpl_youreoper())
                 return
         self.sendLine(self.rplhelper.err_passwordmismatch())

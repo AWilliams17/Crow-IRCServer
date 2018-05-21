@@ -161,35 +161,13 @@ class IRCUser:
     def set_op(self):
         self.operator = True
 
-    # ToDo: Pretty sure this isn't how irc modes work
-    # ToDo: Also this needs to be refactored lol
+    # ToDo: This all needs to be re-written
     def set_mode(self, location, nick, mode, valid_modes=None):
-        if valid_modes is not None:
-            if mode not in valid_modes:
-                return self.rplhelper.err_unknownmode(mode)
-            if nick != self.nickname and self.operator is False:
-                return self.rplhelper.err_usersdontmatach(mode)
-            if mode == "+o" and self.operator is False:
-                return self.rplhelper.err_noprivleges(mode)
-
-        mode_change = ":{} MODE {} :{}".format(self.nickname, nick, mode)
-
-        if location is not None:
-            if nick not in location.channel_nicks:
-                return self.rplhelper.err_nosuchnick(nick)
-            location.broadcast_line(mode_change)
-            return None
-        if nick != self.nickname:
-            matches = [x for x in self.protocol.users if x.users[x].nickname == nick]
-            if len(matches) != 1:
-                return self.rplhelper.err_nosuchnick(nick)
-            user_protocol = matches[0]
-            user_protocol.sendLine(mode_change)
-            if mode == "+o":
-                user_protocol.users[user_protocol].set_op()
-                user_protocol.sendLine(user_protocol.rplhelper.rpl_youreoper())
-
-        return mode_change
+        # mode_change = ":{} MODE {} :{}".format(self.nickname, nick, mode)
+        """
+        
+        """
+        pass
 
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
