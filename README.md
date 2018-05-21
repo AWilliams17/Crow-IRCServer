@@ -3,7 +3,8 @@ This is an (incomplete) Python3 Twisted IRC server implementation.
 
 A lot of commands are not implemented yet, and there is no customization,
 but joining/creating IRC channels, private messaging users, changing your nick,
-all work.
+all work. Also becoming an operator works but it doesn't do anything at the moment.
+Plus there's modes. Can't remove them yet. :P
 
 The code is kind of a mess right now too.
 
