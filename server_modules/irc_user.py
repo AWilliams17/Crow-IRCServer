@@ -7,7 +7,7 @@ class IRCUser:
     illegal_characters = set(".<>'`()?*#")
 
     def __init__(self, protocol, username, nickname, realname, sign_on_time, last_msg_time, host, hostmask, channels,
-                 nickattempts, nick_length, user_length, server_host):
+                 nickattempts, nick_length, user_length, rplhelper, serverhost):
         self.protocol = protocol
         self.__username = username
         self.__nickname = nickname
@@ -20,7 +20,8 @@ class IRCUser:
         self.nickattempts = nickattempts
         self.nick_length = nick_length
         self.user_length = user_length
-        self.server_host = server_host
+        self.rplhelper = rplhelper
+        self.server_host = serverhost
         self.modes = []
         self.status = "H"
         self.operator = False
@@ -52,13 +53,11 @@ class IRCUser:
         username_length = len(username)
 
         if username_length == 0:
-            return ":{} NOTICE {} :***Username can not be nothing.***".format(self.server_host, self.nickname)
+            return [self.nickname, "***Username can not be nothing.***"]
         if username_length > self.user_length:
-            return ":{} NOTICE {} :***Username can not be greater than {} characters.***".format(
-                self.server_host, self.nickname, self.user_length
-            )
+            return [self.nickname, "***Username can not be greater than {} characters.***".format(self.user_length)]
         if any((c in self.illegal_characters) for c in username):
-            return ":{} NOTICE {} :***Illegal Characters in Username.***".format(self.server_host, self.nickname)
+            return [self.nickname, "***Illegal Characters in Username.***"]
 
         self.__username = username
         self.realname = realname
@@ -83,8 +82,7 @@ class IRCUser:
                 # They've had 2 attempts at changing it - Generate one for them.
                 if self.nickattempts != 2:
                     self.nickattempts += 1
-                    return ":{} 433 * {} :Nickname is already in use".format(
-                        self.server_host, desired_nickname)
+                    return self.rplhelper.err_nicknameinuse(desired_nickname)
                 else:
                     randomized_nick = self._generate_random_nick(in_use_nicknames)
                     previous_hostmask = self.hostmask  # Store this since it's going to be changed
@@ -97,18 +95,20 @@ class IRCUser:
                 # The user already has a nick, so just send a line telling them its in use and keep things the same.
                 return ":{} NOTICE {} :***Nickname is already in use.***".format(self.server_host, self.nickname)
 
+        # ToDo: Try to combine these
         if len(desired_nickname) > self.nick_length:
-            error = ":Erroneous Nickname - Exceeded max char limit {}".format(self.nick_length)
+            error = "Exceeded max char limit {}".format(self.nick_length)
             if self.__nickname is None:
-                return ":{} 432 * {} :{}".format(self.server_host, self.nickname, error)
-            return ":{} 436 * {} :{} ".format(self.server_host, desired_nickname, error)
+                self.nickattempts += 1
+                return self.rplhelper.err_erroneousnickname(desired_nickname, error)
+            return ":{} 436 * {} :{} ".format(self.server_host, desired_nickname, error)  # ToDo: Make this a notice
 
         if any((c in self.illegal_characters) for c in desired_nickname):
             error = ":Erroneous Nickname - Illegal characters".format(self.nick_length)
             if self.nickname is None:
                 self.nickattempts += 1
-                return ":{} 432 * {} :{}".format(self.server_host, self.nickname, error)
-            return ":{} 436 * {} :{}".format(self.server_host, desired_nickname, error)
+                return self.rplhelper.err_erroneousnickname(desired_nickname, error)
+            return ":{} 436 * {} :{}".format(self.server_host, desired_nickname, error)  # ToDo: Make this a notice
 
         output = None
         if self.nickname is not None or self.nickattempts != 0:  # They are renaming themselves.
@@ -125,14 +125,12 @@ class IRCUser:
 
     def send_msg(self, destination, message):
         if "*" in destination or "?" in destination:
-            return "{} 415 {} {} :No wildcards in destination..".format(self.server_host, self.nickname, destination)
+            return self.rplhelper.err_badchanmask(destination)
         if destination[0] == "#":
             if destination not in self.protocol.channels:
-                return "{} 401 {} {} :No such channel.".format(self.server_host, self.nickname, destination)
+                return self.rplhelper.err_nosuchchannel(destination)
             if self not in self.protocol.channels[destination].users:
-                return "{} 404 {} {} :Cannot send to channel you are not in.".format(
-                    self.server_host, self.nickname, destination
-                )
+                return self.rplhelper.err_cannotsendtochan(destination, "Cannot send to channel you are not in.")
             else:
                 self.protocol.channels[destination].broadcast_message(message, self.hostmask)
                 self.last_msg_time = time()
@@ -145,17 +143,17 @@ class IRCUser:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
                     return None
-            return "{} 401 {} {} :No such nick.".format(self.server_host, self.nickname, destination)
+            return self.rplhelper.err_nosuchnick(destination)
 
     def away(self, reason):
         result = None
         if self.status == "G":
             self.status = "H"
-            result = "{} 305 :You are no longer marked as being away".format(self.hostmask)
+            result = self.rplhelper.rpl_unaway()
             reason = None
         else:
             self.status = "G"
-            result = "{} 306 :You have been marked as being away".format(self.hostmask)
+            result = self.rplhelper.rpl_away()
         for channel in self.channels:
             channel.set_away(self, reason)
         return result
@@ -168,30 +166,28 @@ class IRCUser:
     def set_mode(self, location, nick, mode, valid_modes=None):
         if valid_modes is not None:
             if mode not in valid_modes:
-                return ":{} 472 {} {} :Unknown Mode".format(self.server_host, self.nickname, mode)
+                return self.rplhelper.err_unknownmode(mode)
             if nick != self.nickname and self.operator is False:
-                return ":{} 502 {} {} :Cant change mode for other users".format(self.server_host, self.nickname, mode)
+                return self.rplhelper.err_usersdontmatach(mode)
             if mode == "+o" and self.operator is False:
-                return ":{} 481 {} {} :Permission Denied- You're not an IRC operator".format(
-                    self.server_host, self.nickname, mode
-                )
+                return self.rplhelper.err_noprivleges(mode)
 
         mode_change = ":{} MODE {} :{}".format(self.nickname, nick, mode)
 
         if location is not None:
             if nick not in location.channel_nicks:
-                return ":{} 401 {} {} :No such nick.".format(self.server_host, self.nickname, nick)
+                return self.rplhelper.err_nosuchnick(nick)
             location.broadcast_line(mode_change)
             return None
         if nick != self.nickname:
             matches = [x for x in self.protocol.users if x.users[x].nickname == nick]
             if len(matches) != 1:
-                return ":{} 401 {} {} :No such nick.".format(self.server_host, self.nickname, nick)
+                return self.rplhelper.err_nosuchnick(nick)
             user_protocol = matches[0]
             user_protocol.sendLine(mode_change)
             if mode == "+o":
                 user_protocol.users[user_protocol].set_op()
-                user_protocol.sendLine(":{} 381 {} :You are now an IRC operator".format(self.server_host, nick))
+                user_protocol.sendLine(user_protocol.rplhelper.rpl_youreoper())
 
         return mode_change
 

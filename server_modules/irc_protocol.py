@@ -2,10 +2,10 @@ from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
+from server_modules.irc_rpl import RPLHelper
 from time import time
 from socket import getfqdn
 # ToDo: !-->Refactor<--!
-# ToDo: Make RPL helper
 # ToDo: Make +I Work
 # ToDo: Make -(mode) remove modes + -o unset operator status
 # ToDo: Implement CAP
@@ -22,6 +22,7 @@ class IRCProtocol(IRC):
         self.server_description = self.config.ServerSettings['ServerDescription']
         self.operators = self.config.UserSettings["Operators"]
         self.hostname = getfqdn()
+        self.rplhelper = RPLHelper(self.hostname, None, None)
         self.user_modes = ['+I', '+o']  # ToDo: More
 
     def connectionMade(self):
@@ -31,7 +32,7 @@ class IRCProtocol(IRC):
         self.sendLine("You are now connected to %s" % self.server_name)
         self.users[self] = IRCUser(
             self, None, None, None, current_time_posix, current_time_posix,
-            self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length, self.hostname
+            self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
         )
 
     def connectionLost(self, reason=protocol.connectionDone):
@@ -44,11 +45,11 @@ class IRCProtocol(IRC):
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
-        self.sendLine(":{} 421 {} {} :Unknown Command".format(self.hostname, self.users[self].nickname, command))
+        self.sendLine(self.rplhelper.err_unknowncommand(command))
 
     def irc_JOIN(self, prefix, params):
         if len(params) != 1:
-            self.sendLine(":{} 461 {} JOIN :Not enough parameters".format(self.hostname, self.users[self].nickname))
+            self.sendLine(self.rplhelper.err_needmoreparams("JOIN"))
             return
 
         channel = params[0].lower()
@@ -63,7 +64,7 @@ class IRCProtocol(IRC):
         # and then add this channel to the list of channels the user is connected to.
         results = self.channels[channel].add_user(self.users[self])
         if results is not None:
-            self.sendLine(results)
+            self.sendLine(self.rplhelper.err_nonicknamegiven(results))
 
     def irc_QUIT(self, prefix, params):
         leave_message = None
@@ -85,7 +86,7 @@ class IRCProtocol(IRC):
         param_count = len(params)
 
         if param_count < 2:
-            self.sendLine(":{} 461 {} PRIVMSG :Not enough parameters".format(self.hostname, self.users[self].nickname))
+            self.sendLine(self.rplhelper.err_needmoreparams("PRIVMSG"))
         else:
             results = self.users[self].send_msg(params[0], params[1])
             if results is not None:
@@ -109,7 +110,7 @@ class IRCProtocol(IRC):
         realname = params[3]
         results = self.users[self].set_username(username, realname)
         if results is not None:  # Their username is invalid. Boot them.
-            self.sendLine(results)
+            self.notice(self.hostname, results[0], results[1])
             self.transport.loseConnection()
 
     def irc_CAP(self, prefix, params):
@@ -144,7 +145,7 @@ class IRCProtocol(IRC):
                     self.users[user].sign_on_time, user_channels
                 )
                 return
-        self.sendLine("{} 401 {} {} :No such nick.".format(self.hostname, self.users[self].nickname, params[0]))
+        self.sendLine(self.rplhelper.err_nosuchnick(params[0]))
 
     def irc_AWAY(self, prefix, params):
         reason = "Unspecified"
@@ -165,7 +166,7 @@ class IRCProtocol(IRC):
             nick = params[0]
             mode = params[1]
         elif len(params) == 1:
-            #location = self.channels[location]
+            #location = self.channels[location]  # ToDo: Channel modes
             return
 
         if mode[0] != '+':
@@ -178,7 +179,7 @@ class IRCProtocol(IRC):
     def irc_OPER(self, prefix, params):  # ToDo: ERR_NOOPERHOST
         user_nickname = self.users[self].nickname
         if len(params) != 2:
-            self.sendLine(":{} 461 {} OPER :Not enough parameters".format(self.hostname, user_nickname))
+            self.sendLine(self.rplhelper.err_needmoreparams("OPER"))
             return
         username = params[0]
         password = params[1]
@@ -186,6 +187,6 @@ class IRCProtocol(IRC):
             if self.operators[username] == password:
                 self.users[self].set_op()
                 self.irc_MODE("", [user_nickname, "+o"])
-                self.sendLine(":{} 381 {} :You are now an IRC operator".format(self.hostname, user_nickname))
+                self.sendLine(self.rplhelper.rpl_youreoper())
                 return
-        self.sendLine(":{} 464 {} :Password Incorrect".format(self.hostname, user_nickname))
+        self.sendLine(self.rplhelper.err_passwordmismatch())

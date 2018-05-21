@@ -1,6 +1,7 @@
 from twisted.internet.protocol import Factory
 from server_modules.irc_protocol import IRCProtocol
 from collections import OrderedDict
+from socket import getfqdn
 
 
 class ChatServer(Factory):

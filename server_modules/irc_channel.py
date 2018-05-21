@@ -33,7 +33,7 @@ class IRCChannel:
             return
 
         if user.nickname is None:
-            return "Failed to join channel: Your nickname is not set."  # ToDo: 431
+            return "Failed to join channel: Your nickname is not set."
 
         if user.hostmask is None:
             user.set_hostmask(user.nickname)
