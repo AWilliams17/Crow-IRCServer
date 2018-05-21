@@ -4,10 +4,11 @@ from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from time import time
 from socket import getfqdn
-# ToDo: Refactor more
-# ToDo: Make RPC helper
+# ToDo: !-->Refactor<--!
+# ToDo: Make RPL helper
+# ToDo: Make +I Work
+# ToDo: Make -(mode) remove modes + -o unset operator status
 # ToDo: Implement CAP
-# ToDo: Implement MODE
 # ToDo: Implement max clients
 # ToDo: Implement PING/PONG (since I guess it doesn't work?)
 
