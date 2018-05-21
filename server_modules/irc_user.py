@@ -162,10 +162,36 @@ class IRCUser:
         self.operator = True
 
     # ToDo: This all needs to be re-written
-    def set_mode(self, location, nick, mode, valid_modes=None):
+    def set_mode(self, location, nick, mode, valid_modes):
         # mode_change = ":{} MODE {} :{}".format(self.nickname, nick, mode)
         """
-        
+        So modes are only echoed out to the person setting the mode.
+        For setting another person's mode I'll assume it's common practice
+        to also echo out to the person who issued the mode command.
+
+        So,
+        1: Check if the user is trying to change the mode on someone else. If he is, check if he's an oper. If
+        he is not an oper, then return an error. Otherwise, set the bool "change_other_mode" to true.
+        2: Restrict the o flag, unless the user himself is an operator - in that case, only allow him to remove it
+        from himself. Oper or no, you can't add +o to someone else. They must have an oper account.
+        3: Check if there's a +/- infront of the mode character. If there isn't, return an error.
+        4: If it's a +, set the adding bool to true. Otherwise leave it at false. Eitherway, strip it out, leave just
+        the mode character.
+        5: Now, check if the mode char is a valid mode char. if it isn't, return an error.
+
+        So at this point, what we know so far about the mode change:
+        -It's a valid mode
+        -The user has privileges to issue this command.
+
+        6: Now, if change_other_mode is true, then take the channel passed in location and see if the nick for the target
+        user is in there. If it isn't, return an error. Otherwise, do the steps below, only for the target. Either way,
+        return the mode change message to the person issuing the command.
+        7: If adding is true:
+            1: Check if the mode is not already in the user's modes. If it is, return.
+            2: Otherwise, add it to their current modes, send the mode change message
+        8: If it isn't:
+            1: Check if the mode is in the user's modes. If it is, return.
+            2: Otherwise, remove the mode from their modes. Send the mode change message.
         """
         pass
 
