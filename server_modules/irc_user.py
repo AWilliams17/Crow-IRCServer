@@ -162,7 +162,6 @@ class IRCUser:
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
          they have permission to do the change."""
 
-
         pass
 
     def get_modes(self, nick, location=None):

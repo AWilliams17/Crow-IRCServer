@@ -293,21 +293,18 @@ class IRCProtocol(IRC):
         param[2] == The mode the client is attempting to use.
         ToDo: Twisted's irc.py seems to have some things I can implement here for this. Look at it.
         """
-        param_count = len(params)
-        if param_count == 1:
-            if params[0] == self.users[self].nickname:
-                pass  # They are looking up their own mode
-            else:
-                pass  # They are looking up a location's mode
-        elif param_count == 2:
-            if params[0] == self.users[self].nickname:
-                pass  # They are setting their own mode
-            else:
-                pass  # They are setting a location's mode
-        else:
-            pass  # They are setting another user's mode
+        client_nickname = next((x for x in params if x == self.users[self].nickname), None)
+        mode = next((x for x in params if x[0] in "+-"), None)
+        location_name = next((x for x in params if x[0] == "#"), None)
+        target_nickname = next((x for x in params if x != client_nickname), None)
 
         
+
+
+
+
+
+
 
     def irc_OPER(self, prefix, params):
         """
