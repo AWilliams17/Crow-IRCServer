@@ -9,7 +9,7 @@ from enum import Enum
 
 
 class QuitReason(Enum):
-        LEFT = ":{} QUIT :{}\r\n"
+        LEFT = ":{} PART {}\r\n"
         DISCONNECTED = ":{} QUIT :{}\r\n"
         TIMEOUT = ":{} QUIT :{}\r\n"
         UNSPECIFIED = ":{} QUIT :{}\r\n"
@@ -18,13 +18,11 @@ class QuitReason(Enum):
 class IRCChannel:
     def __init__(self, name):
         self.channel_name = name
+        self.channel_owner = None
         self.users = []
         self.channel_nicks = []
         self.channel_modes = []
-        self.channel_owner = []
-        self.channel_ops = []
-        self.channel_owner_account = {}
-        self.channel_op_accounts = {}
+        self.channel_owner_account = []
 
     def __str__(self):
         host_list = [x.hostmask for x in self.users]
@@ -36,9 +34,6 @@ class IRCChannel:
         # This user is already in the channel
         if user in self.users:
             return
-
-        if user.nickname is None:
-            return "Failed to join channel: Your nickname is not set."
 
         if user.hostmask is None:
             user.set_hostmask(user.nickname)
@@ -54,14 +49,22 @@ class IRCChannel:
         return None
 
     def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):
-        if reason == QuitReason.LEFT.value and leave_message is None:
-            leave_message = "User Left Channel."
-        elif reason == QuitReason.DISCONNECTED.value and leave_message is None:
-            leave_message = "User Quit Network."
-        elif reason == QuitReason.TIMEOUT.value:
-            leave_message = "User Timed Out."
-        elif reason == QuitReason.UNSPECIFIED.value:
+        if reason.value == QuitReason.LEFT.value:
+            if leave_message is None:
+                leave_message = "{} :User Left Channel.".format(self.channel_name)
+            else:
+                leave_message = "{} :{}".format(self.channel_name, leave_message)
+        elif reason.value == QuitReason.DISCONNECTED.value:
+            if leave_message is None:
+                leave_message = "User Quit Network."
+        elif reason.value == QuitReason.TIMEOUT.value:
+            if leave_message is None:
+                leave_message = "User Timed Out."
+        else:
             leave_message = "Unspecified Reason."
+        if user is self.channel_owner:
+            self.channel_owner = None
+
         self.broadcast_line(reason.value.format(user.hostmask, leave_message))
         self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
@@ -77,12 +80,16 @@ class IRCChannel:
             ))
         return member_info
 
-    def set_away(self, user, reason):
-        message = ":{} AWAY :{}".format(user.hostmask, reason)
-        if reason is None:
-            message = ":{} AWAY".format(user.hostmask)
-        for user_ in self.users:
-            user_.protocol.sendLine(message)
+    def login_owner(self, name, password, user):
+        if user.nickname not in self.channel_nicks:
+            return user.rplhelper.err_noprivileges("You must be on the channel to login as the owner.")
+        if name != self.channel_owner_account[0] or password != self.channel_owner_account[1]:
+            return user.rplhelper.err_passwordmismatch()
+        elif self.channel_owner is not None:
+            return user.rplhelper.err_noprivileges("Channel already has an acting owner.")
+        else:
+            self.channel_owner = user
+            return "You have logged in as the channel owner of {}".format(self.channel_name)
 
     def send_names(self, user):
         user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)
@@ -102,3 +109,7 @@ class IRCChannel:
     def broadcast_line(self, line):
         for user in self.users:
             user.protocol.sendLine(line)
+
+    def broadcast_notice(self, message):
+        for user in self.users:
+            user.notice(message)

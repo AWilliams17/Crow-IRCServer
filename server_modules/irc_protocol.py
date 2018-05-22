@@ -5,9 +5,13 @@ from server_modules.irc_user import IRCUser
 from server_modules.irc_rpl import RPLHelper
 from time import time
 from socket import getfqdn
-from hashlib import sha256
+from secrets import token_urlsafe
 # ToDo: !-->Refactor<--!
+# ToDo: Implement channel owner functions + channel operators
+# ToDo: Clean up irc_MODE, clean up set_mode, test the channel owner login more thoroughly
+# ToDo: Figure out what HOP count does
 # ToDo: Make +I Work
+# ToDo: Add more modes + channel modes
 # ToDo: Implement CAP
 # ToDo: Implement max clients
 # ToDo: Implement PING/PONG (since I guess it doesn't work?)
@@ -22,7 +26,7 @@ class IRCProtocol(IRC):
         self.server_description = self.config.ServerSettings['ServerDescription']
         self.operators = self.config.UserSettings["Operators"]
         self.hostname = getfqdn()
-        self.rplhelper = RPLHelper(self.hostname, None, None)
+        self.rplhelper = RPLHelper(None)
         self.user_modes = ['I', 'o']  # ToDo: More
 
     def connectionMade(self):
@@ -56,10 +60,26 @@ class IRCProtocol(IRC):
         if channel[0] != "#":
             channel = "#" + channel
 
-        # The channel doesn't exist on the network - create it.
+        if self.users[self].nickname is None:
+            self.sendLine("Failed to join channel: Your nickname is not set.")
+            return
+
+        # The channel doesn't exist on the network - create it and make an owner account for the creator.
+        # Note: The account really isn't secure, but it'll do.
         if channel not in self.channels:
+            owner_name = token_urlsafe(16)
+            owner_password = token_urlsafe(32)
             self.channels[channel] = IRCChannel(channel)
-            self.channels[channel].channel_owner = []
+            self.channels[channel].channel_owner = self.users[self]
+            self.channels[channel].channel_owner_account = [owner_name, owner_password]
+            self.users[self].send_msg(
+                self.users[self].nickname,
+                "You are now logged in as the owner of {}".format(channel)
+            )
+            self.users[self].send_msg(
+                self.users[self].nickname,
+                "Owner account details are: {}:{} - Don't lose them.".format(owner_name, owner_password)
+            )
 
         # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
@@ -149,11 +169,12 @@ class IRCProtocol(IRC):
         self.sendLine(self.rplhelper.err_nosuchnick(params[0]))
 
     def irc_AWAY(self, prefix, params):
-        reason = "Unspecified"
+        reason = None
         if len(params) != 0:
             reason = params[0]
         self.sendLine(self.users[self].away(reason))
 
+    # ToDo: This is a massive mess. Fix this.
     def irc_MODE(self, prefix, params):
         location = None
         nick = None
@@ -184,7 +205,7 @@ class IRCProtocol(IRC):
             if params[0][0] != "#":
                 nick = params[0]
                 self.sendLine(self.users[self].get_modes(nick))
-            else:
+            else:  # ToDo: Channel modes
                 location = self.channels[params[0]]
                 #self.sendLine(self.channels[params[0]].get_modes(location))
             return
@@ -212,4 +233,21 @@ class IRCProtocol(IRC):
         pass
 
     def irc_CHOWNER(self, prefix, params):
-        pass
+        if len(params) < 3:
+            self.sendLine(self.rplhelper.err_needmoreparams(
+                "3 parameters needed: <owner account name> <owner pass> #<channel>"
+            ))
+            return
+        if params[2][0] != "#":
+            params[2] = "#" + params[2]
+        name = params[0]
+        password = params[1]
+        channel_name = params[2]
+        user = self.users[self]
+        if channel_name not in self.channels:
+            self.sendLine(self.rplhelper.err_nosuchchannel(channel_name))
+            return
+
+        results = self.channels[channel_name].login_owner(name, password, user)
+        if results is not None:
+            self.sendLine(results)

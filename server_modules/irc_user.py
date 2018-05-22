@@ -21,6 +21,7 @@ class IRCUser:
         self.nick_length = nick_length
         self.user_length = user_length
         self.rplhelper = rplhelper
+        self.rplhelper.user_instance = self
         self.server_host = serverhost
         self.modes = []
         self.status = "H"
@@ -139,24 +140,19 @@ class IRCUser:
             for i in self.protocol.users:
                 destination_user_protocol = self.protocol.users.get(i).protocol
                 destination_nickname = self.protocol.users.get(i).nickname
-                if self.protocol != destination_user_protocol and destination_nickname == destination:
+                if destination_user_protocol == destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
                     return None
             return self.rplhelper.err_nosuchnick(destination)
 
     def away(self, reason):
-        result = None
-        if self.status == "G":
+        if reason is None:
             self.status = "H"
-            result = self.rplhelper.rpl_unaway()
-            reason = None
+            return self.rplhelper.rpl_unaway()
         else:
             self.status = "G"
-            result = self.rplhelper.rpl_away()
-        for channel in self.channels:
-            channel.set_away(self, reason)
-        return result
+            return self.rplhelper.rpl_nowaway()
 
     def set_op(self):
         self.operator = True
@@ -231,6 +227,9 @@ class IRCUser:
         elif nick != self.nickname and self.operator is False:
             return self.rplhelper.err_noprivileges()
         return self.rplhelper.rpl_umodeis(nick, modes)
+
+    def notice(self, message):
+        self.protocol.sendLine(":{} NOTICE {} :{}".format(self.server_host, self.nickname, message))
 
     def _generate_random_nick(self, current_nicknames):
         protocol_instance_string = str(self.protocol).replace(" ", "")
