@@ -158,66 +158,12 @@ class IRCUser:
         self.operator = True
 
     # ToDo: This can be majorly improved.
-    def set_mode(self, location, nick, mode, valid_modes):
+    def set_mode(self):
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
          they have permission to do the change."""
-        if len(mode) < 2:
-            return
-        mode_modifier = mode[0]
-        mode_char = mode[1]
-        mode_change_message = ":{} MODE {} :{}".format(self.nickname, nick, mode)
-        target_user_instance = None
-        target_user_protocol = None
-        change_other_user_mode = False
-        add_mode = False
 
-        if nick != self.nickname:
-            if not self.operator:
-                return self.rplhelper.err_noprivileges("You must be an operator to change another user's privileges.")
-            if location is None or nick not in location.get_nicknames():
-                return self.rplhelper.err_notonchannel("You must share a channel with this user.")
-            change_other_user_mode = True
-            target_user_instance = [x for x in location.users if x.nickname == nick][0]
-            target_user_protocol = target_user_instance.protocol
 
-        if mode_modifier == "+":
-            add_mode = True
-        if mode_char not in valid_modes or mode_modifier != "-" and not add_mode:
-            return self.rplhelper.err_unknownmode(mode_char)
-
-        if mode_char == "o":
-            if nick != self.nickname:
-                return self.rplhelper.err_noprivileges("You can not change another user's operator status.")
-            elif not self.operator:
-                return self.rplhelper.err_noprivileges()
-            else:
-                if not add_mode:
-                    # Strip user op status and return
-                    self.operator = False
-                    return mode_change_message + "\r\nYou are no longer an operator."
-                elif mode_char not in self.modes:
-                    self.modes.append(mode_char)
-                    return mode_change_message
-                return  # Do nothing, they're trying to add +o when they already have it.
-
-        if change_other_user_mode:
-            target_has_mode = mode_char in target_user_instance.modes
-            if not target_has_mode and add_mode:
-                target_user_instance.modes.append(mode_char)
-            elif target_has_mode and not add_mode:
-                target_user_instance.modes.remove(mode_char)
-            else:
-                return
-            target_user_protocol.sendLine(mode_change_message)
-        else:
-            if add_mode and mode_char not in self.modes:
-                self.modes.append(mode_char)
-            elif not add_mode and mode_char in self.modes:
-                self.modes.remove(mode_char)
-            else:
-                return
-
-        return mode_change_message
+        pass
 
     def get_modes(self, nick, location=None):
         """ Get a user's current modes (if they have permission) """

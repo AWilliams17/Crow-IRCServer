@@ -191,7 +191,6 @@ class IRCProtocol(IRC):
         the client's realname.
         :type params: list
         """
-        print(params)
         username = params[0]
         realname = params[3]
         results = self.users[self].set_username(username, realname)
@@ -274,11 +273,11 @@ class IRCProtocol(IRC):
         :param params: The list of arguments passed to the command. Varies (explained below)
         :type params: list
 
-        If getting a list of their own modes:
+        If the first argument to mode was their nickname, then
         param[0] == The client's nickname issuing the command
 
-        If getting a list of a channel's modes:
-        param[0] == The channel the client wants to get channel modes from.
+        Otherwise, the clients seem to assume the user is looking up the modes of a location.
+        param[0] == The location the client wants to get channel modes from.
 
         If a client is setting their own mode, or is setting a channel's mode:
         param[0] == The client's nickname/the channel name
@@ -294,43 +293,21 @@ class IRCProtocol(IRC):
         param[2] == The mode the client is attempting to use.
         ToDo: Twisted's irc.py seems to have some things I can implement here for this. Look at it.
         """
-        location = None
-        nick = None
-        mode = None
-
-        if len(params) == 3:
-            if params[0][0] == "#":
-                location = self.channels[params[0]]
-            nick = params[1]
-            mode = params[2]
-        elif len(params) == 2:
-            if len(params[1]) > 2:
-                location = params[0]
-                nick = params[1]
-                if location[0] != "#":
-                    self.sendLine(self.rplhelper.err_notonchannel("You must share a channel with this user."))
-                    return
-                if location not in [x for x in self.channels]:
-                    self.sendLine(self.rplhelper.err_nosuchchannel(location))
-                    return
-                location = self.channels[location]
-                self.sendLine(self.users[self].get_modes(nick, location))
-                return
+        param_count = len(params)
+        if param_count == 1:
+            if params[0] == self.users[self].nickname:
+                pass  # They are looking up their own mode
             else:
-                nick = params[0]
-                mode = params[1]
-        elif len(params) == 1:
-            if params[0][0] != "#":
-                nick = params[0]
-                self.sendLine(self.users[self].get_modes(nick))
+                pass  # They are looking up a location's mode
+        elif param_count == 2:
+            if params[0] == self.users[self].nickname:
+                pass  # They are setting their own mode
             else:
-                location = self.channels[params[0]]
-                #self.sendLine(self.channels[params[0]].get_modes(location))
-            return
+                pass  # They are setting a location's mode
+        else:
+            pass  # They are setting another user's mode
 
-        result = self.users[self].set_mode(location, nick, mode, self.user_modes)
-        if result is not None:
-            self.sendLine(result)
+        
 
     def irc_OPER(self, prefix, params):
         """

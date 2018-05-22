@@ -1,10 +1,16 @@
+What I'm doing now:
+-Refactoring irc_MODE and mode in irc_user, + general refactoring. not adding anything else until this is cleaned up.
+
 General:
 -Create setup.py
 -Save current rooms + their operators to file and load it on launch
 -add logging
 -ensure RFC compliance
 -implement unimplemented commands in commands.md
--implement ISUPPORT (twisted's irc.py has something for this?)
+-implement ISUPPORT (twisted's irc.py has something for this?) http://www.irc.org/tech_docs/005.html
+-implement WHOWAS
+-if a user is an operator, add a * next to their nick in WHOIS/WHO
+-if a user is a channel operator, add an @ next to their nick in WHOIS/WHO
 
 irc_protocol.py:
 -Refactor irc_WHO
@@ -13,6 +19,7 @@ irc_protocol.py:
 -Implement no oper host
 -Implement CAP
 -Implement max clients
+-Implement ACTION
 -See if PING/PONG is working
 -Add more modes
 
