@@ -15,9 +15,5 @@ Things that need implementation:
 
 The code is kind of a mess right now too.
 
-This started as a fork of d34thh4ck3r's Twisted-IRC-server, but I went ahead
-and rewrote it as what currently was written in the fork didn't really work
-correctly.
-
 This is the first time I've written a server with Twisted so I imagine
 I may have done some things wrong.
