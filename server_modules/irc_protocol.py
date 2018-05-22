@@ -273,7 +273,7 @@ class IRCProtocol(IRC):
         :param params: The list of arguments passed to the command. Varies (explained below)
         :type params: list
 
-        If the first argument to mode was their nickname, then
+        If the first argument to mode was their nickname, then they're looking up their own mode.
         param[0] == The client's nickname issuing the command
 
         Otherwise, the clients seem to assume the user is looking up the modes of a location.
@@ -291,14 +291,47 @@ class IRCProtocol(IRC):
         param[0] == The location this command occurred on
         param[1] == The nickname of the user the client wants to set a mode on
         param[2] == The mode the client is attempting to use.
+
+        client_nickname is none when:
+            looking up a channel mode,
+            looking up someone else's mode,
+            setting a channel mode,
+            setting another user's mode
+
+        mode is none when:
+            looking up a channel mode,
+            looking up their own mode,
+            looking up someone else's mode
+
+        target_nickname is none when:
+            looking up a channel mode,
+            looking up their own mode,
+            setting a channel mode
+            setting their own mode,
+
+        location is none when:
+            looking up their own mode,
+            setting their own mode
         ToDo: Twisted's irc.py seems to have some things I can implement here for this. Look at it.
         """
+        param_count = len(params)
         client_nickname = next((x for x in params if x == self.users[self].nickname), None)
         mode = next((x for x in params if x[0] in "+-"), None)
         location_name = next((x for x in params if x[0] == "#"), None)
         target_nickname = next((x for x in params if x != client_nickname), None)
 
-        
+        if param_count == 1:
+            # Looking up a location's modes, or looking up their own mode.
+            pass
+        if param_count == 2:
+            # Setting their own mode, setting a channel's mode, or checking another user's mode
+            pass
+        if param_count == 3:
+            # Setting another user's mode
+            pass
+
+
+
 
 
 

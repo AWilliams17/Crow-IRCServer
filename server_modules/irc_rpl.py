@@ -123,12 +123,12 @@ class RPLHelper:
             self.user_instance.server_host, ERR_NICKNAMEINUSE, inuse_nickname
         )
 
-    def err_unknownmode(self, mode):
+    def err_unknownmode(self):
         """
         :param mode: The mode which was not found.
         """
-        return ":{} {} {} :{} - Unknown Mode".format(
-            self.user_instance.server_host, ERR_UNKNOWNMODE, self.user_instance.nickname, mode
+        return ":{} {} {} :Unknown Mode".format(
+            self.user_instance.server_host, ERR_UNKNOWNMODE, self.user_instance.nickname
         )
 
     def err_usersdontmatach(self, mode):
