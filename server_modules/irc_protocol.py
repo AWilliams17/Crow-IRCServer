@@ -11,6 +11,13 @@ from secrets import token_urlsafe
 # noinspection PyPep8Naming
 class IRCProtocol(IRC):
     def __init__(self, users, channels, config):
+        """
+        :param users: The current users on the server.
+        :param channels: The current channels on the server.
+        :param config: The dictionary generated from the server config file.
+        This also contains a list of valid user modes...
+        ToDo: Move that to the user class. Why is that here?
+        """
         self.users = users
         self.channels = channels
         self.config = config
@@ -22,6 +29,11 @@ class IRCProtocol(IRC):
         self.user_modes = ['I', 'o']  # ToDo: More
 
     def connectionMade(self):
+        """
+        On initial connection, get the time the connection was made for usage in lookups, get the max nick length
+        and max username length from the config so the user objects know how big these can be. Then construct the
+        user object.
+        """
         current_time_posix = time()
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
@@ -32,6 +44,7 @@ class IRCProtocol(IRC):
         )
 
     def connectionLost(self, reason=protocol.connectionDone):
+        """ When a client loses connection uncleanly. ToDo: Do the timeout messages properly. """
         if self in self.users:
             for channel in self.users[self].channels:
                 quit_reason = QuitReason.UNSPECIFIED
@@ -41,9 +54,25 @@ class IRCProtocol(IRC):
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
+        """ When an unknown command is sent to the server, this is the response sent back. """
         self.sendLine(self.rplhelper.err_unknowncommand(command))
 
     def irc_JOIN(self, prefix, params):
+        """
+        Called when a user sends a JOIN command to join a channel.
+        At the moment, it only takes into account the first parameter.
+
+        If the target channel does not exist, then it is created, and
+        the user issuing the command is set as the owner and the details for
+        the owner account of the channel is sent to him.
+
+        :param params: List of arguments passed to the command. First member should be the channel name. Subsequent
+        parameters are ignored for now until the functionality is added.
+        :type params: list
+
+        ToDo: Implement everything here:
+        http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
+        """
         if len(params) != 1:
             self.sendLine(self.rplhelper.err_needmoreparams("JOIN"))
             return
@@ -56,8 +85,6 @@ class IRCProtocol(IRC):
             self.sendLine("Failed to join channel: Your nickname is not set.")
             return
 
-        # The channel doesn't exist on the network - create it and make an owner account for the creator.
-        # Note: The account really isn't secure, but it'll do.
         if channel not in self.channels:
             owner_name = token_urlsafe(16)
             owner_password = token_urlsafe(32)
@@ -80,6 +107,14 @@ class IRCProtocol(IRC):
             self.sendLine(self.rplhelper.err_nonicknamegiven(results))
 
     def irc_QUIT(self, prefix, params):
+        """
+        This is called when a user QUITs the network. Send a message to all the channels he is connected
+        to with his client's LEAVE message (if supplied), and do cleanup.
+        :param params: List of arguments passed to the command. The client should pass just one argument: The
+        message he wishes to display to the channels when he leaves (his 'reason'). If not supplied, a generic
+        message is used.
+        :type params: list
+        """
         leave_message = None
         if len(params) == 1:
             leave_message = params[0]
@@ -89,6 +124,14 @@ class IRCProtocol(IRC):
             del self.users[self]
 
     def irc_PART(self, prefix, params):
+        """
+        This is called when a user LEAVEs a channel (he "parts" from it). Send a message to the channel
+        with the proper PART RPL and his leave message (if supplied).
+        :param params: The list of arguments passed by the client. The first is the channel this was triggered on,
+        and the second is the leave message sent by the client. If the client sends no leave message, then a generic
+        message is used in it's place.
+        :type params: list
+        """
         channel = params[0]
         leave_message = None
         if len(params) == 2:
@@ -96,6 +139,13 @@ class IRCProtocol(IRC):
         self.channels[channel].remove_user(self.users[self], leave_message, reason=QuitReason.LEFT)
 
     def irc_PRIVMSG(self, prefix, params):
+        """
+        Called when a client issues a PRIVMSG command, which is either sending a message to a server,
+        or to another user.
+        :param params: The list of arguments passed by the client to the command. The first argument should be the
+        destination, and the second should be the channel or the user he wishes to send a message to.
+        :type params: list
+        """
         param_count = len(params)
 
         if param_count < 2:
@@ -106,6 +156,12 @@ class IRCProtocol(IRC):
                 self.sendLine(results)
 
     def irc_NICK(self, prefix, params):
+        """
+        Called when a user attempts to change his nickname, or on the initial connection to set his nickname.
+        :param params: The list of arguments passed to the command by the client. Should only be one: The nickname
+        he wishes to use.
+        :type params: list
+        """
         attempted_nickname = params[0]
         if self.users[self].nickname is None and self.users[self].nickattempts == 0:
             self.sendLine(":{} {} {} :{}".format(
@@ -119,6 +175,15 @@ class IRCProtocol(IRC):
             self.sendLine(results)
 
     def irc_USER(self, prefix, params):
+        """
+        TODO: This method needs some exception handling. What if param[0] and param[3] don't exist?
+        Called when the client sends the USER message on initial connection to set the user's information.
+        :param params: First argument is the username the client is using, the second one seems to be the same
+        thing (?), the third is the clients host (unneeded - this is retrieved before here), and the fourth is
+        the client's realname.
+        :type params: list
+        """
+        print(params)
         username = params[0]
         realname = params[3]
         results = self.users[self].set_username(username, realname)
@@ -127,9 +192,22 @@ class IRCProtocol(IRC):
             self.transport.loseConnection()
 
     def irc_CAP(self, prefix, params):
+        """
+        Not implemented - this is supposed to return the list of capabilities supported by the server.
+        https://ircv3.net/specs/core/capability-negotiation-3.1.html
+        """
         pass
 
     def irc_WHO(self, prefix, params):
+        """
+        ToDo: Implement +i in the channel modes to prevent lookups
+        ToDo: Also make sure i and I are the right modes.
+        Called when a client issues a WHO command on a server, and when a client first connects to a channel
+        (although I'm not sure about that last part. that seems to be what HexChat does atleast.)
+        :param params: The list of arguments passed to the command. Argument one should be the channel to perform
+        a lookup on.
+        :type params: list
+        """
         if params[0] in self.channels:
             results = self.channels[params[0]].who(
                 self.users[self],
@@ -144,6 +222,15 @@ class IRCProtocol(IRC):
         )
 
     def irc_WHOIS(self, prefix, params):
+        """
+        ToDo: Implement +I to prevent lookups
+        This is called when a client wants to perform a WHOIS lookup on another user.
+        The client must be in the same channel as the channel the user he wishes to lookup is in.
+        (I think that's how that works.)
+        :param params: The list of arguments passed to the command by the client. Should just be one: The nickname the
+        client wishes to perform the command on.
+        :type params: list
+        """
         for user in self.users:
             if self.users[user].nickname == params[0]:
                 user_channels = [x.channel_name for x in self.users[user].channels]
@@ -159,12 +246,49 @@ class IRCProtocol(IRC):
         self.sendLine(self.rplhelper.err_nosuchnick(params[0]))
 
     def irc_AWAY(self, prefix, params):
+        """
+        This is called when a client issues an AWAY command to set himself as away.
+        If a reason is not provided, the client is removing his away status.
+        If a reason is provided, the client is setting his away status.
+        :param params: List of arguments passed to the command. Should be one: the reason client is going away if
+        setting himself as away, or if removing an away status, nothing.
+        :type params: list
+        """
         reason = None
         if len(params) != 0:
             reason = params[0]
         self.sendLine(self.users[self].away(reason))
 
     def irc_MODE(self, prefix, params):
+        """
+        This method is called when a client passes a mode command.
+        The param count and param content for this method varies.
+        :param params: The list of arguments passed to the command. Varies (explained below)
+        :type params: list
+
+        If getting a list of their own modes:
+        param[0] == The client's nickname issuing the command
+
+        If getting a list of a channel's modes:
+        param[0] == The channel the client wants to get channel modes from.
+
+        If a client is setting their own mode, or is setting a channel's mode:
+        param[0] == The client's nickname/the channel name
+        param[1] == The mode the user is passing.
+
+        If a client is checking another client's modes:
+        param[0] == The location this command occurred on
+        param[1] == The nickname of the user the client wants to get a modes list from.
+
+        If a client is setting another user's modes:
+        param[0] == The location this command occurred on
+        param[1] == The nickname of the user the client wants to set a mode on
+        param[2] == The mode the client is attempting to use.
+
+        That hopefully redeems me somewhat for the terrible code this has produced.
+        Although,
+        ToDo: Twisted's irc.py seems to have some things I can implement here for this. Look at it.
+        """
         location = None
         nick = None
         mode = None
@@ -204,6 +328,12 @@ class IRCProtocol(IRC):
             self.sendLine(result)
 
     def irc_OPER(self, prefix, params):
+        """
+        This is called when a client issues an /oper command to login as an IRC administrator.
+        :param params: List of arguments passed to the command. First argument should be the administrator username
+        as defined in the config file, and the second should be the password associated with the account.
+        :type params: list
+        """
         user_nickname = self.users[self].nickname
         if len(params) != 2:
             self.sendLine(self.rplhelper.err_needmoreparams("OPER"))
@@ -219,9 +349,16 @@ class IRCProtocol(IRC):
         self.sendLine(self.rplhelper.err_passwordmismatch())
 
     def irc_CHOPER(self, prefix, params):
+        """ Not implemented - This is for logging in as a channel operator. """
         pass
 
     def irc_CHOWNER(self, prefix, params):
+        """
+        This is called when a user wishes to login as a channel operator for a channel.
+        :param params: List containing arguments passed with the command. The first member should be the owner username,
+        the second should be the owner password, and the third should be the channel to attempt to login to.
+        :type params: list
+        """
         if len(params) < 3:
             self.sendLine(self.rplhelper.err_needmoreparams(
                 "3 parameters needed: <owner account name> <owner pass> #<channel>"

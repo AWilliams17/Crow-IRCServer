@@ -5,6 +5,14 @@ from twisted.words.protocols.irc import ERR_NOSUCHNICK, ERR_NOSUCHCHANNEL, ERR_U
 
 
 class RPLHelper:
+    """
+    This class is for implemented RPL/ERR responses for a user to receive.
+    Every user instance has an RPLHelper instance which generates responses
+    for him.
+
+    This is probably very unnecessary but it works fine, and it's
+    pretty helpful for common err responses, so I'll keep it.
+    """
     def __init__(self, user_instance):
         self.user_instance = user_instance
 

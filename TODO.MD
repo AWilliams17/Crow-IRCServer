@@ -4,6 +4,7 @@ General:
 -add logging
 -ensure RFC compliance
 -implement unimplemented commands in commands.md
+-implement ISUPPORT (twisted's irc.py has something for this?)
 
 irc_protocol.py:
 -Refactor irc_WHO
