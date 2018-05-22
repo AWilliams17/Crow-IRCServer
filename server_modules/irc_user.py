@@ -172,7 +172,7 @@ class IRCUser:
         add_mode = False
 
         if nick != self.nickname:
-            if self.operator is False:
+            if not self.operator:
                 return self.rplhelper.err_noprivileges("You must be an operator to change another user's privileges.")
             if location is None or nick not in location.get_nicknames():
                 return self.rplhelper.err_notonchannel("You must share a channel with this user.")
@@ -182,16 +182,16 @@ class IRCUser:
 
         if mode_modifier == "+":
             add_mode = True
-        if mode_char not in valid_modes or mode_modifier != "-" and add_mode is False:
+        if mode_char not in valid_modes or mode_modifier != "-" and not add_mode:
             return self.rplhelper.err_unknownmode(mode_char)
 
         if mode_char == "o":
             if nick != self.nickname:
                 return self.rplhelper.err_noprivileges("You can not change another user's operator status.")
-            elif self.operator is False:
+            elif not self.operator:
                 return self.rplhelper.err_noprivileges()
             else:
-                if add_mode is False:
+                if not add_mode:
                     # Strip user op status and return
                     self.operator = False
                     return mode_change_message + "\r\nYou are no longer an operator."
@@ -200,19 +200,19 @@ class IRCUser:
                     return mode_change_message
                 return  # Do nothing, they're trying to add +o when they already have it.
 
-        if change_other_user_mode is True:
+        if change_other_user_mode:
             target_has_mode = mode_char in target_user_instance.modes
-            if target_has_mode is False and add_mode:
+            if not target_has_mode and add_mode:
                 target_user_instance.modes.append(mode_char)
-            elif target_has_mode and add_mode is False:
+            elif target_has_mode and not add_mode:
                 target_user_instance.modes.remove(mode_char)
             else:
                 return
             target_user_protocol.sendLine(mode_change_message)
         else:
-            if add_mode is True and mode_char not in self.modes:
+            if add_mode and mode_char not in self.modes:
                 self.modes.append(mode_char)
-            elif add_mode is False and mode_char in self.modes:
+            elif not add_mode and mode_char in self.modes:
                 self.modes.remove(mode_char)
             else:
                 return
@@ -222,12 +222,12 @@ class IRCUser:
     def get_modes(self, nick, location=None):
         """ Get a user's current modes (if they have permission) """
         modes = self.modes
-        if nick != self.nickname and self.operator is True:
+        if nick != self.nickname and self.operator:
             if location not in self.channels or nick not in location.get_nicknames():
                 return self.rplhelper.err_notonchannel("You must share a channel with this user.")
             target_user_instance = [x for x in location.users if x.nickname == nick][0]
             modes = target_user_instance.modes
-        elif nick != self.nickname and self.operator is False:
+        elif nick != self.nickname and not self.operator:
             return self.rplhelper.err_noprivileges()
         return self.rplhelper.rpl_umodeis(nick, modes)
 
