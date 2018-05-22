@@ -4,6 +4,7 @@ from sys import exc_info
 
 
 class IRCConfig:
+    """ Represent the IRC Config file. """
     def __init__(self):
         self.ServerSettings = None
         self.UserSettings = None

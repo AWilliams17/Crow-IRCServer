@@ -68,14 +68,13 @@ class IRCUser:
     def nickname(self):
         return self.__nickname
 
-    def set_nickname(self, desired_nickname):
+    def set_nickname(self, desired_nickname, in_use_nicknames):
+        """ Handle first nickname set on client connection + subsequent nickname changes. """
         if self.hostmask is None:
             self.set_hostmask(desired_nickname)
 
         if desired_nickname == self.nickname:
             return None
-
-        in_use_nicknames = [x.users[x].nickname for x in self.protocol.users if x.users[x].nickname is not None]
 
         if desired_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
@@ -125,6 +124,7 @@ class IRCUser:
         return output  # Return any errors/any rename notices.
 
     def send_msg(self, destination, message):
+        """ Determine if a client is sending a message to a channel or user and handle appropriately. """
         if "*" in destination or "?" in destination:
             return self.rplhelper.err_badchanmask(destination)
         if destination[0] == "#":
@@ -159,6 +159,8 @@ class IRCUser:
 
     # ToDo: This can be majorly improved.
     def set_mode(self, location, nick, mode, valid_modes):
+        """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
+         they have permission to do the change."""
         if len(mode) < 2:
             return
         mode_modifier = mode[0]
@@ -172,7 +174,7 @@ class IRCUser:
         if nick != self.nickname:
             if self.operator is False:
                 return self.rplhelper.err_noprivileges("You must be an operator to change another user's privileges.")
-            if location is None or nick not in location.channel_nicks:
+            if location is None or nick not in location.get_nicknames():
                 return self.rplhelper.err_notonchannel("You must share a channel with this user.")
             change_other_user_mode = True
             target_user_instance = [x for x in location.users if x.nickname == nick][0]
@@ -218,9 +220,10 @@ class IRCUser:
         return mode_change_message
 
     def get_modes(self, nick, location=None):
+        """ Get a user's current modes (if they have permission) """
         modes = self.modes
         if nick != self.nickname and self.operator is True:
-            if location not in self.channels or nick not in location.channel_nicks:
+            if location not in self.channels or nick not in location.get_nicknames():
                 return self.rplhelper.err_notonchannel("You must share a channel with this user.")
             target_user_instance = [x for x in location.users if x.nickname == nick][0]
             modes = target_user_instance.modes
@@ -232,11 +235,12 @@ class IRCUser:
         self.protocol.sendLine(":{} NOTICE {} :{}".format(self.server_host, self.nickname, message))
 
     def _generate_random_nick(self, current_nicknames):
+        """ When a client exceeds the max nick attempt limit, generate one for them. """
         protocol_instance_string = str(self.protocol).replace(" ", "")
         random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
         random_nick_s = ''.join([c for c in random_nick[:self.nick_length] if c not in self.illegal_characters])
 
-        def validate_nick(nick, current_nicks):
+        def validate_nick(nick, current_nicks):  # Check if the nick is still conflicting. Generate new one if yes.
             if nick in current_nicknames:
                 def generate_junk(amount):
                     return ''.join([

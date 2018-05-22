@@ -9,22 +9,22 @@ class QuitReason(Enum):
 
 
 class IRCChannel:
-
+    """ Represent channels on the server and implement methods for handling them and participants. """
     def __init__(self, name):
         self.channel_name = name
         self.channel_owner = None
         self.users = []
-        self.channel_nicks = []
         self.channel_modes = []
         self.channel_owner_account = []
 
     def __str__(self):
         host_list = [x.hostmask for x in self.users]
-        return "ChannelName: {}\nHostMaskList: {}\nNickList: {}\n".format(
-            self.channel_name, host_list, self.channel_nicks
-        )
+        return "ChannelOwner: {}\nChannelOperators: {}\nChannelName: {}\nHostMaskList: {}\nNickList: {}\n".format(
+            self.channel_owner, None, self.channel_name, host_list, self.get_nicknames()
+        )  # ToDo: ChannelOperators in __str__
 
     def add_user(self, user):
+        """ Map a user to the channel, send a JOIN notice to everyone currently in it. """
         # This user is already in the channel
         if user in self.users:
             return
@@ -34,7 +34,6 @@ class IRCChannel:
 
         user.protocol.join(user.hostmask, self.channel_name)
         user.channels.append(self)
-        self.channel_nicks.append(user.nickname)
         self.users.append(user)
         for user_ in self.users:
             if user_ != user:
@@ -43,6 +42,7 @@ class IRCChannel:
         return None
 
     def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):
+        """ Unmap a user instance from the channel and broadcast the reason. """
         if reason.value == QuitReason.LEFT.value:
             if leave_message is None:
                 leave_message = "{} :User Left Channel.".format(self.channel_name)
@@ -60,13 +60,17 @@ class IRCChannel:
             self.channel_owner = None
 
         self.broadcast_line(reason.value.format(user.hostmask, leave_message))
-        self.channel_nicks.remove(user.nickname)
         self.users.remove(user)
         user.channels.remove(self)
 
+    def get_nicknames(self):
+        """ Get all the nicknames of the currently participating users in the channel. """
+        return [x.nickname for x in self.users]
+
     def who(self, user, server_host):
+        """ Return information about the channel to the caller. Used for WHO commands. """
         member_info = []
-        if user.nickname not in self.channel_nicks:
+        if user.nickname not in self.get_nicknames():
             return None
         for _user in self.users:  # ToDo: Don't hardcode the hopcount
             member_info.append((
@@ -75,7 +79,11 @@ class IRCChannel:
         return member_info
 
     def login_owner(self, name, password, user):
-        if user.nickname not in self.channel_nicks:
+        """
+        Attempt to map a user as an owner. If the channel currently has someone set as an owner/the person
+        issuing the command isn't in the channel, return error.
+        """
+        if user.nickname not in self.get_nicknames():
             return user.rplhelper.err_noprivileges("You must be on the channel to login as the owner.")
         if name != self.channel_owner_account[0] or password != self.channel_owner_account[1]:
             return user.rplhelper.err_passwordmismatch()
@@ -86,11 +94,11 @@ class IRCChannel:
             return "You have logged in as the channel owner of {}".format(self.channel_name)
 
     def send_names(self, user):
-        user.protocol.names(user.nickname, self.channel_name, self.channel_nicks)
+        """ Sends the nicknames of users currently participating in the channel to the target user. """
+        user.protocol.names(user.nickname, self.channel_name, self.get_nicknames())
 
     def rename_user(self, user, new_nick):
-        self.channel_nicks.remove(user.nickname)
-        self.channel_nicks.append(new_nick)
+        """ When a user is renamed, update the names list and send a notice to everyone in the channel. """
         for user_ in self.users:
             if user_.protocol is not user:
                 user_.protocol.sendLine(":{} NICK {}".format(user.hostmask, new_nick))

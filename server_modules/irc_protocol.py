@@ -10,6 +10,13 @@ from secrets import token_urlsafe
 
 # noinspection PyPep8Naming
 class IRCProtocol(IRC):
+    """
+    Represents a client's protocol. Dispatch incoming commands to the appropriate methods in irc_user and irc_channel
+    and echo out command results to the client when needed. Additionally, maps the user and channels to the ChatServer
+    in irc_server.
+    In the irc_{COMMAND} methods, prefix remains unused as nothing ever gets passed to it from IRC. Not entirely sure
+    what it is for.
+    """
     def __init__(self, users, channels, config):
         """
         :param users: The current users on the server.
@@ -125,7 +132,7 @@ class IRCProtocol(IRC):
 
     def irc_PART(self, prefix, params):
         """
-        This is called when a user LEAVEs a channel (he "parts" from it). Send a message to the channel
+        This is called when a user LEAVES a channel (he "parts" from it). Send a message to the channel
         with the proper PART RPL and his leave message (if supplied).
         :param params: The list of arguments passed by the client. The first is the channel this was triggered on,
         and the second is the leave message sent by the client. If the client sends no leave message, then a generic
@@ -163,6 +170,7 @@ class IRCProtocol(IRC):
         :type params: list
         """
         attempted_nickname = params[0]
+        in_use_nicknames = [x.users[x].nickname for x in self.users if x.users[x].nickname is not None]
         if self.users[self].nickname is None and self.users[self].nickattempts == 0:
             self.sendLine(":{} {} {} :{}".format(
                 self.hostname, RPL_WELCOME,
@@ -170,7 +178,7 @@ class IRCProtocol(IRC):
                 self.config.ServerSettings["ServerWelcome"] + " {}".format(attempted_nickname))
             )
 
-        results = self.users[self].set_nickname(attempted_nickname)
+        results = self.users[self].set_nickname(attempted_nickname, in_use_nicknames)
         if results is not None:
             self.sendLine(results)
 
@@ -284,9 +292,6 @@ class IRCProtocol(IRC):
         param[0] == The location this command occurred on
         param[1] == The nickname of the user the client wants to set a mode on
         param[2] == The mode the client is attempting to use.
-
-        That hopefully redeems me somewhat for the terrible code this has produced.
-        Although,
         ToDo: Twisted's irc.py seems to have some things I can implement here for this. Look at it.
         """
         location = None
