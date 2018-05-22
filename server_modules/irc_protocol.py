@@ -6,17 +6,9 @@ from server_modules.irc_rpl import RPLHelper
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe
-# ToDo: !-->Refactor<--!
-# ToDo: Implement channel owner functions + channel operators
-# ToDo: Clean up irc_MODE, clean up set_mode, test the channel owner login more thoroughly
-# ToDo: Figure out what HOP count does
-# ToDo: Make +I Work
-# ToDo: Add more modes + channel modes
-# ToDo: Implement CAP
-# ToDo: Implement max clients
-# ToDo: Implement PING/PONG (since I guess it doesn't work?)
 
 
+# noinspection PyPep8Naming
 class IRCProtocol(IRC):
     def __init__(self, users, channels, config):
         self.users = users
@@ -137,7 +129,6 @@ class IRCProtocol(IRC):
     def irc_CAP(self, prefix, params):
         pass
 
-    # ToDo: Refactor.
     def irc_WHO(self, prefix, params):
         if params[0] in self.channels:
             results = self.channels[params[0]].who(
@@ -152,7 +143,6 @@ class IRCProtocol(IRC):
             params[0])
         )
 
-    # ToDo: Refactor.
     def irc_WHOIS(self, prefix, params):
         for user in self.users:
             if self.users[user].nickname == params[0]:
@@ -174,7 +164,6 @@ class IRCProtocol(IRC):
             reason = params[0]
         self.sendLine(self.users[self].away(reason))
 
-    # ToDo: This is a massive mess. Fix this.
     def irc_MODE(self, prefix, params):
         location = None
         nick = None
@@ -205,7 +194,7 @@ class IRCProtocol(IRC):
             if params[0][0] != "#":
                 nick = params[0]
                 self.sendLine(self.users[self].get_modes(nick))
-            else:  # ToDo: Channel modes
+            else:
                 location = self.channels[params[0]]
                 #self.sendLine(self.channels[params[0]].get_modes(location))
             return
@@ -214,7 +203,7 @@ class IRCProtocol(IRC):
         if result is not None:
             self.sendLine(result)
 
-    def irc_OPER(self, prefix, params):  # ToDo: ERR_NOOPERHOST
+    def irc_OPER(self, prefix, params):
         user_nickname = self.users[self].nickname
         if len(params) != 2:
             self.sendLine(self.rplhelper.err_needmoreparams("OPER"))

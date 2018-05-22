@@ -1,7 +1,6 @@
 from configparser import ConfigParser
 from os import getcwd, path
 from sys import exc_info
-# ToDo: https://en.wikipedia.org/wiki/IRC_operator#Operator_types
 
 
 class IRCConfig:

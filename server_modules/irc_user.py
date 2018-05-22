@@ -253,4 +253,3 @@ class IRCUser:
 
         random_nick_s = validate_nick(random_nick_s, current_nicknames)
         return random_nick_s
-

@@ -1,11 +1,4 @@
 from enum import Enum
-# http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
-# ToDo: Kick, Kicked Methods + Reasons
-# ToDo: Implement invite list
-# ToDo: Implement Bans + Reasons
-# ToDo: Implement passwords
-# ToDo: Send topic in add_user (self.topic(self.username, self.channels[channel].channel_name, topic="Test"))
-# ToDo: Allow the owner of the channel to delete it
 
 
 class QuitReason(Enum):
