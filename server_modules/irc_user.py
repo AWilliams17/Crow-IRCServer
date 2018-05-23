@@ -25,7 +25,7 @@ class IRCUser:
         self.server_host = serverhost
         self.modes = []
         self.status = "H"
-        self.operator = False
+        self.__operator = False
 
     def __str__(self):
         return "Username: {}\nNickname: {}\nHostmask: {}\nChannels: {}\nNickattempts: {}\n".format(
@@ -46,6 +46,14 @@ class IRCUser:
             self.host
         )
 
+    @property  # Make this a property so the mode method can access it
+    def operator(self):
+        return self.__operator
+
+    @operator.setter
+    def operator(self, val):
+        self.__operator = val
+
     @property
     def username(self):
         return self.__username
@@ -62,7 +70,7 @@ class IRCUser:
 
         self.__username = username
         self.realname = realname
-        return None
+        return
 
     @property
     def nickname(self):
@@ -74,7 +82,7 @@ class IRCUser:
             self.set_hostmask(desired_nickname)
 
         if desired_nickname == self.nickname:
-            return None
+            return
 
         if desired_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
@@ -135,7 +143,7 @@ class IRCUser:
             else:
                 self.protocol.channels[destination].broadcast_message(message, self.hostmask)
                 self.last_msg_time = time()
-                return None
+                return
         if destination[0] != "#":
             for i in self.protocol.users:
                 destination_user_protocol = self.protocol.users.get(i).protocol
@@ -143,7 +151,7 @@ class IRCUser:
                 if destination_user_protocol == destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
-                    return None
+                    return
             return self.rplhelper.err_nosuchnick()
 
     def away(self, reason):
@@ -155,32 +163,52 @@ class IRCUser:
             return self.rplhelper.rpl_nowaway()
 
     # ToDo: This can be majorly improved.
-    def set_mode(self, accessor_nickname=nickname, accessor_is_operator=False):
+    def set_mode(self, mode, accessor_nickname=None, accessor_is_operator=None):
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
          they have permission to do the change.
+         :param mode: The mode (including the leading +/-)
+         :type mode: str
          :param accessor_nickname: The nickname of the user initiating the change. Default is the current user.
          :param accessor_is_operator: Boolean indicating if the user initiating the change is an operator. Default
-         is False.
+         is the current user's operator status..
          :type accessor_nickname: str
          """
-        print("Called: {} - {}".format(accessor_nickname, accessor_is_operator))
-        return "f"
+        if accessor_nickname is None and accessor_is_operator is None:
+            accessor_nickname = self.nickname
+            accessor_is_operator = self.operator
+        mode_char = mode[1]
+        mode_addition = mode[0] == "+"
+        mode_change_message = ":{} MODE {} :{}".format(self.nickname, accessor_nickname, mode)
+        changing_own_modes = accessor_nickname == self.nickname
+
+        if not changing_own_modes and not accessor_is_operator:
+            return self.rplhelper.err_noprivileges("You can not affect someone else's modes.")
+
+        if mode_char == "o":
+            if not accessor_is_operator or not changing_own_modes:
+                return self.rplhelper.err_noprivileges()
+            if "o" not in self.modes:
+                self.modes.append("o")
+                return mode_change_message
+            if not mode_addition:
+                self.modes.remove("o")
+                self.operator = False
+                return mode_change_message + "\r\nYou are no longer an operator."
+            return  # Do nothing- they're already an operator.
+
+        if mode_char not in self.modes and mode_addition:
+            self.modes.append(mode_char)
+            return mode_change_message
+
+        if mode_char in self.modes and not mode_addition:
+            self.modes.remove(mode_char)
+            return mode_change_message
+
+        return
 
     def get_modes(self, nick, location=None):
         """ Get a user's current modes (if they have permission) """
-        print("Called get_modes")
-        return "s"
-        """
-        modes = self.modes
-        if nick != self.nickname and self.operator:
-            if location not in self.channels or nick not in location.get_nicknames():
-                return self.rplhelper.err_notonchannel("You must share a channel with this user.")
-            target_user_instance = [x for x in location.users if x.nickname == nick][0]
-            modes = target_user_instance.modes
-        elif nick != self.nickname and not self.operator:
-            return self.rplhelper.err_noprivileges()
-        return self.rplhelper.rpl_umodeis(nick, modes)
-        """
+        pass
 
     def notice(self, message):
         self.protocol.sendLine(":{} NOTICE {} :{}".format(self.server_host, self.nickname, message))

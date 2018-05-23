@@ -279,10 +279,11 @@ class IRCProtocol(IRC):
         param count is 3 when setting someone else's mode.
         """
         client_user = self.users[self]
-        client_nickname_in_list = next((x for x in params if x == client_user.nickname), None)
+        client_nickname = next((x for x in params if x == client_user.nickname), None)
         param_count = len(params)
         mode = next((x for x in params if x[0] in "+-" and len(x) >= 2), None)
         location_name = next((x for x in params if x[0] == "#"), None)
+        result = None
 
         # Make this an anonymous function since I don't want to do this loop unless I need to.
         def get_target_protocol():
@@ -292,45 +293,42 @@ class IRCProtocol(IRC):
             return _target_protocol
 
         if param_count == 1:  # Checking a channel's modes, checking this client's modes.
-            if client_nickname_in_list is None:
+            if client_nickname is None:
                 if location_name is not None and location_name in self.channels:
-                    self.sendLine(self.channels[location_name].get_modes())
+                    result = self.channels[location_name].get_modes()
                 else:
-                    self.sendLine(self.rplhelper.err_nosuchchannel())
+                    result = self.rplhelper.err_nosuchchannel()
             else:
-                self.sendLine(client_user.get_modes(client_user))
+                result = client_user.get_modes(client_user)
         if param_count == 2:  # Setting this client's mode, setting a channel's mode, checking someone else's modes.
-            if client_nickname_in_list is not None:
+            if client_nickname is not None:
                 if mode is None or mode[1] not in self.user_modes:
-                    self.sendLine(self.rplhelper.err_unknownmode())
+                    result = self.rplhelper.err_unknownmode()
                 else:
-                    self.sendLine(client_user.set_mode(mode))
+                    result = client_user.set_mode(mode)
             else:
                 target_protocol = get_target_protocol()
                 if location_name is None:
                     if target_protocol is None:
-                        self.sendLine(self.rplhelper.err_nosuchnick())
+                        result = self.rplhelper.err_nosuchnick()
                     else:
-                        self.sendLine(
-                            self.users[target_protocol].get_modes()
-                        )
+                        result = self.users[target_protocol].get_modes()
                 else:
                     if location_name not in self.channels:
-                        self.sendLine(self.rplhelper.err_nosuchchannel())
+                        result = self.rplhelper.err_nosuchchannel()
                     else:
-                        self.sendLine(
-                            self.channels[location_name].set_mode(client_user.nickname, client_user.operator, mode)
-                        )
+                        result = self.channels[location_name].set_mode(mode)
         if param_count == 3:  # Setting another user's mode
             target_protocol = get_target_protocol()
             if target_protocol is None:
-                self.sendLine(self.rplhelper.err_nosuchnick())
-            #elif location_name is None:
-            #    self.sendLine(self.rplhelper.err_notonchannel("You must share a channel with this user."))
+                result = self.rplhelper.err_nosuchnick()
             elif mode is None or mode[1] not in self.user_modes:
-                self.sendLine(self.rplhelper.err_unknownmode())
+                result = self.rplhelper.err_unknownmode()
             else:
-                self.sendLine(target_protocol.set_mode(client_user.nickname, client_user.operator, mode))
+                result = self.users[target_protocol].set_mode(mode, client_user.nickname, client_user.operator)
+
+        if result is not None:
+            self.sendLine(result)
 
     def irc_OPER(self, prefix, params):
         """
@@ -339,7 +337,10 @@ class IRCProtocol(IRC):
         as defined in the config file, and the second should be the password associated with the account.
         :type params: list
         """
-        user_nickname = self.users[self].nickname
+        user = self.users[self]
+        if user.operator:
+            self.sendLine("You are already an operator.")
+            return
         if len(params) != 2:
             self.sendLine(self.rplhelper.err_needmoreparams("OPER"))
             return
@@ -347,8 +348,8 @@ class IRCProtocol(IRC):
         password = params[1]
         if username in self.operators:
             if self.operators[username] == password:
-                self.users[self].operator = True
-                self.irc_MODE(self.user_modes, [user_nickname, "+o"])
+                user.operator = True
+                self.sendLine(user.set_mode("+o"))
                 self.sendLine(self.rplhelper.rpl_youreoper())
                 return
         self.sendLine(self.rplhelper.err_passwordmismatch())

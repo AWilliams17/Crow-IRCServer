@@ -39,7 +39,7 @@ class IRCChannel:
             if user_ != user:
                 user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
         self.send_names(user)
-        return None
+        return
 
     def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):
         """ Unmap a user instance from the channel and broadcast the reason. """
@@ -71,7 +71,7 @@ class IRCChannel:
         """ Return information about the channel to the caller. Used for WHO commands. """
         member_info = []
         if user.nickname not in self.get_nicknames():
-            return None
+            return
         for _user in self.users:  # ToDo: Don't hardcode the hopcount
             member_info.append((
                 _user.username, _user.hostmask, server_host, _user.nickname, _user.status, 0, _user.realname
