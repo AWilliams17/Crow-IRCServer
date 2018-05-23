@@ -39,7 +39,6 @@ class IRCChannel:
             if user_ != user:
                 user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
         self.send_names(user)
-        return
 
     def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):
         """ Unmap a user instance from the channel and broadcast the reason. """
