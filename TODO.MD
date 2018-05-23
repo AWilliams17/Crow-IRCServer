@@ -1,5 +1,5 @@
 What I'm doing now:
--Refactoring irc_MODE and mode in irc_user, + general refactoring. not adding anything else until this is cleaned up.
+-Refactoring irc_WHO, irc_WHOIS, set_nickname, others.
 
 General:
 -Create setup.py
@@ -15,7 +15,6 @@ General:
 irc_protocol.py:
 -Refactor irc_WHO
 -Refactor irc_WHOIS
--Refactor irc_MODE
 -Implement no oper host
 -Implement CAP
 -Implement max clients
@@ -35,4 +34,3 @@ irc_channel.py:
 
 irc_user.py:
 -Refactor set_nickname
--Refactor set_mode
