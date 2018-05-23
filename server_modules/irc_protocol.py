@@ -250,7 +250,7 @@ class IRCProtocol(IRC):
                     self.users[user].sign_on_time, user_channels
                 )
                 return
-        self.sendLine(self.rplhelper.err_nosuchnick(params[0]))
+        self.sendLine(self.rplhelper.err_nosuchnick())
 
     def irc_AWAY(self, prefix, params):
         """
@@ -273,71 +273,64 @@ class IRCProtocol(IRC):
         :param params: The list of arguments passed to the command. Varies (explained below)
         :type params: list
 
-        If the first argument to mode was their nickname, then they're looking up their own mode.
-        param[0] == The client's nickname issuing the command
-
-        Otherwise, the clients seem to assume the user is looking up the modes of a location.
-        param[0] == The location the client wants to get channel modes from.
-
-        If a client is setting their own mode, or is setting a channel's mode:
-        param[0] == The client's nickname/the channel name
-        param[1] == The mode the user is passing.
-
-        If a client is checking another client's modes:
-        param[0] == The location this command occurred on
-        param[1] == The nickname of the user the client wants to get a modes list from.
-
-        If a client is setting another user's modes:
-        param[0] == The location this command occurred on
-        param[1] == The nickname of the user the client wants to set a mode on
-        param[2] == The mode the client is attempting to use.
-
-        client_nickname is none when:
-            looking up a channel mode,
-            looking up someone else's mode,
-            setting a channel mode,
-            setting another user's mode
-
-        mode is none when:
-            looking up a channel mode,
-            looking up their own mode,
-            looking up someone else's mode
-
-        target_nickname is none when:
-            looking up a channel mode,
-            looking up their own mode,
-            setting a channel mode
-            setting their own mode,
-
-        location is none when:
-            looking up their own mode,
-            setting their own mode
-        ToDo: Twisted's irc.py seems to have some things I can implement here for this. Look at it.
+        param count is 1 when looking up a locations modes, or looking up their own modes.
+        param count is 2 when setting their own mode, setting a channel's mode, or checking another
+        user's modes.
+        param count is 3 when setting someone else's mode.
         """
+        client_user = self.users[self]
+        client_nickname_in_list = next((x for x in params if x == client_user.nickname), None)
         param_count = len(params)
-        client_nickname = next((x for x in params if x == self.users[self].nickname), None)
-        mode = next((x for x in params if x[0] in "+-"), None)
+        mode = next((x for x in params if x[0] in "+-" and len(x) >= 2), None)
         location_name = next((x for x in params if x[0] == "#"), None)
-        target_nickname = next((x for x in params if x != client_nickname), None)
 
-        if param_count == 1:
-            # Looking up a location's modes, or looking up their own mode.
-            pass
-        if param_count == 2:
-            # Setting their own mode, setting a channel's mode, or checking another user's mode
-            pass
-        if param_count == 3:
-            # Setting another user's mode
-            pass
+        # Make this an anonymous function since I don't want to do this loop unless I need to.
+        def get_target_protocol():
+            in_use_nicknames = [x.users[x].nickname for x in self.users if x.users[x].nickname is not None]
+            target_nick = next((x for x in params if x != self.users[self].nickname and x in in_use_nicknames), None)
+            _target_protocol = next((x for x in self.users if x.users[x].nickname == target_nick), None)
+            return _target_protocol
 
-
-
-
-
-
-
-
-
+        if param_count == 1:  # Checking a channel's modes, checking this client's modes.
+            if client_nickname_in_list is None:
+                if location_name is not None and location_name in self.channels:
+                    self.sendLine(self.channels[location_name].get_modes())
+                else:
+                    self.sendLine(self.rplhelper.err_nosuchchannel())
+            else:
+                self.sendLine(client_user.get_modes(client_user))
+        if param_count == 2:  # Setting this client's mode, setting a channel's mode, checking someone else's modes.
+            if client_nickname_in_list is not None:
+                if mode is None or mode[1] not in self.user_modes:
+                    self.sendLine(self.rplhelper.err_unknownmode())
+                else:
+                    self.sendLine(client_user.set_mode(mode))
+            else:
+                target_protocol = get_target_protocol()
+                if location_name is None:
+                    if target_protocol is None:
+                        self.sendLine(self.rplhelper.err_nosuchnick())
+                    else:
+                        self.sendLine(
+                            self.users[target_protocol].get_modes()
+                        )
+                else:
+                    if location_name not in self.channels:
+                        self.sendLine(self.rplhelper.err_nosuchchannel())
+                    else:
+                        self.sendLine(
+                            self.channels[location_name].set_mode(client_user.nickname, client_user.operator, mode)
+                        )
+        if param_count == 3:  # Setting another user's mode
+            target_protocol = get_target_protocol()
+            if target_protocol is None:
+                self.sendLine(self.rplhelper.err_nosuchnick())
+            #elif location_name is None:
+            #    self.sendLine(self.rplhelper.err_notonchannel("You must share a channel with this user."))
+            elif mode is None or mode[1] not in self.user_modes:
+                self.sendLine(self.rplhelper.err_unknownmode())
+            else:
+                self.sendLine(target_protocol.set_mode(client_user.nickname, client_user.operator, mode))
 
     def irc_OPER(self, prefix, params):
         """
@@ -354,7 +347,7 @@ class IRCProtocol(IRC):
         password = params[1]
         if username in self.operators:
             if self.operators[username] == password:
-                self.users[self].set_op()
+                self.users[self].operator = True
                 self.irc_MODE(self.user_modes, [user_nickname, "+o"])
                 self.sendLine(self.rplhelper.rpl_youreoper())
                 return
@@ -383,7 +376,7 @@ class IRCProtocol(IRC):
         channel_name = params[2]
         user = self.users[self]
         if channel_name not in self.channels:
-            self.sendLine(self.rplhelper.err_nosuchchannel(channel_name))
+            self.sendLine(self.rplhelper.err_nosuchchannel())
             return
 
         results = self.channels[channel_name].login_owner(name, password, user)

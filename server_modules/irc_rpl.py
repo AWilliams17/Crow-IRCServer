@@ -71,20 +71,20 @@ class RPLHelper:
             self.user_instance.server_host, ERR_CANNOTSENDTOCHAN, self.user_instance.nickname, destination, reason
         )
 
-    def err_nosuchnick(self, requested_nickname):
+    def err_nosuchnick(self):
         """
         :param requested_nickname: The nickname which was not found.
         """
-        return ":{} {} {} {} :No such nick".format(
-            self.user_instance.server_host, ERR_NOSUCHNICK, self.user_instance.nickname, requested_nickname
+        return ":{} {} {} :No such nick".format(
+            self.user_instance.server_host, ERR_NOSUCHNICK, self.user_instance.nickname
         )
 
-    def err_nosuchchannel(self, requested_channel):
+    def err_nosuchchannel(self):
         """
         :param requested_channel: The channel which was not found.
         """
-        return ":{} {} {} {} :No such channel".format(
-            self.user_instance.server_host, ERR_NOSUCHCHANNEL, self.user_instance.nickname, requested_channel
+        return ":{} {} {} :No such channel".format(
+            self.user_instance.server_host, ERR_NOSUCHCHANNEL, self.user_instance.nickname
         )
 
     def err_unknowncommand(self, command):

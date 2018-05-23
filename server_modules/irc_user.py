@@ -129,7 +129,7 @@ class IRCUser:
             return self.rplhelper.err_badchanmask(destination)
         if destination[0] == "#":
             if destination not in self.protocol.channels:
-                return self.rplhelper.err_nosuchchannel(destination)
+                return self.rplhelper.err_nosuchchannel()
             if self not in self.protocol.channels[destination].users:
                 return self.rplhelper.err_cannotsendtochan(destination, "Cannot send to channel you are not in.")
             else:
@@ -144,7 +144,7 @@ class IRCUser:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
                     return None
-            return self.rplhelper.err_nosuchnick(destination)
+            return self.rplhelper.err_nosuchnick()
 
     def away(self, reason):
         if reason is None:
@@ -154,18 +154,23 @@ class IRCUser:
             self.status = "G"
             return self.rplhelper.rpl_nowaway()
 
-    def set_op(self):
-        self.operator = True
-
     # ToDo: This can be majorly improved.
-    def set_mode(self):
+    def set_mode(self, accessor_nickname=nickname, accessor_is_operator=False):
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
-         they have permission to do the change."""
-
-        pass
+         they have permission to do the change.
+         :param accessor_nickname: The nickname of the user initiating the change. Default is the current user.
+         :param accessor_is_operator: Boolean indicating if the user initiating the change is an operator. Default
+         is False.
+         :type accessor_nickname: str
+         """
+        print("Called: {} - {}".format(accessor_nickname, accessor_is_operator))
+        return "f"
 
     def get_modes(self, nick, location=None):
         """ Get a user's current modes (if they have permission) """
+        print("Called get_modes")
+        return "s"
+        """
         modes = self.modes
         if nick != self.nickname and self.operator:
             if location not in self.channels or nick not in location.get_nicknames():
@@ -175,6 +180,7 @@ class IRCUser:
         elif nick != self.nickname and not self.operator:
             return self.rplhelper.err_noprivileges()
         return self.rplhelper.rpl_umodeis(nick, modes)
+        """
 
     def notice(self, message):
         self.protocol.sendLine(":{} NOTICE {} :{}".format(self.server_host, self.nickname, message))
