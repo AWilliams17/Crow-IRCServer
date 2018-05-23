@@ -270,7 +270,7 @@ class IRCProtocol(IRC):
         """
         This method is called when a client passes a mode command.
         The param count and param content for this method varies.
-        :param params: The list of arguments passed to the command. Varies (explained below)
+        :param params: The list of arguments passed to the command. The members vary.
         :type params: list
 
         param count is 1 when looking up a locations modes, or looking up their own modes.
@@ -293,31 +293,26 @@ class IRCProtocol(IRC):
             return _target_protocol
 
         if param_count == 1:  # Checking a channel's modes, checking this client's modes.
-            if client_nickname is None:
-                if location_name is not None and location_name in self.channels:
-                    result = self.channels[location_name].get_modes()
-                else:
-                    result = self.rplhelper.err_nosuchchannel()
-            else:
+            result = self.rplhelper.err_nosuchchannel()
+            if client_nickname is None and location_name is not None and location_name in self.channels:
+                result = self.channels[location_name].get_modes()
+            if client_nickname is not None:
                 result = client_user.get_modes()
         if param_count == 2:  # Setting this client's mode, setting a channel's mode, checking someone else's modes.
-            if client_nickname is not None:
-                if mode is None or mode[1] not in self.user_modes:
-                    result = self.rplhelper.err_unknownmode()
-                else:
-                    result = client_user.set_mode(mode)
-            else:
+            if client_nickname is None:
                 target_protocol = get_target_protocol()
                 if location_name is None:
-                    if target_protocol is None:
-                        result = self.rplhelper.err_nosuchnick()
-                    else:
+                    result = self.rplhelper.err_nosuchnick()
+                    if target_protocol is not None:
                         result = self.users[target_protocol].get_modes(client_user.nickname, client_user.operator)
-                else:
-                    if location_name not in self.channels:
-                        result = self.rplhelper.err_nosuchchannel()
-                    else:
+                if location_name is not None:
+                    result = self.rplhelper.err_nosuchchannel()
+                    if location_name in self.channels:
                         result = self.channels[location_name].set_mode(mode)
+            else:
+                result = self.rplhelper.err_unknownmode()
+                if mode is not None and mode[1] in self.user_modes:
+                    result = client_user.set_mode(mode)
         if param_count == 3:  # Setting another user's mode
             target_protocol = get_target_protocol()
             if target_protocol is None:
