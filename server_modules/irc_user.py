@@ -179,7 +179,6 @@ class IRCUser:
         mode_char = mode[1]
         mode_addition = mode[0] == "+"
         mode_change_message = ":{} MODE {} :{}".format(accessor_nickname, self.nickname, mode)
-        print(mode_change_message)
         changing_own_modes = accessor_nickname == self.nickname
 
         if not changing_own_modes and not accessor_is_operator:
@@ -209,9 +208,15 @@ class IRCUser:
 
         return
 
-    def get_modes(self, nick, location=None):
+    def get_modes(self, accessor_nickname=None, accessor_is_operator=None):
         """ Get a user's current modes (if they have permission) """
-        pass
+        if accessor_nickname is None and accessor_is_operator is None:
+            accessor_nickname = self.nickname
+            accessor_is_operator = self.operator
+        checking_own_modes = accessor_nickname == self.nickname
+        if not checking_own_modes and not accessor_is_operator:
+            return self.rplhelper.err_noprivileges("You do not have permission to check someone else's modes.")
+        return self.rplhelper.rpl_umodeis(self.nickname, self.modes)
 
     def notice(self, message):
         self.protocol.sendLine(":{} NOTICE {} :{}".format(self.server_host, self.nickname, message))

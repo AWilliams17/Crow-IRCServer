@@ -299,7 +299,7 @@ class IRCProtocol(IRC):
                 else:
                     result = self.rplhelper.err_nosuchchannel()
             else:
-                result = client_user.get_modes(client_user)
+                result = client_user.get_modes()
         if param_count == 2:  # Setting this client's mode, setting a channel's mode, checking someone else's modes.
             if client_nickname is not None:
                 if mode is None or mode[1] not in self.user_modes:
@@ -312,7 +312,7 @@ class IRCProtocol(IRC):
                     if target_protocol is None:
                         result = self.rplhelper.err_nosuchnick()
                     else:
-                        result = self.users[target_protocol].get_modes()
+                        result = self.users[target_protocol].get_modes(client_user.nickname, client_user.operator)
                 else:
                     if location_name not in self.channels:
                         result = self.rplhelper.err_nosuchchannel()
