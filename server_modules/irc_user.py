@@ -70,7 +70,6 @@ class IRCUser:
 
         self.__username = username
         self.realname = realname
-        return
 
     @property
     def nickname(self):
@@ -162,7 +161,6 @@ class IRCUser:
             self.status = "G"
             return self.rplhelper.rpl_nowaway()
 
-    # ToDo: This can be majorly improved.
     def set_mode(self, mode, accessor_nickname=None, accessor_is_operator=None):
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
          they have permission to do the change.
@@ -205,8 +203,6 @@ class IRCUser:
         if mode_char in self.modes and not mode_addition:
             self.modes.remove(mode_char)
             return mode_change_message
-
-        return
 
     def get_modes(self, accessor_nickname=None, accessor_is_operator=None):
         """ Get a user's current modes (if they have permission) """

@@ -81,16 +81,14 @@ class IRCProtocol(IRC):
         http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
         """
         if len(params) != 1:
-            self.sendLine(self.rplhelper.err_needmoreparams("JOIN"))
-            return
+            return self.sendLine(self.rplhelper.err_needmoreparams("JOIN"))
 
         channel = params[0].lower()
         if channel[0] != "#":
             channel = "#" + channel
 
         if self.users[self].nickname is None:
-            self.sendLine("Failed to join channel: Your nickname is not set.")
-            return
+            return self.sendLine("Failed to join channel: Your nickname is not set.")
 
         if channel not in self.channels:
             owner_name = token_urlsafe(16)
@@ -240,13 +238,12 @@ class IRCProtocol(IRC):
                 user_channels = [x.channel_name for x in self.users[user].channels]
                 if len(user_channels) == 0:
                     user_channels.append("User is not in any channels.")
-                self.whois(
+                return self.whois(
                     self.users[self].nickname, params[0], self.users[user].username,
                     self.users[user].hostmask, self.users[user].realname, self.server_name,
                     self.server_description, self.users[self].operator, time() - self.users[user].last_msg_time,
                     self.users[user].sign_on_time, user_channels
                 )
-                return
         self.sendLine(self.rplhelper.err_nosuchnick())
 
     def irc_AWAY(self, prefix, params):
@@ -328,19 +325,18 @@ class IRCProtocol(IRC):
         """
         user = self.users[self]
         if user.operator:
-            self.sendLine("You are already an operator.")
-            return
+            return self.sendLine("You are already an operator.")
         if len(params) != 2:
-            self.sendLine(self.rplhelper.err_needmoreparams("OPER"))
-            return
+            return self.sendLine(
+                self.rplhelper.err_needmoreparams("OPER") +
+                "\r\nUsage: OPER <username> <password> - Logs you in as an IRC operator."
+            )
         username = params[0]
         password = params[1]
         if username in self.operators:
             if self.operators[username] == password:
                 user.operator = True
-                self.sendLine(user.set_mode("+o"))
-                self.sendLine(self.rplhelper.rpl_youreoper())
-                return
+                return self.sendLine(user.set_mode("+o") + "\r\n" + self.rplhelper.rpl_youreoper())
         self.sendLine(self.rplhelper.err_passwordmismatch())
 
     def irc_CHOPER(self, prefix, params):
@@ -355,10 +351,11 @@ class IRCProtocol(IRC):
         :type params: list
         """
         if len(params) < 3:
-            self.sendLine(self.rplhelper.err_needmoreparams(
-                "3 parameters needed: <owner account name> <owner pass> #<channel>"
-            ))
-            return
+            self.sendLine(self.rplhelper.err_needmoreparams("CHOWNER"))
+            return self.sendLine(
+                self.rplhelper.err_needmoreparams("CHOWNER") +
+                "\r\nUsage: CHOWNER <owner_name> <owner_pass> <channel> - Logs in to the specified channel as an owner."
+            )
         if params[2][0] != "#":
             params[2] = "#" + params[2]
         name = params[0]
@@ -366,7 +363,6 @@ class IRCProtocol(IRC):
         channel_name = params[2]
         user = self.users[self]
         if channel_name not in self.channels:
-            self.sendLine(self.rplhelper.err_nosuchchannel())
-            return
+            return self.sendLine(self.rplhelper.err_nosuchchannel())
 
         self.sendLine(self.channels[channel_name].login_owner(name, password, user))
