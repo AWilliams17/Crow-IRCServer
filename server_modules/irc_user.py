@@ -178,15 +178,18 @@ class IRCUser:
             accessor_is_operator = self.operator
         mode_char = mode[1]
         mode_addition = mode[0] == "+"
-        mode_change_message = ":{} MODE {} :{}".format(self.nickname, accessor_nickname, mode)
+        mode_change_message = ":{} MODE {} :{}".format(accessor_nickname, self.nickname, mode)
+        print(mode_change_message)
         changing_own_modes = accessor_nickname == self.nickname
 
         if not changing_own_modes and not accessor_is_operator:
             return self.rplhelper.err_noprivileges("You can not affect someone else's modes.")
 
         if mode_char == "o":
-            if not accessor_is_operator or not changing_own_modes:
+            if not accessor_is_operator:
                 return self.rplhelper.err_noprivileges()
+            if not changing_own_modes:
+                return self.rplhelper.err_noprivileges("You can not change someone else's operator flag.")
             if "o" not in self.modes:
                 self.modes.append("o")
                 return mode_change_message
