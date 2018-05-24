@@ -1,6 +1,11 @@
 def min_param_count(count, additional_information=None):
-    """ A decorator which enforces irc command argument counts. For use inside the IRCProtocol class.
-    :param count: How many arguments does the command need.
+    """
+    Decorator - Ensures that the decorated irc command method meets the minimum argument count.
+    Args:
+        count: The minimum amount of arguments the command requires.
+        additional_information: If specified, this is appended in a new line after the error message.
+    The irc command methods all follow the same prefix, irc_, and they all take the same three parameters:
+    self, prefix, and params, where params is the list of arguments passed to the command by the client.
     """
     def command_decorator(command_method):
         def wrapper(*args):

@@ -80,6 +80,8 @@ class IRCUser:
         """
         Handle first nickname set on client connection + subsequent nickname changes. If the desired nickname is the
         nickname the client is already using, then nothing will occur.
+        Keep track of how many times a client has attempted to change their nickname if a nick collision occurs
+        the first time they connect. If they try twice, then generate a nickname for theme.
         """
         if self.hostmask is None or "*" in self.hostmask:
             self.set_hostmask(nickname=desired_nickname)
@@ -166,8 +168,7 @@ class IRCUser:
 
     def set_mode(self, mode, accessor_nickname=None, accessor_is_operator=None):
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
-         they have permission to do the change.
-         """
+         they have permission to do the change. """
         if accessor_nickname is None and accessor_is_operator is None:
             accessor_nickname = self.nickname
             accessor_is_operator = self.operator
@@ -215,9 +216,7 @@ class IRCUser:
         return self.rplhelper.rpl_umodeis(self.nickname, self.modes)
 
     def notice(self, message, nick=None, send=False):
-        """
-        Send a notice to this user.
-        """
+        """ Send a notice to this user. """
         if nick is None:
             nick = self.nickname
         notice_message = ":{} NOTICE {} :{}".format(self.server_host, nick, message)

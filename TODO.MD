@@ -1,5 +1,5 @@
 What I'm doing now:
-Redocumenting
+-Rate limiting, Max Clients
 
 General:
 -Create setup.py
@@ -13,8 +13,6 @@ General:
 -if a user is a channel operator, add an @ next to their nick in WHOIS/WHO
 -make the welcome text include nicks better
 -implement MOTD
--Rate limiting
--Max clients
 
 irc_protocol.py:
 -Implement no oper host

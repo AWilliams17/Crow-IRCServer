@@ -3,11 +3,17 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 
 def generate_random_nick(protocol, in_use_nicknames, illegal_characters, max_length):
-    """ For use in IRCUser - generate a random nick based off the protocol instance of the user.
-    :param protocol: The protocol instance. Should be self.user.protocol
-    :param in_use_nicknames: A list of nicknames that users are using to verify the generated nick isn't taken.
-    :param illegal_characters: A set of illegal characters to use as a filter while generating the nickname.
-    :param max_length: The server side max nickname length setting. The nickname will be cut off based on this value.
+    """
+    For use in IRCUser - generate a random nick based off the protocol instance of the user.
+    Args:
+        protocol (IRCProtocol): The user's protocol instance.
+        in_use_nicknames (list): The list of nicknames currently in use by other users in the server.
+        illegal_characters (set): What characters to omit in the generated nickname.
+        max_length (int): The server's max nickname setting value.
+        The resulting nickname will be trimmed depending on this value.
+
+    Returns: The generated nickname.
+
     """
     protocol_instance_string = str(protocol).replace(" ", "")
     random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
