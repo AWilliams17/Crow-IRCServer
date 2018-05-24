@@ -230,19 +230,30 @@ class IRCProtocol(IRC):
         :param params: The list of arguments passed to the command by the client. Should just be one: The nickname the
         client wishes to perform the command on.
         :type params: list
+        Twisted's whois method takes these parameters:
+            (self, user, nick, username, hostname, realName, server, serverInfo, oper, idle, signOn, channels)
         """
-        for user in self.users:
-            if self.users[user].nickname == params[0]:
-                user_channels = [x.channel_name for x in self.users[user].channels]
-                if len(user_channels) == 0:
-                    user_channels.append("User is not in any channels.")
-                return self.whois(
-                    self.users[self].nickname, params[0], self.users[user].username,
-                    self.users[user].hostmask, self.users[user].realname, self.server_name,
-                    self.server_description, self.users[self].operator, time() - self.users[user].last_msg_time,
-                    self.users[user].sign_on_time, user_channels
-                )
-        self.sendLine(self.rplhelper.err_nosuchnick())
+        target_nickname = params[0]
+        target_user = next((self.users[x] for x in self.users if self.users[x].nickname == target_nickname), None)
+        if target_user is not None:
+            target_username = target_user.username
+            target_hostmask = target_user.hostmask
+            target_realname = target_user.realname
+            target_server_name = self.server_name
+            target_server_description = self.server_description
+            target_is_operator = target_user.operator
+            target_last_msg_time = time() - target_user.last_msg_time
+            target_signon_time = target_user.sign_on_time
+            target_channels = [x.channel_name for x in target_user.channels]
+            receiver_nickname = self.users[self].nickname
+            if len(target_channels) == 0:
+                target_channels.append("User is not in any channels.")
+            return self.whois(
+                receiver_nickname, target_nickname, target_username, target_hostmask, target_realname,
+                target_server_name, target_server_description, target_is_operator, target_last_msg_time,
+                target_signon_time, target_channels
+            )
+        return self.sendLine(self.rplhelper.err_nosuchnick())
 
     def irc_AWAY(self, prefix, params):
         """
@@ -270,9 +281,9 @@ class IRCProtocol(IRC):
         user's modes.
         param count is 3 when setting someone else's mode.
         """
-        sender = self.users[self]
-        sender_nickname_list = next((x for x in params if x == sender.nickname), None)
         param_count = len(params)
+        this_client = self.users[self]  # Check if this client's nickname is in the params.
+        client_nickname_in_list = next((x for x in params if x == this_client.nickname), None)
         mode = next((x for x in params if x[0] in "+-" and len(x) >= 2), None)
         location_name = next((x for x in params if x[0] == "#"), None)
 
@@ -284,25 +295,25 @@ class IRCProtocol(IRC):
             return _target_protocol
 
         if param_count == 1:  # Checking a channel's modes, checking this client's modes.
-            if sender_nickname_list is None and location_name is not None and location_name in self.channels:
+            if client_nickname_in_list is None and location_name is not None and location_name in self.channels:
                 return self.sendLine(self.channels[location_name].get_modes())
-            elif sender_nickname_list is None and location_name is None:
+            elif client_nickname_in_list is None and location_name is None:
                 return self.sendLine(self.rplhelper.err_nosuchchannel())
-            return self.sendLine(sender.get_modes())
+            return self.sendLine(this_client.get_modes())
 
         if param_count == 2:  # Setting this client's mode, setting a channel's mode, checking someone else's modes.
-            if sender_nickname_list is None:
+            if client_nickname_in_list is None:
                 target_protocol = get_target_protocol()
                 if location_name is None:
                     if target_protocol is None:
                         return self.sendLine(self.rplhelper.err_nosuchnick())
-                    return self.sendLine(self.users[target_protocol].get_modes(sender.nickname, sender.operator))
+                    return self.sendLine(self.users[target_protocol].get_modes(this_client.nickname, this_client.operator))
                 else:
                     if location_name in self.channels:
                         return self.sendLine(self.channels[location_name].set_mode(mode))
                     return self.sendLine(self.rplhelper.err_nosuchchannel())
             if mode is not None and mode[1] in self.user_modes:
-                return self.sendLine(sender.set_mode(mode))
+                return self.sendLine(this_client.set_mode(mode))
             return self.sendLine(self.rplhelper.err_unknownmode())
 
         if param_count == 3:  # Setting another user's mode
@@ -312,7 +323,7 @@ class IRCProtocol(IRC):
             elif mode is None or mode[1] not in self.user_modes:
                 return self.sendLine(self.rplhelper.err_unknownmode())
             else:
-                return self.sendLine(self.users[target_protocol].set_mode(mode, sender.nickname, sender.operator))
+                return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
 
     def irc_OPER(self, prefix, params):
         """

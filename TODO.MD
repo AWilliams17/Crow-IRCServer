@@ -1,5 +1,5 @@
 What I'm doing now:
--Refactoring irc_WHO, irc_WHOIS, set_nickname, others.
+-Refactoring irc_WHOIS, set_nickname, figure out the whole self.users[self] debacle
 
 General:
 -Create setup.py
