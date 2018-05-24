@@ -1,11 +1,4 @@
-from enum import Enum
-
-
-class QuitReason(Enum):
-        LEFT = ":{} PART {}\r\n"
-        DISCONNECTED = ":{} QUIT :{}\r\n"
-        TIMEOUT = ":{} QUIT :{}\r\n"
-        UNSPECIFIED = ":{} QUIT :{}\r\n"
+from util_modules.util_quitreason_enum import QuitReason
 
 
 class IRCChannel:

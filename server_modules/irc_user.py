@@ -1,6 +1,5 @@
 from time import time
-from random import sample, choice
-from string import ascii_lowercase, ascii_uppercase, digits
+from util_modules.util_random_nick_generation import generate_random_nick
 
 
 class IRCUser:
@@ -36,7 +35,7 @@ class IRCUser:
     def hostmask(self):
         # Use * as an indicator that the username property of the hostmask wasn't set.
         # * is illegal as a username character so anyone using it would be booted, so it'll work.
-        if "*" in self.hostmask:
+        if self.__hostmask is not None and "*" in self.__hostmask:
             self.set_hostmask()
         return self.__hostmask
 
@@ -85,7 +84,9 @@ class IRCUser:
                     self.nickattempts += 1
                     return self.rplhelper.err_nicknameinuse(desired_nickname)
                 # After giving them two tries to change it, generate one for them.
-                randomized_nick = self._generate_random_nick(in_use_nicknames)
+                randomized_nick = generate_random_nick(
+                    self.protocol, in_use_nicknames, self.illegal_characters, self.nick_length
+                )
                 previous_hostmask = self.hostmask  # Store this since it's going to be changed
                 self.__nickname = randomized_nick
                 self.set_hostmask()
@@ -154,12 +155,6 @@ class IRCUser:
     def set_mode(self, mode, accessor_nickname=None, accessor_is_operator=None):
         """ Handle a request to change a user's mode. Do not allow duplicate modes. Make sure it's valid. Make sure
          they have permission to do the change.
-         :param mode: The mode (including the leading +/-)
-         :type mode: str
-         :param accessor_nickname: The nickname of the user initiating the change. Default is the current user.
-         :param accessor_is_operator: Boolean indicating if the user initiating the change is an operator. Default
-         is the current user's operator status..
-         :type accessor_nickname: str
          """
         if accessor_nickname is None and accessor_is_operator is None:
             accessor_nickname = self.nickname
@@ -207,10 +202,6 @@ class IRCUser:
     def notice(self, message, nick=None, send=False):
         """
         Send a notice to this user.
-        :param message: The message to be used as the notice.
-        :param nick: If supplied (which would really only be the case if the notice is used as an error for set nick),
-        it will be used in place of the client's s nickname (since it probably won't even be set).
-        :param send: If set to True, the method will send the notice. Otherwise, it will return the notice message.
         """
         if nick is None:
             nick = self.nickname
@@ -218,27 +209,3 @@ class IRCUser:
         if not send:
             return self.protocol.sendLine(notice_message)
         return notice_message
-
-    def _generate_random_nick(self, current_nicknames):
-        """ When a client exceeds the max nick attempt limit, generate one for them. """
-        protocol_instance_string = str(self.protocol).replace(" ", "")
-        random_nick = ''.join(sample(protocol_instance_string, len(protocol_instance_string)))
-        random_nick_s = ''.join([c for c in random_nick[:self.nick_length] if c not in self.illegal_characters])
-
-        def validate_nick(nick, current_nicks):  # Check if the nick is still conflicting. Generate new one if yes.
-            if nick in current_nicknames:
-                def generate_junk(amount):
-                    return ''.join([
-                        choice(
-                            ascii_lowercase +
-                            ascii_uppercase +
-                            digits) for i in range(amount)
-                    ])
-
-                # Re shuffle the string + Add random garbage to it and then re-validate it, keep it under nick length
-                nick = (''.join(sample(nick, len(nick))) + generate_junk(15))[:self.nick_length]
-                validate_nick(nick, current_nicks)
-            return nick
-
-        random_nick_s = validate_nick(random_nick_s, current_nicknames)
-        return random_nick_s
