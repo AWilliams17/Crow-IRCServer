@@ -11,6 +11,8 @@ General:
 -implement WHOWAS
 -if a user is an operator, add a * next to their nick in WHOIS/WHO
 -if a user is a channel operator, add an @ next to their nick in WHOIS/WHO
+-make the welcome text include nicks better
+-implement MOTD
 
 irc_protocol.py:
 -Refactor irc_WHO

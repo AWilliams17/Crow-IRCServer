@@ -189,9 +189,11 @@ class IRCProtocol(IRC):
         """
         username = params[0]
         realname = params[3]
-        results = self.users[self].set_username(username, realname)
-        if results is not None:  # Their username is invalid. Boot them.
-            self.notice(self.hostname, results[0], results[1])  # ToDo: Use the notice method in irc_user.py
+        try:
+            self.users[self].realname = realname
+            self.users[self].username = username
+        except ValueError as e:
+            self.sendLine(str(e))
             self.transport.loseConnection()
 
     def irc_CAP(self, prefix, params):
@@ -211,17 +213,13 @@ class IRCProtocol(IRC):
         a lookup on.
         :type params: list
         """
-        if params[0] in self.channels:
-            results = self.channels[params[0]].who(
-                self.users[self],
-                self.transport.getHost().host)
-            if results is not None:
-                return self.who(self.users[self].nickname, params[0], results)
-        self.sendLine(":{} 315 {} {} :End of /WHO list.".format(
-            self.hostname,
-            self.users[self].nickname,
-            params[0])
-        )
+        target_channel = params[0]
+        if target_channel in self.channels:
+            results = self.channels[target_channel].who(self.users[self], self.hostname)
+            if type(results) is not str:  # Valid return type should be a list. Invalid is a string.
+                return self.who(self.users[self].nickname, target_channel, results)
+            return self.sendLine(results)
+        return self.sendLine(self.rplhelper.err_nosuchchannel())
 
     def irc_WHOIS(self, prefix, params):
         """

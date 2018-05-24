@@ -25,7 +25,7 @@ class IRCUser:
         self.server_host = serverhost
         self.modes = []
         self.status = "H"
-        self.__operator = False
+        self.operator = False
 
     def __str__(self):
         return "Username: {}\nNickname: {}\nHostmask: {}\nChannels: {}\nNickattempts: {}\n".format(
@@ -46,30 +46,22 @@ class IRCUser:
             self.host
         )
 
-    @property  # Make this a property so the mode method can access it
-    def operator(self):
-        return self.__operator
-
-    @operator.setter
-    def operator(self, val):
-        self.__operator = val
-
     @property
     def username(self):
         return self.__username
 
-    def set_username(self, username, realname):
+    @username.setter
+    def username(self, username):
         username_length = len(username)
 
         if username_length == 0:
-            return [self.nickname, "***Username can not be nothing.***"]
-        if username_length > self.user_length:
-            return [self.nickname, "***Username can not be greater than {} characters.***".format(self.user_length)]
-        if any((c in self.illegal_characters) for c in username):
-            return [self.nickname, "***Illegal Characters in Username.***"]
-
-        self.__username = username
-        self.realname = realname
+            raise ValueError("***Username can not be nothing.***")
+        elif username_length > self.user_length:
+            raise ValueError("***Username can not be greater than {} characters.***".format(self.user_length))
+        elif any((c in self.illegal_characters) for c in username):
+            raise ValueError("***Illegal Characters in Username.***")
+        else:
+            self.__username = username
 
     @property
     def nickname(self):

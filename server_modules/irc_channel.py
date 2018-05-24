@@ -70,7 +70,7 @@ class IRCChannel:
         """ Return information about the channel to the caller. Used for WHO commands. """
         member_info = []
         if user.nickname not in self.get_nicknames():
-            return
+            return user.rplhelper.err_notonchannel("You must be on the channel to perform a /who")
         for _user in self.users:  # ToDo: Don't hardcode the hopcount
             member_info.append((
                 _user.username, _user.hostmask, server_host, _user.nickname, _user.status, 0, _user.realname

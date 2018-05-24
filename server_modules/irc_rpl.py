@@ -1,7 +1,7 @@
 from twisted.words.protocols.irc import ERR_NOSUCHNICK, ERR_NOSUCHCHANNEL, ERR_UNKNOWNCOMMAND, ERR_UNKNOWNMODE, \
     ERR_NICKNAMEINUSE, ERR_NEEDMOREPARAMS, RPL_YOUREOPER, ERR_PASSWDMISMATCH, ERR_ERRONEUSNICKNAME, \
     ERR_USERSDONTMATCH, ERR_NOPRIVILEGES, ERR_BADCHANMASK, ERR_CANNOTSENDTOCHAN, ERR_NONICKNAMEGIVEN, \
-    ERR_NOTONCHANNEL, RPL_UNAWAY, RPL_UMODEIS, RPL_NOWAWAY
+    ERR_NOTONCHANNEL, RPL_UNAWAY, RPL_UMODEIS, RPL_NOWAWAY, RPL_ENDOFWHO
 
 
 class RPLHelper:
@@ -38,6 +38,11 @@ class RPLHelper:
         """
         return ":{} {} {} :{}'s modes are: +{}".format(
             self.user_instance.server_host, RPL_UMODEIS, self.user_instance.nickname, nick, modes
+        )
+
+    def rpl_endofwho(self, channel):
+        return ":{} 315 {} {} :End of /WHO list.".format(
+            self.user_instance.server_host, RPL_ENDOFWHO, self.user_instance.nickname, channel
         )
 
     def err_notonchannel(self, description):

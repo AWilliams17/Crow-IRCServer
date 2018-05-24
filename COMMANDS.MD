@@ -1,4 +1,4 @@
-Implemented:  
+Implemented:
 /CHOWNER <channel_owner_account_name> <password> <channel> - Use this to login as a channel owner for the supplied channel.  
 /OPER <account_username> <account_password> - Login to the supplied admin account. Makes you an IRC Oper (you can do anything but
 add or remove the o flag from other users).  
