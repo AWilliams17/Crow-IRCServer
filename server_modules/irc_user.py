@@ -146,9 +146,10 @@ class IRCUser:
                 self.last_msg_time = time()
         else:
             for i in self.protocol.users:
-                destination_user_protocol = self.protocol.users.get(i).protocol
-                destination_nickname = self.protocol.users.get(i).nickname
-                if destination_user_protocol == destination_user_protocol and destination_nickname == destination:
+                destination_user = self.protocol.users.get(i)
+                destination_user_protocol = destination_user.protocol
+                destination_user_nickname = destination_user.nickname
+                if destination_user_protocol == destination_user_protocol and destination_user_nickname == destination:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
             return self.rplhelper.err_nosuchnick()

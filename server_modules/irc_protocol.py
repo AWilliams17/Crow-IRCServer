@@ -22,25 +22,26 @@ class IRCProtocol(IRC):
         self.hostname = getfqdn()
         self.rplhelper = RPLHelper(None)
         self.user_modes = ['I', 'o']  # ToDo: More
+        self.user_instance = None
 
     def connectionMade(self):
         current_time_posix = time()
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
         self.sendLine("You are now connected to %s" % self.server_name)
-        self.users[self] = IRCUser(
+        self.user_instance = IRCUser(
             self, None, None, None, current_time_posix, current_time_posix,
             self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
         )
-        print("------------------------------")
+        self.users[self] = self.user_instance
 
     def connectionLost(self, reason=protocol.connectionDone):
         if self in self.users:
-            for channel in self.users[self].channels:
+            for channel in self.user_instance.channels:
                 quit_reason = QuitReason.UNSPECIFIED
                 if reason.type == ConnectionLost:
                     quit_reason = QuitReason.TIMEOUT
-                channel.remove_user(self.users[self], None, reason=quit_reason)
+                channel.remove_user(self.user_instance, None, reason=quit_reason)
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
@@ -49,7 +50,7 @@ class IRCProtocol(IRC):
     def irc_JOIN(self, prefix, params):
         # ToDo: Implement everything here: http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
 
-        if self.users[self].nickname is None:
+        if self.user_instance.nickname is None:
             return self.sendLine("Failed to join channel: Your nickname is not set.")
 
         channel = params[0].lower()
@@ -60,28 +61,28 @@ class IRCProtocol(IRC):
             owner_name = token_urlsafe(16)
             owner_password = token_urlsafe(32)
             self.channels[channel] = IRCChannel(channel)
-            self.channels[channel].channel_owner = self.users[self]
+            self.channels[channel].channel_owner = self.user_instance
             self.channels[channel].channel_owner_account = [owner_name, owner_password]
-            self.users[self].send_msg(
-                self.users[self].nickname,
+            self.user_instance.send_msg(
+                self.user_instance.nickname,
                 "You are now logged in as the owner of {}".format(channel)
             )
-            self.users[self].send_msg(
-                self.users[self].nickname,
+            self.user_instance.send_msg(
+                self.user_instance.nickname,
                 "Owner account details are: {}:{} - Don't lose them.".format(owner_name, owner_password)
             )
 
         # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
-        self.channels[channel].add_user(self.users[self])
+        self.channels[channel].add_user(self.user_instance)
 
     def irc_QUIT(self, prefix, params):
         leave_message = None
         if len(params) == 1:
             leave_message = params[0]
         if self in self.users:
-            for channel in self.users[self].channels:
-                channel.remove_user(self.users[self], leave_message, reason=QuitReason.DISCONNECTED)
+            for channel in self.user_instance.channels:
+                channel.remove_user(self.user_instance, leave_message, reason=QuitReason.DISCONNECTED)
             del self.users[self]
 
     def irc_PART(self, prefix, params):
@@ -89,7 +90,7 @@ class IRCProtocol(IRC):
         leave_message = None
         if len(params) == 2:
             leave_message = params[1]
-        self.channels[channel].remove_user(self.users[self], leave_message, reason=QuitReason.LEFT)
+        self.channels[channel].remove_user(self.user_instance, leave_message, reason=QuitReason.LEFT)
 
     def irc_PRIVMSG(self, prefix, params):
         params_count = len(params)
@@ -97,20 +98,20 @@ class IRCProtocol(IRC):
         if params_count < 2:
             self.sendLine(self.rplhelper.err_needmoreparams("PRIVMSG"))
         else:
-            results = self.users[self].send_msg(params[0], params[1])
+            results = self.user_instance.send_msg(params[0], params[1])
             if results is not None:
                 self.sendLine(results)
 
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
         in_use_nicknames = [self.users[x].nickname for x in self.users if self.users[x].nickname is not None]
-        if self.users[self].nickname is None and self.users[self].nickattempts == 0:
+        if self.user_instance.nickname is None and self.user_instance.nickattempts == 0:
             self.sendLine(":{} {} {} :{}".format(
                 self.hostname, RPL_WELCOME,
                 attempted_nickname,
                 self.config.ServerSettings["ServerWelcome"] + " {}".format(attempted_nickname))
             )
-        results = self.users[self].set_nickname(attempted_nickname, in_use_nicknames)
+        results = self.user_instance.set_nickname(attempted_nickname, in_use_nicknames)
         if results is not None:
             self.sendLine(results)
 
@@ -118,8 +119,8 @@ class IRCProtocol(IRC):
         username = params[0]
         realname = params[3]
         try:
-            self.users[self].realname = realname
-            self.users[self].username = username
+            self.user_instance.realname = realname
+            self.user_instance.username = username
         except ValueError as e:
             self.sendLine(str(e))
             self.transport.loseConnection()
@@ -134,9 +135,9 @@ class IRCProtocol(IRC):
     def irc_WHO(self, prefix, params):
         target_channel = params[0]
         if target_channel in self.channels:
-            results = self.channels[target_channel].who(self.users[self], self.hostname)
+            results = self.channels[target_channel].who(self.user_instance, self.hostname)
             if type(results) is not str:  # Valid return type should be a list. Invalid is a string.
-                return self.who(self.users[self].nickname, target_channel, results)
+                return self.who(self.user_instance.nickname, target_channel, results)
             return self.sendLine(results)
         return self.sendLine(self.rplhelper.err_nosuchchannel())
 
@@ -153,7 +154,7 @@ class IRCProtocol(IRC):
             target_last_msg_time = time() - target_user.last_msg_time
             target_signon_time = target_user.sign_on_time
             target_channels = [x.channel_name for x in target_user.channels]
-            receiver_nickname = self.users[self].nickname
+            receiver_nickname = self.user_instance.nickname
             if len(target_channels) == 0:
                 target_channels.append("User is not in any channels.")
             return self.whois(
@@ -167,11 +168,11 @@ class IRCProtocol(IRC):
         reason = None
         if len(params) != 0:
             reason = params[0]
-        self.sendLine(self.users[self].away(reason))
+        self.sendLine(self.user_instance.away(reason))
 
     def irc_MODE(self, prefix, params):
         param_count = len(params)
-        this_client = self.users[self]  # Check if this client's nickname is in the params.
+        this_client = self.user_instance  # Check if this client's nickname is in the params.
         client_nickname_in_list = next((x for x in params if x == this_client.nickname), None)
         mode = next((x for x in params if x[0] in "+-" and len(x) >= 2), None)
         location_name = next((x for x in params if x[0] == "#"), None)
@@ -179,7 +180,7 @@ class IRCProtocol(IRC):
         # Make this an anonymous function since I don't want to do this loop unless I need to.
         def get_target_protocol():
             in_use_nicknames = [x.users[x].nickname for x in self.users if x.users[x].nickname is not None]
-            target_nick = next((x for x in params if x != self.users[self].nickname and x in in_use_nicknames), None)
+            target_nick = next((x for x in params if x != self.user_instance.nickname and x in in_use_nicknames), None)
             _target_protocol = next((x for x in self.users if x.users[x].nickname == target_nick), None)
             return _target_protocol
 
@@ -215,7 +216,7 @@ class IRCProtocol(IRC):
                 return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
 
     def irc_OPER(self, prefix, params):
-        user = self.users[self]
+        user = self.user_instance
         if user.operator:
             return self.sendLine("You are already an operator.")
         if len(params) != 2:
@@ -247,7 +248,7 @@ class IRCProtocol(IRC):
         name = params[0]
         password = params[1]
         channel_name = params[2]
-        user = self.users[self]
+        user = self.user_instance
         if channel_name not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())
 
