@@ -33,19 +33,35 @@ class IRCUser:
 
     @property
     def hostmask(self):
-        # Use * as an indicator that the username property of the hostmask wasn't set.
-        # * is illegal as a username character so anyone using it would be booted, so it'll work.
-        if self.__hostmask is not None and "*" in self.__hostmask:
-            self.set_hostmask()
         return self.__hostmask
 
-    def set_hostmask(self, nickname=None):
-        username = "*"
-        if self.username is not None:
-            username = self.username
-        if nickname is None:
-            nickname = self.nickname
-        self.__hostmask = "{}!{}@{}".format(nickname, username, self.host)
+    def set_hostmask(self, nickname=None, username=None, called_from=""):
+        """
+        This can be called from the username setter, or the nickname setter, and the order of that varies.
+        What I need to do is, if called from the username setter, I need to check if this has already been
+        called before, and if so, preserve the nickname already in the hostmask.
+        If not called before, then I need to set the username in the mask to what is passed here, and set
+        the nickname in the mask to *.
+
+        If this is called from the nickname setter, then I need to perform that same check, and if not called before,
+        set username to * and set the nickname, otherwise, the username must be preserved.
+        """
+        nickname_part = "*"
+        username_part = "*"
+        host_part = self.host
+
+        if username is None:  # Called by nickname setter - self.username MAY be None depending on if hostmask was set.
+            nickname_part = nickname
+            if self.__hostmask is not None:  # Hostmask exists, so check if the username in the hostmask was set.
+                if self.__hostmask.split("@")[0].split("!")[1] != "*":  # Username in hostmask was set. Preserve it.
+                    username_part = self.username
+
+        if nickname is None:  # Called by username setter
+            username_part = self.username  # The username setter sets the username before calling, so this exists.
+            if self.__hostmask is not None:  # The nickname exists, and will be preserved.
+                nickname_part = self.__hostmask.split("!")[0]
+
+        self.__hostmask = "{}!{}@{}".format(nickname_part, username_part, host_part)
 
     @property
     def username(self):
@@ -63,6 +79,7 @@ class IRCUser:
             raise ValueError("***Illegal Characters in Username.***")
         else:
             self.__username = username
+            self.set_hostmask(username=username, called_from="called from username")
 
     @property
     def nickname(self):
@@ -73,11 +90,14 @@ class IRCUser:
         Handle first nickname set on client connection + subsequent nickname changes. If the desired nickname is the
         nickname the client is already using, then nothing will occur.
         """
-        if self.hostmask is None:
-            self.set_hostmask(desired_nickname)
+        if self.hostmask is None or "*" in self.hostmask:
+            self.set_hostmask(nickname=desired_nickname, called_from="Called from set_nickname first if clause")
+
+        if self.nickname is not None and desired_nickname == self.nickname:
+            return
 
         # Make sure it's not in use.
-        if desired_nickname != self.nickname and desired_nickname in in_use_nicknames:
+        if desired_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
             if self.nickname is None:
                 if self.nickattempts != 2:
@@ -89,7 +109,7 @@ class IRCUser:
                 )
                 previous_hostmask = self.hostmask  # Store this since it's going to be changed
                 self.__nickname = randomized_nick
-                self.set_hostmask()
+                self.set_hostmask(nickname=randomized_nick, called_from="randomized nick clause")
                 self.nickattempts = 0
                 return "Nickname attempts exceeded(2). A random nickname was generated for you." \
                        "\n:{} NICK {}".format(previous_hostmask, randomized_nick)
@@ -119,7 +139,7 @@ class IRCUser:
             output = ":{} NICK {}".format(self.hostmask, desired_nickname)  # Tell them it was accepted.
 
         self.__nickname = desired_nickname
-        self.set_hostmask()
+        self.set_hostmask(nickname=desired_nickname, called_from="Final set hostmask in nickname setter")
         return output
 
     def send_msg(self, destination, message):

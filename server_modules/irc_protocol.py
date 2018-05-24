@@ -7,10 +7,10 @@ from util_modules.util_param_count import param_count
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe
-
 # TODO: NOTE - Nickname changing after erroneous nick is sent is broken!
-
 # noinspection PyPep8Naming
+
+
 class IRCProtocol(IRC):
     def __init__(self, users, channels, config):
         self.users = users
@@ -32,6 +32,7 @@ class IRCProtocol(IRC):
             self, None, None, None, current_time_posix, current_time_posix,
             self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
         )
+        print("------------------------------")
 
     def connectionLost(self, reason=protocol.connectionDone):
         if self in self.users:
@@ -91,9 +92,9 @@ class IRCProtocol(IRC):
         self.channels[channel].remove_user(self.users[self], leave_message, reason=QuitReason.LEFT)
 
     def irc_PRIVMSG(self, prefix, params):
-        param_count = len(params)
+        params_count = len(params)
 
-        if param_count < 2:
+        if params_count < 2:
             self.sendLine(self.rplhelper.err_needmoreparams("PRIVMSG"))
         else:
             results = self.users[self].send_msg(params[0], params[1])
