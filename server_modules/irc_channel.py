@@ -68,14 +68,9 @@ class IRCChannel:
 
     def who(self, user, server_host):
         """ Return information about the channel to the caller. Used for WHO commands. """
-        member_info = []
         if user.nickname not in self.get_nicknames():
             return user.rplhelper.err_notonchannel("You must be on the channel to perform a /who")
-        for _user in self.users:  # ToDo: Don't hardcode the hopcount
-            member_info.append((
-                _user.username, _user.hostmask, server_host, _user.nickname, _user.status, 0, _user.realname
-            ))
-        return member_info
+        return [tuple([x.username, x.hostmask, server_host, x.nickname, x.status, 0, x.realname]) for x in self.users]
 
     def login_owner(self, name, password, user):
         """
