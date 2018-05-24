@@ -1,5 +1,5 @@
 What I'm doing now:
--figure out the whole self.users[self] debacle, do parameter count enforcement
+Redocumenting
 
 General:
 -Create setup.py
@@ -13,6 +13,8 @@ General:
 -if a user is a channel operator, add an @ next to their nick in WHOIS/WHO
 -make the welcome text include nicks better
 -implement MOTD
+-Rate limiting
+-Max clients
 
 irc_protocol.py:
 -Implement no oper host

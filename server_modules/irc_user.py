@@ -4,6 +4,7 @@ from util_modules.util_random_nick_generation import generate_random_nick
 
 class IRCUser:
     illegal_characters = set(".<>'`()?*#+-")
+    valid_modes = ["o"]
 
     def __init__(self, protocol, username, nickname, realname, sign_on_time, last_msg_time, host, hostmask, channels,
                  nickattempts, nick_length, user_length, rplhelper, serverhost):
@@ -174,6 +175,9 @@ class IRCUser:
         mode_addition = mode[0] == "+"
         mode_change_message = ":{} MODE {} :{}".format(accessor_nickname, self.nickname, mode)
         changing_own_modes = accessor_nickname == self.nickname
+
+        if mode_char not in self.valid_modes:
+            return self.rplhelper.err_unknownmode()
 
         if not changing_own_modes and not accessor_is_operator:
             return self.rplhelper.err_noprivileges("You can not affect someone else's modes.")

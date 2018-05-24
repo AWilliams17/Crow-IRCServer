@@ -12,6 +12,13 @@ from secrets import token_urlsafe
 
 class IRCProtocol(IRC):
     def __init__(self, users, channels, config):
+        """
+        Create a protocol instance for this client + set up a user instance and define valid user/channel modes.
+        Args:
+            users (OrderedDict): The server's current logged users.
+            channels (OrderedDict): The server's current channels.
+            config (IRCConfig): The server's config settings.
+        """
         self.users = users
         self.channels = channels
         self.config = config
@@ -20,7 +27,6 @@ class IRCProtocol(IRC):
         self.operators = self.config.UserSettings["Operators"]
         self.hostname = getfqdn()
         self.rplhelper = RPLHelper(None)
-        self.user_modes = ['I', 'o']  # ToDo: More
         self.user_instance = None
 
     def connectionMade(self):
@@ -48,6 +54,9 @@ class IRCProtocol(IRC):
 
     @min_param_count(1)
     def irc_JOIN(self, prefix, params):
+        """ When a user attempts to join a channel, prevent them if they have no nickname. Otherwise, check if the
+         channel name exists. If it doesn't, make a new channel and put them as the owner, send them the owner
+         details. Otherwise, try to have the channel add them."""
         # ToDo: Implement everything here: http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
 
         if self.user_instance.nickname is None:
@@ -77,6 +86,8 @@ class IRCProtocol(IRC):
         self.channels[channel].add_user(self.user_instance)
 
     def irc_QUIT(self, prefix, params):
+        """ When a user disconnects from the server, check if their client issued a leave message. If not, a default
+         one will be used. Remove the user from the channels the client was in w/ the leave message."""
         leave_message = None
         if len(params) == 1:
             leave_message = params[0]
@@ -87,6 +98,8 @@ class IRCProtocol(IRC):
 
     @min_param_count(1)
     def irc_PART(self, prefix, params):
+        """ When a user leaves a channel, check if their client issued a leave message. If not, a default
+         one will be used. Remove the user from the channel the client was in w/ the leave message."""
         channel = params[0]
         leave_message = None
         if len(params) == 2:
@@ -101,6 +114,8 @@ class IRCProtocol(IRC):
 
     @min_param_count(1)
     def irc_NICK(self, prefix, params):
+        """ When a client issues a NICK command on join/to rename themselves, generate a list of in use nicknames,
+         also if this is their first time connecting, send them a welcome with the nickname. (to be moved later)"""
         attempted_nickname = params[0]
         in_use_nicknames = [self.users[x].nickname for x in self.users if self.users[x].nickname is not None]
         if self.user_instance.nickname is None and self.user_instance.nickattempts == 0:
@@ -114,6 +129,8 @@ class IRCProtocol(IRC):
             self.sendLine(results)
 
     def irc_USER(self, prefix, params):
+        """ When a user first joins the client sends a USER command with information about the client. Verify it's
+        all valid. If it's not valid, then kick them."""
         try:
             username = params[0]
             realname = params[3]
@@ -135,6 +152,7 @@ class IRCProtocol(IRC):
 
     @min_param_count(1)
     def irc_WHO(self, prefix, params):
+        """ Attempt to perform a WHO lookup on a channel """
         target_channel = params[0]
         if target_channel in self.channels:
             results = self.channels[target_channel].who(self.user_instance, self.hostname)
@@ -145,6 +163,7 @@ class IRCProtocol(IRC):
 
     @min_param_count(1)
     def irc_WHOIS(self, prefix, params):
+        """ Attempt to perform a WHOIS on another user."""
         target_nickname = params[0]
         target_user = next((self.users[x] for x in self.users if self.users[x].nickname == target_nickname), None)
         if target_user is not None:
@@ -168,6 +187,8 @@ class IRCProtocol(IRC):
         return self.sendLine(self.rplhelper.err_nosuchnick())
 
     def irc_AWAY(self, prefix, params):
+        """ If a reason is supplied by the user, then it is assumed they are setting themselves away. Otherwise it is
+         assumed they are marking themselves as unaway. """
         reason = None
         if len(params) != 0:
             reason = params[0]
@@ -175,6 +196,15 @@ class IRCProtocol(IRC):
 
     @min_param_count(1)
     def irc_MODE(self, prefix, params):
+        """ Called when a user either:
+            A: Wants to check their own modes (params will be 1), [their_nickname]
+            B: Wants to check someone else's modes (params will be 2), [location_it_occurred_in, target_nick]
+            C: Wants to check a channel's modes (params will be 1), [the_channel]
+            D: Wants to set their own mode (params will be 2), [their_nickname, mode]
+            E: Wants to set someone else's mode (params will be 3), [location, target_nick, mode]
+            F: Wants to set a channel's mode. (params will be 2), [location, mode]
+            ToDo: Slated for (another) rewrite
+         """
         param_count = len(params)
         this_client = self.user_instance  # Check if this client's nickname is in the params.
         client_nickname_in_list = next((x for x in params if x == this_client.nickname), None)
@@ -206,7 +236,7 @@ class IRCProtocol(IRC):
                     if location_name in self.channels:
                         return self.sendLine(self.channels[location_name].set_mode(mode))
                     return self.sendLine(self.rplhelper.err_nosuchchannel())
-            if mode is not None and mode[1] in self.user_modes:
+            if mode is not None:
                 return self.sendLine(this_client.set_mode(mode))
             return self.sendLine(self.rplhelper.err_unknownmode())
 
@@ -214,7 +244,7 @@ class IRCProtocol(IRC):
             target_protocol = get_target_protocol()
             if target_protocol is None:
                 return self.sendLine(self.rplhelper.err_nosuchnick())
-            elif mode is None or mode[1] not in self.user_modes:
+            elif mode is None:
                 return self.sendLine(self.rplhelper.err_unknownmode())
             else:
                 return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
@@ -252,5 +282,4 @@ class IRCProtocol(IRC):
         user = self.user_instance
         if channel_name not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())
-
         self.sendLine(self.channels[channel_name].login_owner(name, password, user))
