@@ -54,8 +54,8 @@ class IRCChannel:
         if user is self.channel_owner:
             self.channel_owner = None
 
-        self.broadcast_line(reason.value.format(user.hostmask, leave_message))
         self.users.remove(user)
+        self.broadcast_line(reason.value.format(user.hostmask, leave_message))
         user.channels.remove(self)
 
     def get_nicknames(self):
@@ -75,7 +75,7 @@ class IRCChannel:
         """
         if user.nickname not in self.get_nicknames():
             return user.rplhelper.err_noprivileges("You must be on the channel to login as the owner.")
-        if name != self.channel_owner_account[0] or password != self.channel_owner_account[1]:
+        elif name != self.channel_owner_account[0] or password != self.channel_owner_account[1]:
             return user.rplhelper.err_passwordmismatch()
         elif self.channel_owner is not None:
             return user.rplhelper.err_noprivileges("Channel already has an acting owner.")
@@ -93,6 +93,12 @@ class IRCChannel:
             if user_.protocol is not user:
                 user_.protocol.sendLine(":{} NICK {}".format(user.hostmask, new_nick))
 
+    def get_modes(self):
+        return "getting channel modes not implemented"  # ToDo
+
+    def set_mode(self):
+        return "setting channel modes not implemented"  # ToDo
+
     def broadcast_message(self, message, sender):
         for user in self.users:
             if user.hostmask != sender:
@@ -101,7 +107,3 @@ class IRCChannel:
     def broadcast_line(self, line):
         for user in self.users:
             user.protocol.sendLine(line)
-
-    def broadcast_notice(self, message):
-        for user in self.users:
-            user.notice(message)

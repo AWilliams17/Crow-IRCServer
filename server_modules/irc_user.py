@@ -34,15 +34,17 @@ class IRCUser:
 
     @property
     def hostmask(self):
+        # Use * as an indicator that the username property of the hostmask wasn't set.
+        # * is illegal as a username character so anyone using it would be booted, so it'll work.
+        if "*" in self.hostmask:
+            self.set_hostmask()
         return self.__hostmask
 
     def set_hostmask(self, nickname=None):
         username = "*"
         if self.username is not None:
             username = self.username
-        if nickname is None and self.nickname is None:
-            nickname = "*"
-        else:
+        if nickname is None:
             nickname = self.nickname
         self.__hostmask = "{}!{}@{}".format(nickname, username, self.host)
 
@@ -62,56 +64,52 @@ class IRCUser:
             raise ValueError("***Illegal Characters in Username.***")
         else:
             self.__username = username
-            self.set_hostmask()
 
     @property
     def nickname(self):
         return self.__nickname
 
     def set_nickname(self, desired_nickname, in_use_nicknames):
-        """ Handle first nickname set on client connection + subsequent nickname changes. """
+        """
+        Handle first nickname set on client connection + subsequent nickname changes. If the desired nickname is the
+        nickname the client is already using, then nothing will occur.
+        """
         if self.hostmask is None:
             self.set_hostmask(desired_nickname)
 
-        if desired_nickname == self.nickname:
-            return
-
-        if desired_nickname in in_use_nicknames:
+        # Make sure it's not in use.
+        if desired_nickname != self.nickname and desired_nickname in in_use_nicknames:
             # The user instance has no nickname. This is the case on initial connection.
             if self.nickname is None:
-                # They've had 2 attempts at changing it - Generate one for them.
                 if self.nickattempts != 2:
                     self.nickattempts += 1
                     return self.rplhelper.err_nicknameinuse(desired_nickname)
-                else:
-                    randomized_nick = self._generate_random_nick(in_use_nicknames)
-                    previous_hostmask = self.hostmask  # Store this since it's going to be changed
-                    self.__nickname = randomized_nick
-                    self.set_hostmask()
-                    output = "Nickname attempts exceeded(2). A random nickname was generated for you."
-                    output += "\n:{} NICK {}".format(previous_hostmask, randomized_nick)
-                    return output
-            else:
-                # The user already has a nick, so just send a line telling them its in use and keep things the same.
-                return ":{} NOTICE {} :***Nickname is already in use.***".format(self.server_host, self.nickname)
+                # After giving them two tries to change it, generate one for them.
+                randomized_nick = self._generate_random_nick(in_use_nicknames)
+                previous_hostmask = self.hostmask  # Store this since it's going to be changed
+                self.__nickname = randomized_nick
+                self.set_hostmask()
+                self.nickattempts = 0
+                return "Nickname attempts exceeded(2). A random nickname was generated for you." \
+                       "\n:{} NICK {}".format(previous_hostmask, randomized_nick)
+            # The user already has a nick, so just send a line telling them its in use and keep things the same.
+            return self.notice("***Nickname is already in use.***")
 
-        # ToDo: Try to combine these
+        # If it's not in use, make sure it's a valid nickname.
+        error = None
         if len(desired_nickname) > self.nick_length:
-            error = "Exceeded max char limit {}".format(self.nick_length)
-            if self.__nickname is None:
-                self.nickattempts += 1
-                return self.rplhelper.err_erroneousnickname(desired_nickname, error)
-            return ":{} 436 * {} :{} ".format(self.server_host, desired_nickname, error)  # ToDo: Make this a notice
-
+            error = ":Erroneous Nickname - Exceeded max char limit {}".format(self.nick_length)
         if any((c in self.illegal_characters) for c in desired_nickname):
-            error = ":Erroneous Nickname - Illegal characters".format(self.nick_length)
+            error = ":Erroneous Nickname - Illegal characters"
+        if error is not None:
             if self.nickname is None:
                 self.nickattempts += 1
                 return self.rplhelper.err_erroneousnickname(desired_nickname, error)
-            return ":{} 436 * {} :{}".format(self.server_host, desired_nickname, error)  # ToDo: Make this a notice
+            return self.notice(error, desired_nickname)
 
+        # Check if they're renaming themselves, return rename_notice and also tell all the channels they're in.
         output = None
-        if self.nickname is not None or self.nickattempts != 0:  # They are renaming themselves.
+        if self.nickname is not None and self.nickname != desired_nickname or self.nickattempts != 0:
             if self.channels is not None:  # Send rename notice to any channels they're in
                 for connected_channel in self.channels:
                     connected_channel.rename_user(self, desired_nickname)
@@ -121,13 +119,13 @@ class IRCUser:
 
         self.__nickname = desired_nickname
         self.set_hostmask()
-        return output  # Return any errors/any rename notices.
+        return output
 
     def send_msg(self, destination, message):
         """ Determine if a client is sending a message to a channel or user and handle appropriately. """
         if "*" in destination or "?" in destination:
             return self.rplhelper.err_badchanmask(destination)
-        if destination[0] == "#":
+        elif destination[0] == "#":
             if destination not in self.protocol.channels:
                 return self.rplhelper.err_nosuchchannel()
             if self not in self.protocol.channels[destination].users:
@@ -135,18 +133,17 @@ class IRCUser:
             else:
                 self.protocol.channels[destination].broadcast_message(message, self.hostmask)
                 self.last_msg_time = time()
-                return
-        if destination[0] != "#":
+        else:
             for i in self.protocol.users:
                 destination_user_protocol = self.protocol.users.get(i).protocol
                 destination_nickname = self.protocol.users.get(i).nickname
                 if destination_user_protocol == destination_user_protocol and destination_nickname == destination:
                     destination_user_protocol.privmsg(self.hostmask, destination, message)
                     self.last_msg_time = time()
-                    return
             return self.rplhelper.err_nosuchnick()
 
     def away(self, reason):
+        """ Mark a user as either away or unaway. If supplying no reason, assume they are marking as unaway. """
         if reason is None:
             self.status = "H"
             return self.rplhelper.rpl_unaway()
@@ -198,7 +195,7 @@ class IRCUser:
             return mode_change_message
 
     def get_modes(self, accessor_nickname=None, accessor_is_operator=None):
-        """ Get a user's current modes (if they have permission) """
+        """ Get a user's current modes for the requesting party (if they have permission) """
         if accessor_nickname is None and accessor_is_operator is None:
             accessor_nickname = self.nickname
             accessor_is_operator = self.operator
@@ -207,8 +204,20 @@ class IRCUser:
             return self.rplhelper.err_noprivileges("You do not have permission to check someone else's modes.")
         return self.rplhelper.rpl_umodeis(self.nickname, self.modes)
 
-    def notice(self, message):
-        self.protocol.sendLine(":{} NOTICE {} :{}".format(self.server_host, self.nickname, message))
+    def notice(self, message, nick=None, send=False):
+        """
+        Send a notice to this user.
+        :param message: The message to be used as the notice.
+        :param nick: If supplied (which would really only be the case if the notice is used as an error for set nick),
+        it will be used in place of the client's s nickname (since it probably won't even be set).
+        :param send: If set to True, the method will send the notice. Otherwise, it will return the notice message.
+        """
+        if nick is None:
+            nick = self.nickname
+        notice_message = ":{} NOTICE {} :{}".format(self.server_host, nick, message)
+        if not send:
+            return self.protocol.sendLine(notice_message)
+        return notice_message
 
     def _generate_random_nick(self, current_nicknames):
         """ When a client exceeds the max nick attempt limit, generate one for them. """

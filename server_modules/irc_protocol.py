@@ -173,14 +173,12 @@ class IRCProtocol(IRC):
                 attempted_nickname,
                 self.config.ServerSettings["ServerWelcome"] + " {}".format(attempted_nickname))
             )
-
         results = self.users[self].set_nickname(attempted_nickname, in_use_nicknames)
         if results is not None:
             self.sendLine(results)
 
     def irc_USER(self, prefix, params):
         """
-        TODO: This method needs some exception handling. What if param[0] and param[3] don't exist?
         Called when the client sends the USER message on initial connection to set the user's information.
         :param params: First argument is the username the client is using, the second one seems to be the same
         thing (?), the third is the clients host (unneeded - this is retrieved before here), and the fourth is

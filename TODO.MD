@@ -1,5 +1,5 @@
 What I'm doing now:
--Refactoring set_nickname, figure out the whole self.users[self] debacle
+-figure out the whole self.users[self] debacle, do parameter count enforcement
 
 General:
 -Create setup.py
@@ -31,6 +31,3 @@ irc_channel.py:
 -Implement operators
 -Implement channel modes
 -Test channel owner login more thoroughly
-
-irc_user.py:
--Refactor set_nickname
