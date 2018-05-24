@@ -83,12 +83,12 @@ class IRCProtocol(IRC):
         if len(params) != 1:
             return self.sendLine(self.rplhelper.err_needmoreparams("JOIN"))
 
+        if self.users[self].nickname is None:
+            return self.sendLine("Failed to join channel: Your nickname is not set.")
+
         channel = params[0].lower()
         if channel[0] != "#":
             channel = "#" + channel
-
-        if self.users[self].nickname is None:
-            return self.sendLine("Failed to join channel: Your nickname is not set.")
 
         if channel not in self.channels:
             owner_name = token_urlsafe(16)

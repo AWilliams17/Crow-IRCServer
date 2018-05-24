@@ -29,15 +29,11 @@ class IRCChannel:
         if user in self.users:
             return
 
-        if user.hostmask is None:
-            user.set_hostmask(user.nickname)
-
         user.protocol.join(user.hostmask, self.channel_name)
         user.channels.append(self)
         self.users.append(user)
-        for user_ in self.users:
-            if user_ != user:
-                user_.protocol.sendLine(":{} JOIN :{}".format(user.hostmask, self.channel_name))
+        join_rpl = ":{} JOIN :{}".format(user.hostmask, self.channel_name)
+        [x.protocol.sendLine(join_rpl) for x in self.users if x is not user]
         self.send_names(user)
 
     def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):

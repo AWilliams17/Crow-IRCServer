@@ -1,5 +1,5 @@
 What I'm doing now:
--Refactoring irc_WHOIS, set_nickname, figure out the whole self.users[self] debacle
+-Refactoring set_nickname, figure out the whole self.users[self] debacle
 
 General:
 -Create setup.py
@@ -15,8 +15,6 @@ General:
 -implement MOTD
 
 irc_protocol.py:
--Refactor irc_WHO
--Refactor irc_WHOIS
 -Implement no oper host
 -Implement CAP
 -Implement max clients

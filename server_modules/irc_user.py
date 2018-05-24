@@ -36,15 +36,15 @@ class IRCUser:
     def hostmask(self):
         return self.__hostmask
 
-    def set_hostmask(self, nickname):
+    def set_hostmask(self, nickname=None):
         username = "*"
         if self.username is not None:
             username = self.username
-        self.__hostmask = "{}!{}@{}".format(
-            nickname,
-            username,
-            self.host
-        )
+        if nickname is None and self.nickname is None:
+            nickname = "*"
+        else:
+            nickname = self.nickname
+        self.__hostmask = "{}!{}@{}".format(nickname, username, self.host)
 
     @property
     def username(self):
@@ -62,6 +62,7 @@ class IRCUser:
             raise ValueError("***Illegal Characters in Username.***")
         else:
             self.__username = username
+            self.set_hostmask()
 
     @property
     def nickname(self):
@@ -86,7 +87,7 @@ class IRCUser:
                     randomized_nick = self._generate_random_nick(in_use_nicknames)
                     previous_hostmask = self.hostmask  # Store this since it's going to be changed
                     self.__nickname = randomized_nick
-                    self.set_hostmask(self.nickname)
+                    self.set_hostmask()
                     output = "Nickname attempts exceeded(2). A random nickname was generated for you."
                     output += "\n:{} NICK {}".format(previous_hostmask, randomized_nick)
                     return output
@@ -119,7 +120,7 @@ class IRCUser:
             output = ":{} NICK {}".format(self.hostmask, desired_nickname)  # Tell them it was accepted.
 
         self.__nickname = desired_nickname
-        self.set_hostmask(desired_nickname)
+        self.set_hostmask()
         return output  # Return any errors/any rename notices.
 
     def send_msg(self, destination, message):
