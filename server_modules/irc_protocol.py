@@ -3,11 +3,10 @@ from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from util_modules.util_rplhelper import RPLHelper
-from util_modules.util_param_count import param_count
+from util_modules.util_param_count import min_param_count
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe
-# TODO: NOTE - Nickname changing after erroneous nick is sent is broken!
 # noinspection PyPep8Naming
 
 
@@ -47,6 +46,7 @@ class IRCProtocol(IRC):
     def irc_unknown(self, prefix, command, params):
         self.sendLine(self.rplhelper.err_unknowncommand(command))
 
+    @min_param_count(1)
     def irc_JOIN(self, prefix, params):
         # ToDo: Implement everything here: http://riivo.talviste.ee/irc/rfc/index.php?page=command.php&cid=8
 
@@ -85,6 +85,7 @@ class IRCProtocol(IRC):
                 channel.remove_user(self.user_instance, leave_message, reason=QuitReason.DISCONNECTED)
             del self.users[self]
 
+    @min_param_count(1)
     def irc_PART(self, prefix, params):
         channel = params[0]
         leave_message = None
@@ -92,16 +93,13 @@ class IRCProtocol(IRC):
             leave_message = params[1]
         self.channels[channel].remove_user(self.user_instance, leave_message, reason=QuitReason.LEFT)
 
+    @min_param_count(2)
     def irc_PRIVMSG(self, prefix, params):
-        params_count = len(params)
+        results = self.user_instance.send_msg(params[0], params[1])
+        if results is not None:
+            self.sendLine(results)
 
-        if params_count < 2:
-            self.sendLine(self.rplhelper.err_needmoreparams("PRIVMSG"))
-        else:
-            results = self.user_instance.send_msg(params[0], params[1])
-            if results is not None:
-                self.sendLine(results)
-
+    @min_param_count(1)
     def irc_NICK(self, prefix, params):
         attempted_nickname = params[0]
         in_use_nicknames = [self.users[x].nickname for x in self.users if self.users[x].nickname is not None]
@@ -116,13 +114,16 @@ class IRCProtocol(IRC):
             self.sendLine(results)
 
     def irc_USER(self, prefix, params):
-        username = params[0]
-        realname = params[3]
         try:
-            self.user_instance.realname = realname
+            username = params[0]
+            realname = params[3]
             self.user_instance.username = username
-        except ValueError as e:
-            self.sendLine(str(e))
+            self.user_instance.realname = realname
+        except (ValueError, IndexError) as e:
+            error_message = str(e)
+            if type(e) == IndexError:
+                error_message = "*** Your client did not supply enough parameters to make a valid USER command. ***"
+            self.sendLine(error_message)
             self.transport.loseConnection()
 
     def irc_CAP(self, prefix, params):
@@ -132,6 +133,7 @@ class IRCProtocol(IRC):
         """
         pass
 
+    @min_param_count(1)
     def irc_WHO(self, prefix, params):
         target_channel = params[0]
         if target_channel in self.channels:
@@ -141,6 +143,7 @@ class IRCProtocol(IRC):
             return self.sendLine(results)
         return self.sendLine(self.rplhelper.err_nosuchchannel())
 
+    @min_param_count(1)
     def irc_WHOIS(self, prefix, params):
         target_nickname = params[0]
         target_user = next((self.users[x] for x in self.users if self.users[x].nickname == target_nickname), None)
@@ -170,6 +173,7 @@ class IRCProtocol(IRC):
             reason = params[0]
         self.sendLine(self.user_instance.away(reason))
 
+    @min_param_count(1)
     def irc_MODE(self, prefix, params):
         param_count = len(params)
         this_client = self.user_instance  # Check if this client's nickname is in the params.
@@ -215,15 +219,11 @@ class IRCProtocol(IRC):
             else:
                 return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
 
+    @min_param_count(2, "Usage: OPER <username> <password> - Logs you in as an IRC operator.")
     def irc_OPER(self, prefix, params):
         user = self.user_instance
         if user.operator:
             return self.sendLine("You are already an operator.")
-        if len(params) != 2:
-            return self.sendLine(
-                self.rplhelper.err_needmoreparams("OPER") +
-                "\r\nUsage: OPER <username> <password> - Logs you in as an IRC operator."
-            )
         username = params[0]
         password = params[1]
         if username in self.operators:
@@ -236,13 +236,14 @@ class IRCProtocol(IRC):
         """ Not implemented - This is for logging in as a channel operator. """
         pass
 
+    def irc_COMMANDS(self, prefix, params):
+        """ Not implemented - return a list of commands the server uses """
+        pass
+
+    @min_param_count(3, "Usage: CHOWNER <owner_name> <pass> <channel> - Logs in to the specified channel as an owner.")
     def irc_CHOWNER(self, prefix, params):
         if len(params) < 3:
             self.sendLine(self.rplhelper.err_needmoreparams("CHOWNER"))
-            return self.sendLine(
-                self.rplhelper.err_needmoreparams("CHOWNER") +
-                "\r\nUsage: CHOWNER <owner_name> <owner_pass> <channel> - Logs in to the specified channel as an owner."
-            )
         if params[2][0] != "#":
             params[2] = "#" + params[2]
         name = params[0]

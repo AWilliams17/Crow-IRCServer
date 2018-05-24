@@ -1,4 +1,4 @@
-def param_count(count):
+def min_param_count(count, additional_information=None):
     """ A decorator which enforces irc command argument counts. For use inside the IRCProtocol class.
     :param count: How many arguments does the command need.
     """
@@ -9,6 +9,9 @@ def param_count(count):
             self = args[0]
             if len(args[2]) >= count:
                 return command_method(*args)
-            return self.sendLine(self.rplhelper.err_needmoreparams(command_name))
+            error_message = self.rplhelper.err_needmoreparams(command_name)
+            if additional_information is not None:
+                error_message += "\r\n%s", additional_information
+            return self.sendLine(error_message)
         return wrapper
     return command_decorator
