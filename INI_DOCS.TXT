@@ -13,14 +13,6 @@ This section handles the primary details concerning the server itself.
     -Interface: What network interface to bind to. 127.0.0.1 is localhost.
     To listen on all interfaces, use 0.0.0.
 
-    -MaintenanceInterval: How much time in seconds to wait between maintenance
-    method calls. Default value is 5 minutes, so every 5 minutes, the maintenance
-    method will be called.
-
-    -DeleteOldChannels: If set to 1 (default), channels which have been up for more than
-    a week and have not had anyone in them will be deleted. If set to 0, this
-    will not occur.
-
     -ServerName: The name communicated to the client on initial connection.
 
     -ServerDescription: Describes the server. At the moment it is only used
@@ -28,6 +20,24 @@ This section handles the primary details concerning the server itself.
 
     -ServerWelcome: The welcome message echoed to the client on initial connection.
     The client's nickname is appended to the end of it.
+
+MaintenanceSettings:
+This section handles details pertaining to automated maintenance in the server.
+    -MaintenanceInterval: How much time in seconds to wait between maintenance
+    method calls. Default value is 5 minutes, so every 5 minutes, the maintenance
+    method will be called.
+
+    -(Not Implemented)FlushInterval: How much time in minutes to wait before flushing current
+    server details (current channels + their opers, owner, modes, and banlists) + the server's
+    own banlist. The default value is 1 hour.
+
+    -(Not Implemented)DeleteOldChannels: If set to 1 (default), channels which have been up for more than
+    a week and have not had anyone in them will be deleted. If set to 0, this
+    will not occur.
+
+    -(Not Implemented)ChannelScanInterval: How many days to wait before running the old channel scan.
+    If DeleteOldChannels is 0, this value is ignored. NOTE: If ChannelScanInterval
+    is set to 0, the server will not allow you to proceed. Default value is 1.
 
 UserSettings:
 This section handles details pertaining to users connected to the server.
