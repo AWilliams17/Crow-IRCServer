@@ -25,7 +25,6 @@ This section handles the primary details concerning the server itself.
     -ServerWelcome: The welcome message echoed to the client on initial connection.
     The client's nickname is appended to the end of it.
 
-
 UserSettings:
 This section handles details pertaining to users connected to the server.
     -MaxLength: The max amount of characters a username can be.
@@ -33,13 +32,11 @@ This section handles details pertaining to users connected to the server.
     -MaxClients: How many clients a host can have connected at the same time.
 
     -Operators: A list of operator usernames and their associated passwords. Separate each
-    username:password pair with a comma. Duplicate usernames are ignored along with their password.
-
+    username:password pair with a comma. Note, if a username is the same as a previous
+    username, that previous username will have it's password value replaced by the subsequent
+    username's associated password.
 
 
 -NicknameSettings-
 This section handles details pertaining to nicknames of users connected to the server.
     -MaxLength: The max amount of characters a nickname can be.
-
-
-

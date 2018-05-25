@@ -15,8 +15,9 @@ def load_config():
 		print(
 			"Note: The default settings have the port set to 6667 and the interface set to 127.0.0.1, "
 			"meaning the server will be run on localhost. If you wish to change this, the config name is crow.ini,"
-			"located in {}. Refer to INI_DOCS.TXT on the repo for setting up the ini if don't know what"
-			"a certain setting does.".format(config.config_path())
+			"located in {}. There also are two default operator accounts with very insecure usernames and passwords."
+			"Refer to INI_DOCS.TXT on the repo for setting up the ini "
+			"if you don't know what a certain setting does.".format(config.config_path())
 		)
 
 	read_errors = config.read_config()

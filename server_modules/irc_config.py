@@ -37,9 +37,8 @@ class IRCConfig:
                 "MaxLength": int(self._config['UserSettings']['MaxLength']),
                 "MaxClients": int(self._config['UserSettings']['MaxClients']),
                 "Operators": dict(x.split(":") for x in self._config['UserSettings']['Operators'].split(','))
-                # ToDo: Split spaces
-                # ToDo: Prevent duplicate usernames.
             }
+            print(self.UserSettings["Operators"])
             self.NicknameSettings = {
                 "MaxLength": int(self._config['NicknameSettings']['MaxLength'])
             }
