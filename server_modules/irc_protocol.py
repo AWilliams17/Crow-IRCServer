@@ -12,7 +12,7 @@ from secrets import token_urlsafe
 
 
 class IRCProtocol(IRC):
-    def __init__(self, users, channels, config, ratelimiter, clientlimiter):
+    def __init__(self, users, channels, config, ratelimiter, clientlimiter, pingmanager):
         """
         Create a protocol instance for this client + set up a user/rplhelper instance.
         Args:
@@ -32,7 +32,7 @@ class IRCProtocol(IRC):
         self.user_instance = None
         self.ratelimiter = ratelimiter
         self.clientlimiter = clientlimiter
-        self.last_ping = 0
+        self.pingmanager = pingmanager
 
     def connectionMade(self):
         current_time_posix = time()
@@ -57,13 +57,14 @@ class IRCProtocol(IRC):
         if self in self.users:
             for channel in self.user_instance.channels:
                 quit_reason = QuitReason.UNSPECIFIED
-                if reason.type == ConnectionLost:
-                    quit_reason = QuitReason.TIMEOUT
                 channel.remove_user(self.user_instance, None, reason=quit_reason)
             del self.users[self]
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine(self.rplhelper.err_unknowncommand(command))
+
+    def irc_PONG(self, prefix, params):
+        self.pingmanager.pong_received(self)
 
     @min_param_count(1)
     def irc_JOIN(self, prefix, params):
@@ -98,15 +99,21 @@ class IRCProtocol(IRC):
         # and then add this channel to the list of channels the user is connected to.
         self.channels[channel].add_user(self.user_instance)
 
-    def irc_QUIT(self, prefix, params):
+    def irc_QUIT(self, prefix, params, timeout_seconds=None):
         """ When a user disconnects from the server, check if their client issued a leave message. If not, a default
          one will be used. Remove the user from the channels the client was in w/ the leave message."""
         leave_message = None
+        quit_reason = QuitReason.DISCONNECTED
+        if timeout_seconds is not None:
+            quit_reason = QuitReason.TIMEOUT
+            self.sendLine("You timed out after {} seconds.".format(timeout_seconds))
+            self.transport.loseConnection()
         if len(params) == 1:
             leave_message = params[0]
         if self in self.users:
             for channel in self.user_instance.channels:
-                channel.remove_user(self.user_instance, leave_message, reason=QuitReason.DISCONNECTED)
+                channel.remove_user(self.user_instance, leave_message, reason=quit_reason,
+                                    timeout_seconds=timeout_seconds)
             del self.users[self]
 
     @min_param_count(1)

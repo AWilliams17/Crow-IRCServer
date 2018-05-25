@@ -2,6 +2,7 @@ from twisted.internet.protocol import Factory
 from server_modules.irc_protocol import IRCProtocol
 from server_modules.irc_ratelimiter import RateLimiter
 from server_modules.irc_clientlimiter import ClientLimiter
+from server_modules.irc_ping_manager import PingManager
 from collections import OrderedDict
 
 
@@ -11,6 +12,7 @@ class ChatServer(Factory):
         self.channels = OrderedDict()
         self.ratelimiter = RateLimiter()
         self.clientlimiter = ClientLimiter()
+        self.pingmanager = PingManager(self.users)
         self.config = config
 
     def maintenance_delete_old_channels(self):
@@ -29,8 +31,8 @@ class ChatServer(Factory):
         server restart. """
         pass
 
-    def maintenance_ping(self):
-        pass
+    def do_pings(self):
+        self.pingmanager.ping_users()
 
     def buildProtocol(self, addr):
-        return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter, self.clientlimiter)
+        return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter, self.clientlimiter, self.pingmanager)

@@ -29,7 +29,7 @@ class IRCChannel:
         [x.protocol.sendLine(join_rpl) for x in self.users if x is not user]
         self.send_names(user)
 
-    def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED):
+    def remove_user(self, user, leave_message, reason=QuitReason.UNSPECIFIED, timeout_seconds=None):
         """ Unmap a user instance from the channel and broadcast the reason. """
         if reason.value == QuitReason.LEFT.value:
             if leave_message is None:
@@ -39,9 +39,8 @@ class IRCChannel:
         elif reason.value == QuitReason.DISCONNECTED.value:
             if leave_message is None:
                 leave_message = "User Quit Network."
-        elif reason.value == QuitReason.TIMEOUT.value:
-            if leave_message is None:
-                leave_message = "User Timed Out."
+        elif reason.value == QuitReason.TIMEOUT.value and timeout_seconds is not None:
+            leave_message = "Ping Timeout: {}".format(timeout_seconds)
         else:
             leave_message = "Unspecified Reason."
         if user is self.channel_owner:
