@@ -13,5 +13,10 @@ class ChatServer(Factory):
         self.clientlimiter = ClientLimiter()
         self.config = config
 
+    def do_maintenance(self):
+        """ This method gets called every 5 minutes as defined in main.py, so any maintenance methods called here will
+         be called. """
+        self.ratelimiter.maintenance()
+
     def buildProtocol(self, addr):
         return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter, self.clientlimiter)

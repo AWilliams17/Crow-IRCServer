@@ -1,8 +1,9 @@
 from server_modules.irc_server import ChatServer
 from server_modules.irc_config import IRCConfig
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 
-if __name__ == '__main__':
+
+def load_config():
 	config = IRCConfig()
 	if not config.config_exists():
 		print("Configuration file does not exist, creating one...")
@@ -17,5 +18,16 @@ if __name__ == '__main__':
 		print("Failed to read config: {}".format(read_errors))
 		exit()
 
-	reactor.listenTCP(config.ServerSettings['Port'], ChatServer(config))
+	return config
+
+
+if __name__ == '__main__':
+	server_config = load_config()
+	server_port = server_config.ServerSettings['Port']
+	server_interface = server_config.ServerSettings['Interface']
+	server_maintenance_interval = server_config.ServerSettings['MaintenanceInterval']
+	server_instance = ChatServer(server_config)
+	perform_maintenance = task.LoopingCall(server_instance.do_maintenance()).start(server_maintenance_interval)
+
+	reactor.listenTCP(server_port, server_instance, interface=server_interface)
 	reactor.run()

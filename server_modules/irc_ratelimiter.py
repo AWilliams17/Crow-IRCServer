@@ -7,8 +7,10 @@ class RateLimiter:
     def __init__(self):
         self.limited_hosts = {}
 
-    def remove_old_limits(self):
-        """ Clean up old entries in the dictionary. """
+    def maintenance(self):
+        """ Clean up old entries in the dictionary (any hosts with commands who's last access time occurred more than
+         120 seconds ago will have said command removed from their record. If the host has no commands left after this
+         process, they are removed from the dictionary.)"""
         limited_hosts_cached = copy(self.limited_hosts)
         current_time = int(time())
         for host in limited_hosts_cached:
