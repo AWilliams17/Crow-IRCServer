@@ -52,3 +52,4 @@ fabric.properties
 
 *.pyc
 .idea
+crow.ini
