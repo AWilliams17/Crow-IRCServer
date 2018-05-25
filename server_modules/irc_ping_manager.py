@@ -8,6 +8,7 @@ class PingManager:
         self.ping_queue = {}
 
     def ping_users(self):
+        print("Ping method called.")
         if len(self.ping_queue) != 0:  # Some people have failed to respond since the last ping. Disconnect them.
             queue_copy = copy(self.ping_queue)
             for user in queue_copy:
@@ -17,12 +18,14 @@ class PingManager:
                     user.irc_QUIT([], [], time_elapsed)
                 del self.ping_queue[user]
         for user in self.users:  # Anyway, ping everyone who is still here.
+            print("Pinging someone")
             ping_time = int(time())
             self.ping_queue[user] = [user, ping_time, 1]
             user.sendLine("PING :{}".format(user.hostname))
 
     def pong_received(self, user):
         pong_time = int(time())
+        print("Pong was received: {}".format(pong_time))
         if user in self.ping_queue:  # Ignore someone who is sending a PONG response manually.
             user_last_ping = self.ping_queue[user][1]
             total_pings = self.ping_queue[user][2]
