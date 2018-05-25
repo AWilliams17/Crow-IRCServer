@@ -106,7 +106,6 @@ class IRCProtocol(IRC):
         quit_reason = QuitReason.DISCONNECTED
         if timeout_seconds is not None:
             quit_reason = QuitReason.TIMEOUT
-            self.sendLine("You timed out after {} seconds.".format(timeout_seconds))
             self.transport.loseConnection()
         if len(params) == 1:
             leave_message = params[0]

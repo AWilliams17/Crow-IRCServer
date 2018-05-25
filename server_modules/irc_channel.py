@@ -40,7 +40,7 @@ class IRCChannel:
             if leave_message is None:
                 leave_message = "User Quit Network."
         elif reason.value == QuitReason.TIMEOUT.value and timeout_seconds is not None:
-            leave_message = "Ping Timeout: {}".format(timeout_seconds)
+            leave_message = timeout_seconds
         else:
             leave_message = "Unspecified Reason."
         if user is self.channel_owner:
