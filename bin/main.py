@@ -17,5 +17,5 @@ if __name__ == '__main__':
 		print("Failed to read config: {}".format(read_errors))
 		exit()
 
-	reactor.listenTCP(config.ServerSettings['Port'], ChatServer(config), interface='192.168.0.10')
+	reactor.listenTCP(config.ServerSettings['Port'], ChatServer(config))
 	reactor.run()
