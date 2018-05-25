@@ -35,4 +35,5 @@ class ChatServer(Factory):
         self.pingmanager.ping_users()
 
     def buildProtocol(self, addr):
-        return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter, self.clientlimiter, self.pingmanager)
+        return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter,
+                           self.clientlimiter, self.pingmanager)

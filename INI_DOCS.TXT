@@ -13,6 +13,9 @@ This section handles the primary details concerning the server itself.
     -Interface: What network interface to bind to. 127.0.0.1 is localhost.
     To listen on all interfaces, use 0.0.0.
 
+    -PingInterval: How often clients connected to the server should be pinged, in minutes.
+    Default value is 3. If set to 0, clients will not be pinged. (they won't be timed out.)
+
     -ServerName: The name communicated to the client on initial connection.
 
     -ServerDescription: Describes the server. At the moment it is only used
@@ -23,11 +26,11 @@ This section handles the primary details concerning the server itself.
 
 MaintenanceSettings:
 This section handles details pertaining to automated maintenance in the server.
-    -RateLimitClearInterval: How much time in seconds to wait before clearing old entries
+    -RateLimitClearInterval: How much time in minutes to wait before clearing old entries
     in the rate limiter dictionary. Default is every 5 minutes. If set to 0, then
     ratelimiter entries will not be removed. (not recommended)
 
-    -(Not Implemented)FlushInterval: How much time in minutes to wait before flushing current
+    -(Not Implemented)FlushInterval: How much time in hours to wait before flushing current
     server details (current channels + their opers, owner, modes, and banlists) + the server's
     own banlist. The default value is 1 hour. NOTE: IF SET TO 0, SERVER DETAILS WILL NOT BE SAVED!
 
