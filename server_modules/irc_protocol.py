@@ -1,10 +1,10 @@
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
-from twisted.internet.error import ConnectionLost, ConnectionDone
+from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
-from util_modules.util_rate_limiter import rate_limiter
-from util_modules.util_rplhelper import RPLHelper
-from util_modules.util_param_count import min_param_count
+from server_modules.irc_ratelimiter import rate_limiter
+from server_modules.irc_rplhelper import RPLHelper
+from server_modules.irc_param_count import min_param_count
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe

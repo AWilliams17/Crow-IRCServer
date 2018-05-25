@@ -1,7 +1,7 @@
 from twisted.internet.protocol import Factory
 from server_modules.irc_protocol import IRCProtocol
-from util_modules.util_rate_limiter import RateLimiter
-from util_modules.util_client_limiter import ClientLimiter
+from server_modules.irc_ratelimiter import RateLimiter
+from server_modules.irc_clientlimiter import ClientLimiter
 from collections import OrderedDict
 
 

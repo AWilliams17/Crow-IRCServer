@@ -1,5 +1,5 @@
 What I'm doing now:
--Max Clients
+
 
 General:
 -Create setup.py
