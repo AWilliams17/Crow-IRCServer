@@ -13,13 +13,17 @@ class ChatServer(Factory):
         self.clientlimiter = ClientLimiter()
         self.config = config
 
-    def do_maintenance(self):
-        """ This method gets called every x minutes as defined in crow.ini, so any maintenance methods called here will
-         be called. """
-        self.ratelimiter.maintenance()
+    def maintenance_delete_old_channels(self):
+        """ This method gets called every x amount of days as defined in crow.ini. The purpose of it is to DELETE
+        channels which have not had more than 2 users on it in the past x amount of days."""
+        pass
         # self.delete_old_channels()
 
-    def flush_server(self):
+    def maintenance_ratelimiter(self):
+        """ Clear old entries in the ratelimiter dictionary. """
+        self.ratelimiter.maintenance()
+
+    def maintenance_flush_server(self):
         """ This method gets called every x minutes as defined in crow.ini The purpose of it is to save current
         channels and their modes, owner details, oper details, and banlists to the server which will be reloaded on
         server restart. """

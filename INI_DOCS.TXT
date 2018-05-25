@@ -23,21 +23,16 @@ This section handles the primary details concerning the server itself.
 
 MaintenanceSettings:
 This section handles details pertaining to automated maintenance in the server.
-    -MaintenanceInterval: How much time in seconds to wait between maintenance
-    method calls. Default value is 5 minutes, so every 5 minutes, the maintenance
-    method will be called.
+    -RateLimitClearInterval: How much time in seconds to wait before clearing old entries
+    in the rate limiter dictionary. Default is every 5 minutes. If set to 0, then
+    ratelimiter entries will not be removed. (not recommended)
 
     -(Not Implemented)FlushInterval: How much time in minutes to wait before flushing current
     server details (current channels + their opers, owner, modes, and banlists) + the server's
-    own banlist. The default value is 1 hour.
-
-    -(Not Implemented)DeleteOldChannels: If set to 1 (default), channels which have been up for more than
-    a week and have not had anyone in them will be deleted. If set to 0, this
-    will not occur.
+    own banlist. The default value is 1 hour. NOTE: IF SET TO 0, SERVER DETAILS WILL NOT BE SAVED!
 
     -(Not Implemented)ChannelScanInterval: How many days to wait before running the old channel scan.
-    If DeleteOldChannels is 0, this value is ignored. NOTE: If ChannelScanInterval
-    is set to 0, the server will not allow you to proceed. Default value is 1.
+    Default value is 1. If the interval is 0, then old channels will not be removed.
 
 UserSettings:
 This section handles details pertaining to users connected to the server.
