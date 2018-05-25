@@ -23,7 +23,7 @@ class ChatServer(Factory):
     def flush_server(self):
         """ This method gets called every 30 minutes (hard coded). The purpose of it is to save current channels and
         their modes, owner details, oper details, and banlists to the server which will be reloaded on
-        server restart."""
+        server restart. """
         pass
 
     def buildProtocol(self, addr):

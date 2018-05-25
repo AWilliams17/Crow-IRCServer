@@ -7,6 +7,7 @@ class IRCConfig:
     """ Represent the IRC Config file. """
     def __init__(self):
         self.ServerSettings = None
+        self.MaintenanceSettings = None
         self.UserSettings = None
         self.NicknameSettings = None
         self._config = ConfigParser()
@@ -28,17 +29,19 @@ class IRCConfig:
             self.ServerSettings = {
                 "Port": int(self._config['ServerSettings']['Port']),
                 "Interface": self._config['ServerSettings']['Interface'],
-                "MaintenanceInterval": int(self._config['ServerSettings']['MaintenanceInterval']),
                 "ServerName": self._config['ServerSettings']['ServerName'],
                 "ServerDescription": self._config['ServerSettings']['ServerDescription'],
                 "ServerWelcome": self._config['ServerSettings']['ServerWelcome']
+            }
+            self.MaintenanceSettings = {
+                "MaintenanceInterval": int(self._config['ServerSettings']['MaintenanceInterval']),
+                "DeleteOldChannels": bool(self._config['ServerSettings']['DeleteOldChannels']),
             }
             self.UserSettings = {
                 "MaxLength": int(self._config['UserSettings']['MaxLength']),
                 "MaxClients": int(self._config['UserSettings']['MaxClients']),
                 "Operators": dict(x.split(":") for x in self._config['UserSettings']['Operators'].split(','))
             }
-            print(self.UserSettings["Operators"])
             self.NicknameSettings = {
                 "MaxLength": int(self._config['NicknameSettings']['MaxLength'])
             }
@@ -52,10 +55,11 @@ class IRCConfig:
             self._config.add_section("ServerSettings")
             self._config.set("ServerSettings", "Port", "6667")
             self._config.set("ServerSettings", "Interface", "127.0.0.1")
-            self._config.set("ServerSettings", "MaintenanceInterval", "300")
             self._config.set("ServerSettings", "ServerName", "Crow IRC")
             self._config.set("ServerSettings", "ServerDescription", "WIP IRC Server implementation w/ Twisted.")
             self._config.set("ServerSettings", "ServerWelcome", "Welcome to Crow IRC")
+            self._config.set("MaintenanceSettings", "MaintenanceInterval", "300")
+            self._config.set("MaintenanceSettings", "DeleteOldChannels", "1")
             self._config.add_section("NicknameSettings")
             self._config.set("NicknameSettings", "MaxLength", "35")
             self._config.add_section("UserSettings")

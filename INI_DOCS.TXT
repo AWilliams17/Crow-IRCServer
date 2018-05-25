@@ -17,6 +17,10 @@ This section handles the primary details concerning the server itself.
     method calls. Default value is 5 minutes, so every 5 minutes, the maintenance
     method will be called.
 
+    -DeleteOldChannels: If set to 1 (default), channels which have been up for more than
+    a week and have not had anyone in them will be deleted. If set to 0, this
+    will not occur.
+
     -ServerName: The name communicated to the client on initial connection.
 
     -ServerDescription: Describes the server. At the moment it is only used
