@@ -27,7 +27,7 @@ if __name__ == '__main__':
 	server_interface = server_config.ServerSettings['Interface']
 	server_maintenance_interval = server_config.ServerSettings['MaintenanceInterval']
 	server_instance = ChatServer(server_config)
-	perform_maintenance = task.LoopingCall(server_instance.do_maintenance()).start(server_maintenance_interval)
+	perform_maintenance = task.LoopingCall(server_instance.do_maintenance).start(server_maintenance_interval)
 
 	reactor.listenTCP(server_port, server_instance, interface=server_interface)
 	reactor.run()
