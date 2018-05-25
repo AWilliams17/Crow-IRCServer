@@ -12,6 +12,12 @@ def load_config():
 			print("Failed to create config: {}".format(creation_errors))
 			exit()
 		print("Done.")
+		print(
+			"Note: The default settings have the port set to 6667 and the interface set to 127.0.0.1, "
+			"meaning the server will be run on localhost. If you wish to change this, the config name is crow.ini,"
+			"located in {}. Refer to INI_DOCS.TXT on the repo for setting up the ini if don't know what"
+			"a certain setting does.".format(config.config_path())
+		)
 
 	read_errors = config.read_config()
 	if read_errors is not None:

@@ -16,6 +16,11 @@ class IRCConfig:
     def config_exists(self):
         return path.exists(self._config_path)
 
+    def config_path(self):
+        if not self.config_exists():
+            return None
+        return self._config_path
+
     def read_config(self):
         errors = None
         try:
@@ -32,6 +37,8 @@ class IRCConfig:
                 "MaxLength": int(self._config['UserSettings']['MaxLength']),
                 "MaxClients": int(self._config['UserSettings']['MaxClients']),
                 "Operators": dict(x.split(":") for x in self._config['UserSettings']['Operators'].split(','))
+                # ToDo: Split spaces
+                # ToDo: Prevent duplicate usernames.
             }
             self.NicknameSettings = {
                 "MaxLength": int(self._config['NicknameSettings']['MaxLength'])

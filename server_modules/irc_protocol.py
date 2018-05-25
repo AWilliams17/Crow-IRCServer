@@ -134,7 +134,7 @@ class IRCProtocol(IRC):
             self.sendLine(":{} {} {} :{}".format(
                 self.hostname, RPL_WELCOME,
                 attempted_nickname,
-                self.config.ServerSettings["ServerWelcome"] + " {}".format(attempted_nickname))
+                self.config.ServerSettings["ServerWelcome"] + ", {}".format(attempted_nickname))
             )
         results = self.user_instance.set_nickname(attempted_nickname, in_use_nicknames)
         if results is not None:

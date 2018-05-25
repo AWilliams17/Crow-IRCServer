@@ -1,0 +1,45 @@
+-Setting up crow.ini-
+The following serves as a reference for the settings outlined in the crow.ini file.
+I've tried to make the ini self documenting by making the setting names detailed,
+but if you are confused about anything this will hopefully clear things up.
+
+
+ServerSettings:
+This section handles the primary details concerning the server itself.
+    -Port: This is the port the server will listen on. Common IRC ports
+    are 6667,6668,6669, and 7000, with 6697 being for SSL (not implemented).
+    The default port of 6667 should suffice.
+
+    -Interface: What network interface to bind to. 127.0.0.1 is localhost.
+    To listen on all interfaces, use 0.0.0.
+
+    -MaintenanceInterval: How much time in seconds to wait between maintenance
+    method calls. Default value is 5 minutes, so every 5 minutes, the maintenance
+    method will be called.
+
+    -ServerName: The name communicated to the client on initial connection.
+
+    -ServerDescription: Describes the server. At the moment it is only used
+    in WHOIS replies.
+
+    -ServerWelcome: The welcome message echoed to the client on initial connection.
+    The client's nickname is appended to the end of it.
+
+
+UserSettings:
+This section handles details pertaining to users connected to the server.
+    -MaxLength: The max amount of characters a username can be.
+
+    -MaxClients: How many clients a host can have connected at the same time.
+
+    -Operators: A list of operator usernames and their associated passwords. Separate each
+    username:password pair with a comma. Duplicate usernames are ignored along with their password.
+
+
+
+-NicknameSettings-
+This section handles details pertaining to nicknames of users connected to the server.
+    -MaxLength: The max amount of characters a nickname can be.
+
+
+

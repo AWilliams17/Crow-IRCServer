@@ -2,6 +2,8 @@ What I'm doing now:
 
 
 General:
+-Implement SSL
+-IPV6?
 -Create setup.py
 -Save current rooms + their operators to file and load it on launch
 -add logging
