@@ -34,9 +34,9 @@ class IRCConfig:
                 "ServerWelcome": self._config['ServerSettings']['ServerWelcome']
             }
             self.MaintenanceSettings = {
-                "MaintenanceInterval": int(self._config['ServerSettings']['MaintenanceInterval']),
-                "FlushInterval": int(self._config['ServerSettings']['FlushInterval']),
-                "ChannelScanInterval": int(self._config['ServerSettings']['ChannelScanInterval'])
+                "RateLimitClearInterval": int(self._config['MaintenanceSettings']['RateLimitClearInterval']),
+                "FlushInterval": int(self._config['MaintenanceSettings']['FlushInterval']),
+                "ChannelScanInterval": int(self._config['MaintenanceSettings']['ChannelScanInterval'])
             }
             self.UserSettings = {
                 "MaxLength": int(self._config['UserSettings']['MaxLength']),
@@ -59,7 +59,8 @@ class IRCConfig:
             self._config.set("ServerSettings", "ServerName", "Crow IRC")
             self._config.set("ServerSettings", "ServerDescription", "WIP IRC Server implementation w/ Twisted.")
             self._config.set("ServerSettings", "ServerWelcome", "Welcome to Crow IRC")
-            self._config.set("MaintenanceSettings", "MaintenanceInterval", "300")
+            self._config.add_section("MaintenanceSettings")
+            self._config.set("MaintenanceSettings", "RateLimitClearInterval", "300")
             self._config.set("MaintenanceSettings", "FlushInterval", "3600")
             self._config.set("MaintenanceSettings", "ChannelScanInterval", "1")
             self._config.add_section("NicknameSettings")

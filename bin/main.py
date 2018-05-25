@@ -13,11 +13,11 @@ def load_config():
 			exit()
 		print("Done.")
 		print(
-			"Note: The default settings have the port set to 6667 and the interface set to 127.0.0.1, "
-			"meaning the server will be run on localhost. If you wish to change this, the config name is crow.ini,"
-			"located in {}. There also are two default operator accounts with very insecure usernames and passwords."
-			"Refer to INI_DOCS.TXT on the repo for setting up the ini "
-			"if you don't know what a certain setting does.".format(config.config_path())
+			"\nNote: The default settings have the port set to 6667 and the interface set to 127.0.0.1, "
+			"meaning the server will be run on localhost. \nIf you wish to change this, the config name is crow.ini,"
+			"located in {}.\nThere also are two default operator accounts with very insecure usernames and passwords.\n"
+			"Refer to INI_DOCS.TXT on the repo for setting up the ini"
+			"if you don't know what a certain setting does.\n".format(config.config_path())
 		)
 
 	read_errors = config.read_config()
@@ -28,13 +28,27 @@ def load_config():
 	return config
 
 
+def setup_maintenance_methods(server_instance, maintenance_settings):
+	ratelimitclearinterval = maintenance_settings["RateLimitClearInterval"]
+	flushinterval = maintenance_settings["FlushInterval"]
+	channelscaninterval = maintenance_settings["ChannelScanInterval"]
+
+	if ratelimitclearinterval != 0:
+		task.LoopingCall(server_instance.maintenance_ratelimiter).start(ratelimitclearinterval)
+
+	if flushinterval != 0:
+		task.LoopingCall(server_instance.maintenance_flush_server).start(flushinterval)
+
+	if channelscaninterval != 0:
+		task.LoopingCall(server_instance.maintenance_delete_old_channels).start(channelscaninterval)
+
+
 if __name__ == '__main__':
 	server_config = load_config()
 	server_port = server_config.ServerSettings['Port']
 	server_interface = server_config.ServerSettings['Interface']
-	server_maintenance_interval = server_config.ServerSettings['MaintenanceInterval']
 	server_instance = ChatServer(server_config)
-	#perform_maintenance = task.LoopingCall(server_instance.do_maintenance).start(server_maintenance_interval)
+	setup_maintenance_methods(server_instance, server_config.MaintenanceSettings)
 
 	reactor.listenTCP(server_port, server_instance, interface=server_interface)
 	reactor.run()
