@@ -16,7 +16,7 @@ def min_param_count(count, additional_information=None):
                 return command_method(*args)
             error_message = self.rplhelper.err_needmoreparams(command_name)
             if additional_information is not None:
-                error_message += "\r\n%s", additional_information
+                error_message += "\r\n{}".format(additional_information)
             return self.sendLine(error_message)
         return wrapper
     return command_decorator

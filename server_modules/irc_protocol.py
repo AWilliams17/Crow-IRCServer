@@ -2,6 +2,7 @@ from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
 from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
+from util_modules.util_rate_limiter import rate_limiter
 from util_modules.util_rplhelper import RPLHelper
 from util_modules.util_param_count import min_param_count
 from time import time
@@ -11,9 +12,9 @@ from secrets import token_urlsafe
 
 
 class IRCProtocol(IRC):
-    def __init__(self, users, channels, config):
+    def __init__(self, users, channels, config, ratelimiter):
         """
-        Create a protocol instance for this client + set up a user instance and define valid user/channel modes.
+        Create a protocol instance for this client + set up a user/rplhelper instance.
         Args:
             users (OrderedDict): The server's current logged users.
             channels (OrderedDict): The server's current channels.
@@ -28,15 +29,17 @@ class IRCProtocol(IRC):
         self.hostname = getfqdn()
         self.rplhelper = RPLHelper(None)
         self.user_instance = None
+        self.ratelimiter = ratelimiter
 
     def connectionMade(self):
         current_time_posix = time()
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
+        client_host = self.transport.getPeer().host
         self.sendLine("You are now connected to %s" % self.server_name)
         self.user_instance = IRCUser(
             self, None, None, None, current_time_posix, current_time_posix,
-            self.transport.getPeer().host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
+            client_host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
         )
         self.users[self] = self.user_instance
 
@@ -249,6 +252,7 @@ class IRCProtocol(IRC):
             else:
                 return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
 
+    @rate_limiter("OPER", 10)
     @min_param_count(2, "Usage: OPER <username> <password> - Logs you in as an IRC operator.")
     def irc_OPER(self, prefix, params):
         user = self.user_instance
@@ -262,6 +266,7 @@ class IRCProtocol(IRC):
                 return self.sendLine(user.set_mode("+o") + "\r\n" + self.rplhelper.rpl_youreoper())
         self.sendLine(self.rplhelper.err_passwordmismatch())
 
+    @rate_limiter("CHOPER", 5)
     def irc_CHOPER(self, prefix, params):
         """ Not implemented - This is for logging in as a channel operator. """
         pass
@@ -270,6 +275,7 @@ class IRCProtocol(IRC):
         """ Not implemented - return a list of commands the server uses """
         pass
 
+    @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <owner_name> <pass> <channel> - Logs in to the specified channel as an owner.")
     def irc_CHOWNER(self, prefix, params):
         if len(params) < 3:

@@ -1,5 +1,5 @@
 What I'm doing now:
--Rate limiting, Max Clients
+-Max Clients
 
 General:
 -Create setup.py
