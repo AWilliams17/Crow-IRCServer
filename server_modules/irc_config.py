@@ -36,7 +36,8 @@ class IRCConfig:
             self.MaintenanceSettings = {
                 "RateLimitClearInterval": int(self._config['MaintenanceSettings']['RateLimitClearInterval']),
                 "FlushInterval": int(self._config['MaintenanceSettings']['FlushInterval']),
-                "ChannelScanInterval": int(self._config['MaintenanceSettings']['ChannelScanInterval'])
+                "ChannelScanInterval": int(self._config['MaintenanceSettings']['ChannelScanInterval']),
+                "PingInterval": int(self._config['MaintenanceSettings']['PingInterval'])
             }
             self.UserSettings = {
                 "MaxLength": int(self._config['UserSettings']['MaxLength']),
@@ -63,6 +64,7 @@ class IRCConfig:
             self._config.set("MaintenanceSettings", "RateLimitClearInterval", "300")
             self._config.set("MaintenanceSettings", "FlushInterval", "3600")
             self._config.set("MaintenanceSettings", "ChannelScanInterval", "1")
+            self._config.set("MaintenanceSettings", "PingInterval", "5")
             self._config.add_section("NicknameSettings")
             self._config.set("NicknameSettings", "MaxLength", "35")
             self._config.add_section("UserSettings")

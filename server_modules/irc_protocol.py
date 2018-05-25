@@ -32,6 +32,7 @@ class IRCProtocol(IRC):
         self.user_instance = None
         self.ratelimiter = ratelimiter
         self.clientlimiter = clientlimiter
+        self.last_ping = 0
 
     def connectionMade(self):
         current_time_posix = time()

@@ -34,6 +34,9 @@ This section handles details pertaining to automated maintenance in the server.
     -(Not Implemented)ChannelScanInterval: How many days to wait before running the old channel scan.
     Default value is 1. If the interval is 0, then old channels will not be removed.
 
+    -(Not Implemented)PingInterval: How many minutes to wait before attempting to scan for and
+    then ping inactive clients. Default value is 5.
+
 UserSettings:
 This section handles details pertaining to users connected to the server.
     -MaxLength: The max amount of characters a username can be.

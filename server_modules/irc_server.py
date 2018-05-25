@@ -29,5 +29,8 @@ class ChatServer(Factory):
         server restart. """
         pass
 
+    def maintenance_ping(self):
+        pass
+
     def buildProtocol(self, addr):
         return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter, self.clientlimiter)
