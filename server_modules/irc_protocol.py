@@ -1,5 +1,5 @@
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
-from twisted.internet.error import ConnectionLost
+from twisted.internet.error import ConnectionLost, ConnectionDone
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from util_modules.util_rate_limiter import rate_limiter
@@ -12,7 +12,7 @@ from secrets import token_urlsafe
 
 
 class IRCProtocol(IRC):
-    def __init__(self, users, channels, config, ratelimiter):
+    def __init__(self, users, channels, config, ratelimiter, clientlimiter):
         """
         Create a protocol instance for this client + set up a user/rplhelper instance.
         Args:
@@ -27,23 +27,32 @@ class IRCProtocol(IRC):
         self.server_description = self.config.ServerSettings['ServerDescription']
         self.operators = self.config.UserSettings["Operators"]
         self.hostname = getfqdn()
+        self.client_host = None
         self.rplhelper = RPLHelper(None)
         self.user_instance = None
         self.ratelimiter = ratelimiter
+        self.clientlimiter = clientlimiter
 
     def connectionMade(self):
         current_time_posix = time()
         max_nick_length = self.config.NicknameSettings['MaxLength']
         max_user_length = self.config.UserSettings['MaxLength']
-        client_host = self.transport.getPeer().host
-        self.sendLine("You are now connected to %s" % self.server_name)
-        self.user_instance = IRCUser(
-            self, None, None, None, current_time_posix, current_time_posix,
-            client_host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
-        )
-        self.users[self] = self.user_instance
+        max_clients = self.config.UserSettings["MaxClients"]
+        self.client_host = self.transport.getPeer().host
+        self.clientlimiter.add_entry(self.client_host)
+        if self.clientlimiter.host_has_too_many_clients(self.client_host, max_clients):
+            self.sendLine("You have too many clients connected to the server. Max clients: {}".format(max_clients))
+            self.transport.loseConnection()
+        else:
+            self.sendLine("You are now connected to %s" % self.server_name)
+            self.user_instance = IRCUser(
+                self, None, None, None, current_time_posix, current_time_posix,
+                self.client_host, None, [], 0, max_nick_length, max_user_length, self.rplhelper, self.hostname
+            )
+            self.users[self] = self.user_instance
 
     def connectionLost(self, reason=protocol.connectionDone):
+        self.clientlimiter.remove_entry(self.client_host)
         if self in self.users:
             for channel in self.user_instance.channels:
                 quit_reason = QuitReason.UNSPECIFIED
