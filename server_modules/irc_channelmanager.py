@@ -1,6 +1,4 @@
 from time import time
-from gc import get_objects
-from sys import getrefcount
 
 
 class ChannelManager:

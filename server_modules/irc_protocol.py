@@ -7,7 +7,7 @@ from server_modules.irc_param_count import min_param_count
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe
-from gc import get_referrers, get_referents
+
 # noinspection PyPep8Naming
 
 
@@ -62,8 +62,8 @@ class IRCProtocol(IRC):
                 quit_reason = QuitReason.UNSPECIFIED
                 channel.remove_user(self.user_instance, None, reason=quit_reason)
             del self.users[self]
-        self.user_instance.protocol = None
-        print(len(get_referrers(self)))
+        self.rplhelper.user_instance = None
+        self.user_instance = None
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine(self.rplhelper.err_unknowncommand(command))
@@ -104,7 +104,10 @@ class IRCProtocol(IRC):
 
         # Map this protocol instance to the channel's current clients,
         # and then add this channel to the list of channels the user is connected to.
-        self.channels[channel].add_user(self.user_instance)
+        # If any errors occur, echo them to the client.
+        results = self.channels[channel].add_user(self.user_instance)
+        if results is not None:
+            self.sendLine(results)
 
     def irc_QUIT(self, prefix, params, timeout_seconds=None):
         """ When a user disconnects from the server, check if their client issued a leave message. If not, a default

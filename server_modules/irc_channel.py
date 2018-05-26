@@ -23,12 +23,10 @@ class IRCChannel:
 
     def add_user(self, user):
         """ Map a user to the channel, send a JOIN notice to everyone currently in it. """
-        # This user is already in the channel
+
         if self.deleted:
-            user.protocol.sendLine(
-                "The channel is being deleted. "
-                "\nWait a moment and try again to create a new channel with it's name."
-            )
+            return "The channel is being deleted. \nWait a moment and try again to create a new channel with it's name."
+
         if user in self.users:
             return
 
@@ -114,7 +112,6 @@ class IRCChannel:
         for user in self.users:
             if user.hostmask != sender:
                 user.protocol.privmsg(sender, self.channel_name, message)
-        self.delete_channel()
 
     def broadcast_line(self, line):
         for user in self.users:
