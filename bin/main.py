@@ -1,6 +1,8 @@
 from server_modules.irc_server import ChatServer
 from server_modules.irc_config import IRCConfig
 from twisted.internet import reactor, task
+from twisted.internet.endpoints import TCP4ServerEndpoint
+
 import twisted.internet.defer
 twisted.internet.defer.setDebugging(True)
 
@@ -55,6 +57,7 @@ if __name__ == '__main__':
 	server_interface = server_config.ServerSettings['Interface']
 	server_instance = ChatServer(server_config)
 	setup_loopingcalls(server_instance, server_config.MaintenanceSettings, server_config.ServerSettings)
-
-	reactor.listenTCP(server_port, server_instance, interface=server_interface)
+	
+	endpoint = TCP4ServerEndpoint(reactor, port=server_port, interface=server_interface)
+	endpoint.listen(server_instance)
 	reactor.run()

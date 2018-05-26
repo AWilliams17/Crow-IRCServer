@@ -14,7 +14,8 @@ from secrets import token_urlsafe
 class IRCProtocol(IRC):
     def __init__(self, users, channels, config, ratelimiter, clientlimiter, pingmanager, channelmanager):
         """
-        Create a protocol instance for this client + set up a user/rplhelper instance.
+        Create a protocol instance for this client + set up a user/rplhelper instance. Pass references
+        to the ratelimiter, clientlimiter, pingmanager, and channelmanager.
         Args:
             users (OrderedDict): The server's current logged users.
             channels (OrderedDict): The server's current channels.
@@ -54,7 +55,7 @@ class IRCProtocol(IRC):
             self.users[self] = self.user_instance
 
     def connectionLost(self, reason=protocol.connectionDone):
-        # Make sure all references to this instance are deleted.
+        # Make sure all circular references created by this object get cleaned up.
         self.clientlimiter.remove_entry(self.client_host)
         self.pingmanager.remove_from_queue(self)
         if self in self.users:
@@ -62,8 +63,8 @@ class IRCProtocol(IRC):
                 quit_reason = QuitReason.UNSPECIFIED
                 channel.remove_user(self.user_instance, None, reason=quit_reason)
             del self.users[self]
-        self.rplhelper.user_instance = None
         self.user_instance = None
+        self.rplhelper.user_instance = None
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine(self.rplhelper.err_unknowncommand(command))

@@ -33,6 +33,6 @@ class PingManager:
             del self.ping_queue[user]
 
     def remove_from_queue(self, user):
-        """ Called by a client when it disconnects. """
+        """ Called by a client when it disconnects on its own. """
         if user in self.ping_queue:
             del self.ping_queue[user]

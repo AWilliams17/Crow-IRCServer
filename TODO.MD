@@ -16,6 +16,7 @@ General:
 -if a user is a channel operator, add an @ next to their nick in WHOIS/WHO
 -make the welcome text include nicks better
 -implement MOTD
+-Put asserts in the config
 
 irc_protocol.py:
 -Implement no oper host
