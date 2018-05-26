@@ -11,7 +11,6 @@ class PingManager:
 
     def ping_users(self):
         ping_msg = ''.join([choice(ascii_lowercase + ascii_uppercase + digits) for i in range(15)])
-        print(ping_msg)
         if len(self.ping_queue) != 0:  # Some people have failed to respond since the last ping. Disconnect them.
             queue_copy = copy(self.ping_queue)
             for user in queue_copy:
