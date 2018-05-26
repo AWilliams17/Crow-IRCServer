@@ -1,11 +1,15 @@
 from util_modules.util_quitreason_enum import QuitReason
+from time import time
 
 
 class IRCChannel:
     """ Represent channels on the server and implement methods for handling them and participants. """
-    def __init__(self, name):
+    def __init__(self, name, owner_ultimatum):
         self.channel_name = name
         self.channel_owner = None
+        self.last_owner_login = None
+        self.owner_ultimatum = owner_ultimatum
+        self.scheduled_for_deletion = False
         self.users = []
         self.channel_modes = []
         self.channel_owner_account = []
@@ -73,6 +77,10 @@ class IRCChannel:
             return user.rplhelper.err_noprivileges("Channel already has an acting owner.")
         else:
             self.channel_owner = user
+            self.last_owner_login = int(time())
+            if self.scheduled_for_deletion:
+                pass  # ToDo: Tell everyone channel will not be deleted.
+            self.scheduled_for_deletion = False
             return "You have logged in as the channel owner of {}".format(self.channel_name)
 
     def send_names(self, user):
@@ -84,6 +92,16 @@ class IRCChannel:
         for user_ in self.users:
             if user_.protocol is not user:
                 user_.protocol.sendLine(":{} NICK {}".format(user.hostmask, new_nick))
+
+    def time_until_deletion(self):
+        current_time = int(time())
+        time_elapsed = (current_time - self.last_owner_login) / 3600  # how many days since the last login
+        time_remaining = self.owner_ultimatum - time_elapsed
+        if time_remaining < 3:
+            pass  # ToDo: Tell everyone their channel is about to be deleted.
+        if time_remaining <= 0:
+            self.scheduled_for_deletion = True
+            pass  # ToDo: Tell everyone their channel is scheduled for deletion.
 
     def get_modes(self):
         return "getting channel modes not implemented"  # ToDo

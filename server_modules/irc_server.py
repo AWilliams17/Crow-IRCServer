@@ -17,7 +17,7 @@ class ChatServer(Factory):
 
     def maintenance_delete_old_channels(self):
         """ This method gets called every x amount of days as defined in crow.ini. The purpose of it is to DELETE
-        channels which have not had more than 2 users on it in the past x amount of days."""
+        channels which have not had someone login to the owner account for the past y amount of days. """
         pass
         # self.delete_old_channels()
 

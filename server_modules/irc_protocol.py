@@ -1,5 +1,4 @@
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
-from twisted.internet.error import ConnectionLost
 from server_modules.irc_channel import IRCChannel, QuitReason
 from server_modules.irc_user import IRCUser
 from server_modules.irc_ratelimiter import rate_limiter
@@ -23,6 +22,7 @@ class IRCProtocol(IRC):
         self.users = users
         self.channels = channels
         self.config = config
+        self.channel_owner_ultimatum = self.config.ServerSettings["ChannelOwnerUltimatum"]
         self.server_name = self.config.ServerSettings['ServerName']
         self.server_description = self.config.ServerSettings['ServerDescription']
         self.operators = self.config.UserSettings["Operators"]
@@ -83,16 +83,18 @@ class IRCProtocol(IRC):
         if channel not in self.channels:
             owner_name = token_urlsafe(16)
             owner_password = token_urlsafe(32)
-            self.channels[channel] = IRCChannel(channel)
-            self.channels[channel].channel_owner = self.user_instance
-            self.channels[channel].channel_owner_account = [owner_name, owner_password]
+            new_channel = IRCChannel(channel, self.channel_owner_ultimatum)
+            new_channel.channel_owner = self.user_instance
+            new_channel.channel_owner_account = [owner_name, owner_password]
+            new_channel.last_owner_login = int(time())
+            self.channels[channel] = new_channel
             self.user_instance.send_msg(
                 self.user_instance.nickname,
                 "You are now logged in as the owner of {}".format(channel)
             )
             self.user_instance.send_msg(
                 self.user_instance.nickname,
-                "Owner account details are: {}:{} - Don't lose them.".format(owner_name, owner_password)
+                "Owner account details for {} are: {}:{} - Don't lose them.".format(channel, owner_name, owner_password)
             )
 
         # Map this protocol instance to the channel's current clients,

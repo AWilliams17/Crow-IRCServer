@@ -1,5 +1,5 @@
 What I'm doing now:
--Maintenance methods
+-Working on channel expiration, then max channels
 
 General:
 -Implement SSL
