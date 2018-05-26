@@ -7,6 +7,7 @@ from server_modules.irc_param_count import min_param_count
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe
+from gc import get_referrers, get_referents
 # noinspection PyPep8Naming
 
 
@@ -53,18 +54,22 @@ class IRCProtocol(IRC):
             self.users[self] = self.user_instance
 
     def connectionLost(self, reason=protocol.connectionDone):
+        # Make sure all references to this instance are deleted.
         self.clientlimiter.remove_entry(self.client_host)
+        self.pingmanager.remove_from_queue(self)
         if self in self.users:
             for channel in self.user_instance.channels:
                 quit_reason = QuitReason.UNSPECIFIED
                 channel.remove_user(self.user_instance, None, reason=quit_reason)
             del self.users[self]
+        self.user_instance.protocol = None
+        print(len(get_referrers(self)))
 
     def irc_unknown(self, prefix, command, params):
         self.sendLine(self.rplhelper.err_unknowncommand(command))
 
     def irc_PONG(self, prefix, params):
-        self.pingmanager.pong_received(self)
+        self.pingmanager.pong_received(self, params)
 
     @min_param_count(1)
     def irc_JOIN(self, prefix, params):
@@ -83,7 +88,7 @@ class IRCProtocol(IRC):
         if channel not in self.channels:
             owner_name = token_urlsafe(16)
             owner_password = token_urlsafe(32)
-            new_channel = IRCChannel(channel)
+            new_channel = IRCChannel(channel, self.channelmanager)
             new_channel.channel_owner = self.user_instance
             new_channel.channel_owner_account = [owner_name, owner_password]
             new_channel.last_owner_login = int(time())

@@ -4,14 +4,16 @@ from time import time
 
 class IRCChannel:
     """ Represent channels on the server and implement methods for handling them and participants. """
-    def __init__(self, name):
+    def __init__(self, name, channelmanager):
         self.channel_name = name
         self.channel_owner = None
         self.last_owner_login = None
         self.scheduled_for_deletion = False
+        self.deleted = False
         self.users = []
         self.channel_modes = []
         self.channel_owner_account = []
+        self.channel_manager = channelmanager
 
     def __str__(self):
         host_list = [x.hostmask for x in self.users]
@@ -22,6 +24,11 @@ class IRCChannel:
     def add_user(self, user):
         """ Map a user to the channel, send a JOIN notice to everyone currently in it. """
         # This user is already in the channel
+        if self.deleted:
+            user.protocol.sendLine(
+                "The channel is being deleted. "
+                "\nWait a moment and try again to create a new channel with it's name."
+            )
         if user in self.users:
             return
 
@@ -100,10 +107,14 @@ class IRCChannel:
     def set_mode(self):
         return "setting channel modes not implemented"  # ToDo
 
+    def delete_channel(self):
+        self.channel_manager.delete_channel(self)
+
     def broadcast_message(self, message, sender):
         for user in self.users:
             if user.hostmask != sender:
                 user.protocol.privmsg(sender, self.channel_name, message)
+        self.delete_channel()
 
     def broadcast_line(self, line):
         for user in self.users:

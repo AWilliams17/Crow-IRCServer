@@ -1,9 +1,11 @@
 from time import time
+from gc import get_objects
+from sys import getrefcount
 
 
 class ChannelManager:
-    """ Used to delete old channels on the server, and prevent the creation of further channels for a given host. Also,
-    warn channels that are approaching their expiration date."""
+    """ Used to delete old channels on the server, delete channels in general, and prevent the creation of further
+    channels for a given host. Also, warn channels that are approaching their expiration date."""
     def __init__(self, channels, channel_ultimatum):
         self.channels = channels
         self.ultimatum = channel_ultimatum
@@ -25,3 +27,10 @@ class ChannelManager:
                     elif time_remaining < 3:
                         channel.broadcast_notice("ALERT - Channel will be scheduled for deletion in {}"
                                                  " days if owner does not login.".format(time_remaining))
+
+    def delete_channel(self, channel):
+        channel.deleted = True  # Prevent anyone from joining while the deletion process occurs
+        for user in channel.users:
+            user.channels.remove(channel)
+            user.protocol.sendLine(":{} PART {} :Channel was deleted.".format(user.hostmask, channel.channel_name))
+        del self.channels[channel.channel_name]  # Unmap it from main channel dictionary
