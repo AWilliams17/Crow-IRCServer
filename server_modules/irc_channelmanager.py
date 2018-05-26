@@ -19,9 +19,9 @@ class ChannelManager:
                     print("Goodbye channel")
                 else:
                     if time_remaining <= 0:
-                        print("Channel will be deleted")
+                        channel.broadcast_notice("ALERT - Channel is now scheduled for deletion!")
+                        channel.broadcast_notice("Deletion will be cancelled if owner logs in before next sweep.")
                         channel.scheduled_for_deletion = True
-                        pass  # ToDo: Tell everyone their channel is scheduled for deletion.
                     elif time_remaining < 3:
-                        print("Channel is going to soon be deleted")
-                        pass  # ToDo: Tell everyone their channel is about to be deleted.
+                        channel.broadcast_notice("ALERT - Channel will be scheduled for deletion in {}"
+                                                 " days if owner does not login.".format(time_remaining))

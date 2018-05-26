@@ -108,3 +108,9 @@ class IRCChannel:
     def broadcast_line(self, line):
         for user in self.users:
             user.protocol.sendLine(line)
+
+    def broadcast_notice(self, notice):
+        for user in self.users:
+            notice_line = ":{} NOTICE {} :{}".format(user.hostmask, self.channel_name, notice)
+            user.protocol.sendLine(notice_line)
+
