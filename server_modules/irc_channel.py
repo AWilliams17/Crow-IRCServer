@@ -4,11 +4,10 @@ from time import time
 
 class IRCChannel:
     """ Represent channels on the server and implement methods for handling them and participants. """
-    def __init__(self, name, owner_ultimatum):
+    def __init__(self, name):
         self.channel_name = name
         self.channel_owner = None
         self.last_owner_login = None
-        self.owner_ultimatum = owner_ultimatum
         self.scheduled_for_deletion = False
         self.users = []
         self.channel_modes = []
@@ -92,16 +91,6 @@ class IRCChannel:
         for user_ in self.users:
             if user_.protocol is not user:
                 user_.protocol.sendLine(":{} NICK {}".format(user.hostmask, new_nick))
-
-    def time_until_deletion(self):
-        current_time = int(time())
-        time_elapsed = (current_time - self.last_owner_login) / 3600  # how many days since the last login
-        time_remaining = self.owner_ultimatum - time_elapsed
-        if time_remaining < 3:
-            pass  # ToDo: Tell everyone their channel is about to be deleted.
-        if time_remaining <= 0:
-            self.scheduled_for_deletion = True
-            pass  # ToDo: Tell everyone their channel is scheduled for deletion.
 
     def get_modes(self):
         return "getting channel modes not implemented"  # ToDo

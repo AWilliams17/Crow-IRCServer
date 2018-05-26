@@ -11,7 +11,7 @@ from secrets import token_urlsafe
 
 
 class IRCProtocol(IRC):
-    def __init__(self, users, channels, config, ratelimiter, clientlimiter, pingmanager):
+    def __init__(self, users, channels, config, ratelimiter, clientlimiter, pingmanager, channelmanager):
         """
         Create a protocol instance for this client + set up a user/rplhelper instance.
         Args:
@@ -22,7 +22,6 @@ class IRCProtocol(IRC):
         self.users = users
         self.channels = channels
         self.config = config
-        self.channel_owner_ultimatum = self.config.ServerSettings["ChannelOwnerUltimatum"]
         self.server_name = self.config.ServerSettings['ServerName']
         self.server_description = self.config.ServerSettings['ServerDescription']
         self.operators = self.config.UserSettings["Operators"]
@@ -33,6 +32,7 @@ class IRCProtocol(IRC):
         self.ratelimiter = ratelimiter
         self.clientlimiter = clientlimiter
         self.pingmanager = pingmanager
+        self.channelmanager = channelmanager
 
     def connectionMade(self):
         current_time_posix = time()
@@ -83,7 +83,7 @@ class IRCProtocol(IRC):
         if channel not in self.channels:
             owner_name = token_urlsafe(16)
             owner_password = token_urlsafe(32)
-            new_channel = IRCChannel(channel, self.channel_owner_ultimatum)
+            new_channel = IRCChannel(channel)
             new_channel.channel_owner = self.user_instance
             new_channel.channel_owner_account = [owner_name, owner_password]
             new_channel.last_owner_login = int(time())

@@ -3,23 +3,24 @@ from server_modules.irc_protocol import IRCProtocol
 from server_modules.irc_ratelimiter import RateLimiter
 from server_modules.irc_clientlimiter import ClientLimiter
 from server_modules.irc_ping_manager import PingManager
+from server_modules.irc_channelmanager import ChannelManager
 from collections import OrderedDict
 
 
 class ChatServer(Factory):
     def __init__(self, config):
+        self.config = config
         self.users = OrderedDict()
         self.channels = OrderedDict()
         self.ratelimiter = RateLimiter()
         self.clientlimiter = ClientLimiter()
         self.pingmanager = PingManager(self.users)
-        self.config = config
+        self.channelmanager = ChannelManager(self.channels, self.config.MaintenanceSettings["ChannelUltimatum"])
 
     def maintenance_delete_old_channels(self):
         """ This method gets called every x amount of days as defined in crow.ini. The purpose of it is to DELETE
         channels which have not had someone login to the owner account for the past y amount of days. """
-        pass
-        # self.delete_old_channels()
+        self.channelmanager.channel_maintenance()
 
     def maintenance_ratelimiter(self):
         """ Clear old entries in the ratelimiter dictionary. """
@@ -36,4 +37,4 @@ class ChatServer(Factory):
 
     def buildProtocol(self, addr):
         return IRCProtocol(self.users, self.channels, self.config, self.ratelimiter,
-                           self.clientlimiter, self.pingmanager)
+                           self.clientlimiter, self.pingmanager, self.channelmanager)
