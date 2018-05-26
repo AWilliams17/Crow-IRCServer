@@ -16,7 +16,7 @@ class ChannelManager:
             time_remaining = self.ultimatum - time_elapsed
             if channel.channel_owner is None:
                 if channel.scheduled_for_deletion:
-                    print("Goodbye channel")
+                    self.delete_channel(channel)
                 else:
                     if time_remaining <= 0:
                         channel.broadcast_notice("ALERT - Channel is now scheduled for deletion!")
