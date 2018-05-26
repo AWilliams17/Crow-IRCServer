@@ -57,7 +57,7 @@ if __name__ == '__main__':
 	server_interface = server_config.ServerSettings['Interface']
 	server_instance = ChatServer(server_config)
 	setup_loopingcalls(server_instance, server_config.MaintenanceSettings, server_config.ServerSettings)
-	
+
 	endpoint = TCP4ServerEndpoint(reactor, port=server_port, interface=server_interface)
 	endpoint.listen(server_instance)
 	reactor.run()

@@ -34,8 +34,18 @@ This section handles details pertaining to automated maintenance in the server.
     server details (current channels + their opers, owner, modes, and banlists) + the server's
     own banlist. The default value is 1 hour. NOTE: IF SET TO 0, SERVER DETAILS WILL NOT BE SAVED!
 
-    -(Not Implemented)ChannelScanInterval: How many days to wait before running the old channel scan.
+    -ChannelScanInterval: How many days to wait before running the old channel scan.
     Default value is 1. If the interval is 0, then old channels will not be removed.
+
+    -ChannelUltimatum: (If ChannelScanInterval is 0, this value will not be used) This controls
+    how long a channel must have no owner logged in before being considered for deletion. For example,
+    if set to 7 days, then when the owner logs out and the channel scan is initiated, then the last
+    owner login date is compared against this value. If there are less than 3 days left before
+    the channel is set for deletion on the NEXT SCAN, then a notice will be sent to the channel
+    every time the channel scan is initiated. If an owner logs in, then this is reset. Also,
+    once a channel is slated for deletion on the next scan, if an owner logs in before the scan
+    occurs, then the channel will be saved.
+    Note: This value can not be 0, nor can it be less than the channel scan interval.
 
 UserSettings:
 This section handles details pertaining to users connected to the server.
