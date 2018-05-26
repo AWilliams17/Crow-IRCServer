@@ -1,6 +1,8 @@
 from server_modules.irc_server import ChatServer
 from server_modules.irc_config import IRCConfig
 from twisted.internet import reactor, task
+import twisted.internet.defer
+twisted.internet.defer.setDebugging(True)
 
 
 def load_config():
@@ -31,7 +33,7 @@ def load_config():
 def setup_loopingcalls(server, maintenance_settings, server_settings):
 	ratelimitclearinterval = maintenance_settings["RateLimitClearInterval"] * 60
 	flushinterval = maintenance_settings["FlushInterval"] * 3600
-	channelscaninterval = maintenance_settings["ChannelScanInterval"] * 86400
+	channelscaninterval = maintenance_settings["ChannelScanInterval"] * 8 #86400
 	pinginterval = server_settings["PingInterval"] * 60
 
 	if ratelimitclearinterval != 0:

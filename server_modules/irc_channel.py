@@ -48,6 +48,8 @@ class IRCChannel:
             leave_message = "Unspecified Reason."
         if user is self.channel_owner:
             self.channel_owner = None
+            self.last_owner_login = time()  # So it won't be deleted if the owner logged in 7 days ago and never
+            # logged out, thus never resetting the last owner login time to something that would prevent deletion.
 
         self.users.remove(user)
         self.broadcast_line(reason.value.format(user.hostmask, leave_message))
