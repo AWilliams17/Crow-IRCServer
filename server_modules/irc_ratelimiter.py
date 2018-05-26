@@ -36,7 +36,7 @@ def rate_limiter(command, duration=5, output_error=True):
     """
     def command_decorator(command_method):
         def wrapper(*args):
-            assert (duration <= 240)
+            assert duration <= 240
             self = args[0]
             caller_host = self.user_instance.host
             limited_hosts = self.ratelimiter.limited_hosts

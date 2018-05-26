@@ -9,7 +9,7 @@ def min_param_count(count, additional_information=None):
     """
     def command_decorator(command_method):
         def wrapper(*args):
-            assert (command_method.__name__.startswith('irc_'))
+            assert command_method.__name__.startswith('irc_')
             command_name = command_method.__name__[4:]  # irc command methods are prefixed with irc_.
             self = args[0]
             if len(args[2]) >= count:

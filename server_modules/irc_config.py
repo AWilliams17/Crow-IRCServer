@@ -72,7 +72,7 @@ class IRCConfig:
             self._config.add_section("UserSettings")
             self._config.set("UserSettings", "MaxLength", "35")
             self._config.set("UserSettings", "MaxClients", "5")
-            self._config.set("UserSettings", "Operators", "Admin:Password,Admin2:Password")  # ToDo: No plaintext
+            self._config.set("UserSettings", "Operators", "Admin:Password,Admin2:Password")  # lol. ToDo: No plaintext
             try:
                 self._config.write(crow_ini)
             except Exception as e:
