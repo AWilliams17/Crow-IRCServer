@@ -21,11 +21,6 @@ class IRCConfig:
             self.ServerName = "Crow IRC"
             self.ServerDescription = "WIP IRC Server implementation w/ Twisted."
             self.ServerWelcome = "Welcome to Crow IRC"
-            self.mapping = {
-                "Port": self.Port, "Interface": self.Interface,
-                "PingInterval": self.PingInterval, "ServerName": self.ServerName,
-                "ServerDescription": self.ServerDescription, "ServerWelcome": self.ServerWelcome
-            }
 
     class __MaintenanceSettings:
         def __init__(self):
@@ -33,8 +28,6 @@ class IRCConfig:
             self.FlushInterval = 1
             self.ChannelScanInterval = 1
             self.ChannelUltimatum = 7
-            self.mapping = {"RateLimitClearInterval": self.RateLimitClearInterval, "FlushInterval": self.FlushInterval,
-                              "ChannelScanInterval": self.ChannelScanInterval, "ChannelUltimatum": self.ChannelUltimatum}
 
     class __UserSettings:
         def __init__(self):
@@ -42,8 +35,6 @@ class IRCConfig:
             self.MaxNicknameLength = 35
             self.MaxClients = 5
             self.Operators = {"Admin": "Password", "Admin2": "Password2"}
-            self.mapping = {"MaxUsernameLength": self.MaxUsernameLength, "MaxNicknameLength": self.MaxNicknameLength,
-                              "MaxClients": self.MaxClients, "Operators": self.Operators}
 
     class __CrowConfigParsingUtils:
         """ Parse the actual config, instantiate the IRCConfig object """
@@ -54,7 +45,10 @@ class IRCConfig:
             self.settings_classes = settings_classes
             self.section_names = [type(x).__name__.split("__")[1] for x in self.settings_classes]
             self.section_associations = {x: y for x, y in zip(self.section_names, self.settings_classes)}
-            self.section_mappings = {x: y.mapping for x, y in zip(self.section_names, self.settings_classes)}
+            self.section_mappings = {
+                x: {z: getattr(y, z) for z in y.__dict__.keys()}
+                for x, y in zip(self.section_names, self.settings_classes)
+            }
 
         def config_exists(self):
             return path.exists(self.config_path)
