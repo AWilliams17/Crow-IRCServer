@@ -3,9 +3,32 @@ from os import path
 
 
 class ConfigReaper:
-    def __init__(self, section_classes, ini_path):
+    def __init__(self, config_instance, ini_path):
         self.config = ConfigParser()
         self.ini_path = ini_path
+
+        #test = {x: y for x, y in section_classes.__dict__.items()}
+        #for x, y in test.items():
+        #    print("{}:{}".format(x, y))
+
+        self.section_names = [x for x in config_instance.__dict__.keys()]
+        self.section_classes = [x for x in config_instance.__dict__.values()]
+
+        user_defined_option = 1000
+        option_name = "Port"
+        section = "ServerSettings"
+
+        # setattr(self.section_associations[section], option_name, user_defined_option)
+        test = config_instance.__dict__
+        for w, x in test.items():
+            section_mapping = test[w].__dict__.items()
+            for y, z in section_mapping:
+                print("Section: {} - Option: {} - Value: {}".format(w, y, z))
+
+
+        #self.section_associations = {x: y for x, y in zip(self.section_names, config_instance)}
+
+        """
         self.settings_classes = section_classes
         self.section_names = [type(x).__name__.split("__")[1] for x in self.settings_classes]
         self.section_associations = {x: y for x, y in zip(self.section_names, self.settings_classes)}
@@ -13,6 +36,7 @@ class ConfigReaper:
             x: {z: getattr(y, z) for z in y.__dict__.keys()}
             for x, y in zip(self.section_names, self.settings_classes)
         }
+        """
 
     def config_exists(self):
         return path.exists(self.ini_path)

@@ -1,5 +1,6 @@
 from server_modules.irc_server import ChatServer
 from server_modules.irc_config import IRCConfig
+from util_modules.config_reaper import *
 from twisted.internet import reactor, task
 from twisted.internet.endpoints import TCP4ServerEndpoint
 
@@ -29,6 +30,8 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 if __name__ == '__main__':
 	try:
 		server_config = IRCConfig()
+		server_config_parser = ConfigReaper(server_config, "")
+
 		"""
 		server_port = server_config.ServerSettings['Port']
 		server_interface = server_config.ServerSettings['Interface']
