@@ -50,6 +50,8 @@ class IRCConfig:
                 for x, y in zip(self.section_names, self.settings_classes)
             }
 
+            self.flush_config()
+
         def config_exists(self):
             return path.exists(self.config_path)
 
@@ -89,31 +91,20 @@ class IRCConfig:
                                 ))
             #  Save the config now
 
-        def create_config(self):
-            #  This needs to be rewritten as well
-            errors = None
-            with open(self.config_path, 'w') as crow_ini:
-                self.config.add_section("ServerSettings")
-                self.config.set("ServerSettings", "Port", str(self.serversettings["port"]))
-                self.config.set("ServerSettings", "Interface", str(self.serversettings["interface"]))
-                self.config.set("ServerSettings", "PingInterval", str(self.serversettings["pinginterval"]))
-                self.config.set("ServerSettings", "ServerName", str(self.serversettings["servername"]))
-                self.config.set("ServerSettings", "ServerDescription", str(self.serversettings["serverdescription"]))
-                self.config.set("ServerSettings", "ServerWelcome", str(self.serversettings["serverwelcome"]))
-                self.config.add_section("MaintenanceSettings")
-                self.config.set("MaintenanceSettings", "RateLimitClearInterval", str(self.maintenancesettings["ratelimitclearinterval"]))
-                self.config.set("MaintenanceSettings", "FlushInterval", str(self.maintenancesettings["flushinterval"]))
-                self.config.set("MaintenanceSettings", "ChannelScanInterval", str(self.maintenancesettings["channelscaninterval"]))
-                self.config.set("MaintenanceSettings", "ChannelUltimatum", str(self.maintenancesettings["channelultimatum"]))
-                self.config.add_section("UserSettings")
-                self.config.set("UserSettings", "MaxUsernameLength", str(self.usersettings["maxusernamelength"]))
-                self.config.set("UserSettings", "MaxNicknameLength", str(self.usersettings["maxnicknamelength"]))
-                self.config.set("UserSettings", "MaxClients", str(self.usersettings["maxclients"]))
-                self.config.set("UserSettings", "Operators", str(self.usersettings["operators"]))
-                try:
-                    self.config.write(crow_ini)
-                except Exception as e:
-                    errors = str(e)
-            return errors
-
-
+        def flush_config(self):
+            with open(self.config_path, "w") as crow_ini:
+                for section, section_options in self.section_mappings.items():
+                    self.config.add_section(section)
+                    for option_name, option_value in self.section_mappings[section].items():
+                        if type(option_value) is dict:
+                            new_value = ""
+                            for key, value in option_value.items():
+                                new_value += "{}:{},".format(key, value)
+                            option_value = new_value[:-1]  # remove trailing comma. could just use rstrip but with the
+                        if type(option_value) is list:     # way this is written, there always will be a leading comma.
+                            new_value = ""
+                            for value in option_value:
+                                new_value += "{},".format(value)
+                            option_value = new_value[:-1]
+                        self.config.set(section, option_name, str(option_value))
+                self.config.write(crow_ini)
