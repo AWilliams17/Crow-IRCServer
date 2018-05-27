@@ -11,6 +11,7 @@ class IRCConfig:
         self.__CrowConfigParser = self.__CrowConfigParsingUtils(
             [self.ServerSettings, self.MaintenanceSettings, self.UserSettings]
         )
+        self.__CrowConfigParser.read_config()
 
     class __ServerSettings:
         def __init__(self):
@@ -51,14 +52,9 @@ class IRCConfig:
             self.crow_path = getcwd().split("/bin")[0]
             self.config_path = self.crow_path + "/crow.ini"
             self.settings_classes = settings_classes
-            self.serversettings = serversettings
-            self.maintenancesettings = maintenancesettings
-            self.usersettings = usersettings
-            self.section_mappings = {
-                "ServerSettings": self.serversettings.mapping,
-                "MaintenanceSettings": self.maintenancesettings.mapping,
-                "UserSettings": self.usersettings.mapping
-            }
+            self.section_names = [type(x).__name__.split("__")[1] for x in self.settings_classes]
+            self.section_associations = {x: y for x, y in zip(self.section_names, self.settings_classes)}
+            self.section_mappings = {x: y.mapping for x, y in zip(self.section_names, self.settings_classes)}
 
         def config_exists(self):
             return path.exists(self.config_path)
@@ -92,9 +88,7 @@ class IRCConfig:
                                 if option_type is list:
                                     user_defined_option = [x.split(" ") for x in user_defined_option.split(',')]
                                 user_defined_option = option_type(user_defined_option)
-
-                                setattr(self.serversettings, option_name, user_defined_option)
-
+                                setattr(self.section_associations[section], option_name, user_defined_option)
                             except ValueError:
                                 print(error_message_entry.format(
                                     option_name, "Option is of an invalid type. Should be: {}".format(option_type)
