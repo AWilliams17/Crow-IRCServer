@@ -57,6 +57,30 @@ class ConfigReaper:
             dict: "Dict eg - key:value,key2:value,key3:value,etc"
         }
 
+        """
+        I need to first check if the file passed in ini_file exists or not. If it doesn't, call self.flush_config to
+        make one, and then add a message to error_list and return it.
+        Otherwise, continue.
+        
+        Now, if it DOES exist, I need to iterate over all the items in the section mappings, and see if there
+        is a corresponding section/option name in the config which got read.
+        If there is not a section, just add an error message to the list and continue.
+        If there is a section, then go through it and for every option in the section mapping's options list,
+        see if there is also a corresponding option in the user config.
+        If there is not a corresponding option in the user config, add an error message to the list and continue.
+        If there is, then:
+            1: Verify it is not corrupt or misformatted
+            2: Try to turn it into the same type as the original option
+            3: Call setattr on the section class and update the option name
+        If any of those checks fail, then add an error message to the list and continue.
+        At the end of all of this, if there were any errors, re-flush the config to fix the config file
+        and then return the error list.
+        Otherwise, return None.
+        """
+
+
+
+        """
         # Thank god these loops are only run once lol
         if not self.config_exists():
             raise FileNotFoundError("Configuration file was not found.")
@@ -84,7 +108,8 @@ class ConfigReaper:
                             ))
         if len(error_list) != 0:
             return error_list
-        return None
+        return 
+        """
 
     def flush_config(self):
         with open(self.ini_path, "w") as ini_file:
