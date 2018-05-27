@@ -3,7 +3,6 @@ from os import getcwd, path
 
 
 class IRCConfig:
-    """ Represent the IRC Config file. On instantiation, it is all automatically set up. """
     def __init__(self):
         self.ServerSettings = self.__ServerSettings()
         self.MaintenanceSettings = self.__MaintenanceSettings()
@@ -11,7 +10,6 @@ class IRCConfig:
         self.__CrowConfigParser = self.__CrowConfigParsingUtils(
             [self.ServerSettings, self.MaintenanceSettings, self.UserSettings]
         )
-        self.__CrowConfigParser.read_config()
 
     class __ServerSettings:
         def __init__(self):
@@ -37,7 +35,6 @@ class IRCConfig:
             self.Operators = {"Admin": "Password", "Admin2": "Password2"}
 
     class __CrowConfigParsingUtils:
-        """ Parse the actual config, instantiate the IRCConfig object """
         def __init__(self, settings_classes):
             self.config = ConfigParser()
             self.crow_path = getcwd().split("/bin")[0]
@@ -49,6 +46,7 @@ class IRCConfig:
                 x: {z: getattr(y, z) for z in y.__dict__.keys()}
                 for x, y in zip(self.section_names, self.settings_classes)
             }
+            self.read_config()
 
         def config_exists(self):
             return path.exists(self.config_path)
@@ -69,12 +67,12 @@ class IRCConfig:
             for section, section_options in self.section_mappings.items():
                 for option_name, option_value in self.section_mappings[section].items():
                     if section not in self.config.keys():
+                        print("1")
                         #print(error_message_section_missing.format(section))
-                        pass
                     else:
                         if option_name not in self.config[section]:
+                            print("2")
                             #print(error_message_entry_missing.format(option_name))
-                            pass
                         else:
                             user_defined_option = self.config[section][option_name]
                             option_type = type(option_value)
@@ -86,7 +84,7 @@ class IRCConfig:
                                 user_defined_option = option_type(user_defined_option)
                                 setattr(self.section_associations[section], option_name, user_defined_option)
                             except ValueError:
-                                pass
+                                print("3")
                                 #print(error_message_entry.format(
                                 #    option_name, "Option is of an invalid type. Should be: {}".format(option_type)
                                 #))

@@ -29,6 +29,7 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 if __name__ == '__main__':
 	try:
 		server_config = IRCConfig()
+		"""
 		server_port = server_config.ServerSettings['Port']
 		server_interface = server_config.ServerSettings['Interface']
 		server_instance = ChatServer(server_config)
@@ -37,6 +38,7 @@ if __name__ == '__main__':
 		endpoint = TCP4ServerEndpoint(reactor, port=server_port, interface=server_interface)
 		endpoint.listen(server_instance)
 		reactor.run()
+		"""
 	except Exception as e:
 		print("Exception Triggered: {}".format(e))
 		exit()
