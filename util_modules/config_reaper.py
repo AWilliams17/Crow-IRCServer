@@ -2,7 +2,7 @@ from configparser import ConfigParser
 from os import path
 
 
-class __CrowConfigParsingUtils:
+class ConfigReaper:
     def __init__(self, section_classes, ini_path):
         self.config = ConfigParser()
         self.ini_path = ini_path
