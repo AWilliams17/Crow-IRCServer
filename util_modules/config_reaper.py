@@ -1,17 +1,34 @@
 from configparser import ConfigParser
-from os import path
+from os import path, getcwd
 
 
 class ConfigReaper:
-    def __init__(self, config_instance, ini_path):
-        self.config = ConfigParser()
-        self.ini_path = ini_path
-        self.section_names = list(config_instance.__dict__.keys())
-        self.section_classes = dict(config_instance.__dict__.items())
-        self.section_mappings = {
+    def __init__(self, config_instance, ini_path=None, ini_name=None):
+        self.__config = ConfigParser()
+        self.__ini_path = self.__set_ini_path(ini_path, ini_name)
+        self.__section_names = list(config_instance.__dict__.keys())
+        self.__section_classes = dict(config_instance.__dict__.items())
+        self.__section_mappings = {
             x: {z: getattr(y, z) for z in y.__dict__.keys()}
-            for x, y in zip(self.section_classes.keys(), self.section_classes.values())
+            for x, y in zip(self.__section_classes.keys(), self.__section_classes.values())
         }
+
+    @staticmethod
+    def __set_ini_path(ini_path, ini_name):
+        if ini_path is None:
+            ini_path = getcwd()
+
+        if ini_name is not None:
+            ini_name = ini_name.strip()
+            if ini_name[0] != "/":
+                ini_name = "/" + ini_name
+            elif not ini_name.endswith(".ini"):
+                ini_name = ini_name + ".ini"
+        else:
+            ini_name = "/default.ini"
+
+        return ini_path + ini_name
+
 
 
         # setattr(self.section_associations[section], option_name, user_defined_option)
@@ -34,9 +51,6 @@ class ConfigReaper:
             for x, y in zip(self.section_names, self.settings_classes)
         }
         """
-
-    def config_exists(self):
-        return path.exists(self.ini_path)
 
     def read_config(self):
         error_list = []
@@ -78,6 +92,12 @@ class ConfigReaper:
         Otherwise, return None.
         """
 
+        if not path.exists(self.__ini_path):
+            error_list.append("Ini file did not exist in the specified location.")
+            self.flush_config()
+            error_list.append("A new ini file was created with default values.")
+            return error_list
+        self.__config.read(self.__ini_path)
 
 
         """
@@ -112,10 +132,10 @@ class ConfigReaper:
         """
 
     def flush_config(self):
-        with open(self.ini_path, "w") as ini_file:
-            for section in self.section_names:
-                self.config.add_section(section)
-                for option_name, option_value in self.section_mappings[section].items():
+        with open(self.__ini_path, "w") as ini_file:
+            for section in self.__section_names:
+                self.__config.add_section(section)
+                for option_name, option_value in self.__section_mappings[section].items():
                     if type(option_value) is dict:
                         new_value = ""
                         for key, value in option_value.items():
@@ -126,5 +146,5 @@ class ConfigReaper:
                         for value in option_value:
                             new_value += "{},".format(value)
                         option_value = new_value[:-1]
-                    self.config.set(section, option_name, str(option_value))
-            self.config.write(ini_file)
+                    self.__config.set(section, option_name, str(option_value))
+            self.__config.write(ini_file)
