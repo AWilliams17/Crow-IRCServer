@@ -15,15 +15,19 @@ class ConfigReaper:
         self.section_classes = [x for x in config_instance.__dict__.values()]
 
         user_defined_option = 1000
-        option_name = "Port"
+        uoption_name = "Port"
         section = "ServerSettings"
 
         # setattr(self.section_associations[section], option_name, user_defined_option)
         test = config_instance.__dict__
-        for w, x in test.items():
-            section_mapping = test[w].__dict__.items()
-            for y, z in section_mapping:
-                print("Section: {} - Option: {} - Value: {}".format(w, y, z))
+        for section_name, section_class in test.items():
+            section_mapping = test[section_name].__dict__.items()
+            for option_name, option_value in section_mapping:
+                print("Section: {} - Option: {} - Value: {}".format(section_name, option_name, option_value))
+                if option_name == uoption_name:
+                    print("\nFOUND A MATCH\n")
+                    setattr(section_class, option_name, user_defined_option)
+                    print("\ndid it work: {}\n".format(dict(section_mapping)[option_name]))
 
 
         #self.section_associations = {x: y for x, y in zip(self.section_names, config_instance)}
