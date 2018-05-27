@@ -9,9 +9,10 @@ twisted.internet.defer.setDebugging(True)
 
 def load_config():
 	config = IRCConfig()
-	if not config.config_exists():
+	"""
+	if not config.CrowConfigParser.config_exists():
 		print("Configuration file does not exist, creating one...")
-		creation_errors = config.create_config()
+		creation_errors = config.CrowConfigParser.create_config()
 		if creation_errors is not None:
 			print("Failed to create config: {}".format(creation_errors))
 			exit()
@@ -21,13 +22,14 @@ def load_config():
 			"meaning the server will be run on localhost. \nIf you wish to change this, the config name is crow.ini,"
 			"located in {}.\nThere also are two default operator accounts with very insecure usernames and passwords.\n"
 			"Refer to INI_DOCS.TXT on the repo for setting up the ini"
-			"if you don't know what a certain setting does.\n".format(config.config_path())
+			"if you don't know what a certain setting does.\n".format(config.CrowConfigParser.config_path)
 		)
 
-	read_errors = config.read_config()
+	read_errors = config.CrowConfigParser.read_config()
 	if read_errors is not None:
 		print("Failed to read config: {}".format(read_errors))
 		exit()
+	"""
 
 	return config
 
