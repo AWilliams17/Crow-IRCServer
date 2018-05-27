@@ -7,33 +7,6 @@ import twisted.internet.defer
 twisted.internet.defer.setDebugging(True)
 
 
-def load_config():
-	config = IRCConfig()
-	"""
-	if not config.CrowConfigParser.config_exists():
-		print("Configuration file does not exist, creating one...")
-		creation_errors = config.CrowConfigParser.create_config()
-		if creation_errors is not None:
-			print("Failed to create config: {}".format(creation_errors))
-			exit()
-		print("Done.")
-		print(
-			"\nNote: The default settings have the port set to 6667 and the interface set to 127.0.0.1, "
-			"meaning the server will be run on localhost. \nIf you wish to change this, the config name is crow.ini,"
-			"located in {}.\nThere also are two default operator accounts with very insecure usernames and passwords.\n"
-			"Refer to INI_DOCS.TXT on the repo for setting up the ini"
-			"if you don't know what a certain setting does.\n".format(config.CrowConfigParser.config_path)
-		)
-
-	read_errors = config.CrowConfigParser.read_config()
-	if read_errors is not None:
-		print("Failed to read config: {}".format(read_errors))
-		exit()
-	"""
-
-	return config
-
-
 def setup_loopingcalls(server, maintenance_settings, server_settings):
 	ratelimitclearinterval = maintenance_settings["RateLimitClearInterval"] * 60
 	flushinterval = maintenance_settings["FlushInterval"] * 3600
@@ -54,9 +27,10 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 
 if __name__ == '__main__':
-	try:  # This is not production code - this is just here to hide exceptions while i debug irc_Config
-		server_config = load_config()
+	try:
+		server_config = IRCConfig()
 	except Exception as e:
+		print("Exception Triggered")
 		exit()
 	server_port = server_config.ServerSettings['Port']
 	server_interface = server_config.ServerSettings['Interface']

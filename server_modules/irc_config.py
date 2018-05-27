@@ -92,12 +92,14 @@ class IRCConfig:
             self.flush_config()
 
         def flush_config(self):
+            pass
+
+        """
+        def flush_config(self):
             with open(self.config_path, "w") as crow_ini:
-                for section, section_options in self.section_mappings.items():
-                    print("Section: {} Section Options: {}".format(section, section_options))
+                for section in self.section_names:
                     self.config.add_section(section)
                     for option_name, option_value in self.section_mappings[section].items():
-                        print("Option Name: {} Option Value: {}".format(option_name, option_value))
                         if type(option_value) is dict:
                             new_value = ""
                             for key, value in option_value.items():
@@ -110,3 +112,4 @@ class IRCConfig:
                             option_value = new_value[:-1]
                         self.config.set(section, option_name, str(option_value))
                 self.config.write(crow_ini)
+        """
