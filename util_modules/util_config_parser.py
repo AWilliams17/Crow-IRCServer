@@ -1,13 +1,12 @@
 from configparser import ConfigParser
-from os import getcwd, path
+from os import path
 
 
 class __CrowConfigParsingUtils:
-    def __init__(self, settings_classes):
+    def __init__(self, section_classes, ini_path):
         self.config = ConfigParser()
-        self.crow_path = getcwd().split("/bin")[0]
-        self.config_path = self.crow_path + "/crow.ini"
-        self.settings_classes = settings_classes
+        self.ini_path = ini_path
+        self.settings_classes = section_classes
         self.section_names = [type(x).__name__.split("__")[1] for x in self.settings_classes]
         self.section_associations = {x: y for x, y in zip(self.section_names, self.settings_classes)}
         self.section_mappings = {
@@ -16,7 +15,7 @@ class __CrowConfigParsingUtils:
         }
 
     def config_exists(self):
-        return path.exists(self.config_path)
+        return path.exists(self.ini_path)
 
     def read_config(self):
         error_list = []
@@ -40,7 +39,7 @@ class __CrowConfigParsingUtils:
         # Thank god these loops are only run once lol
         if not self.config_exists():
             raise FileNotFoundError("Configuration file was not found.")
-        self.config.read(self.config_path)
+        self.config.read(self.ini_path)
         for section, section_options in self.section_mappings.items():
             if section not in self.config.keys():
                 error_list.append(error_message_section_missing.format(section))
@@ -67,7 +66,7 @@ class __CrowConfigParsingUtils:
         return None
 
     def flush_config(self):
-        with open(self.config_path, "w") as crow_ini:
+        with open(self.ini_path, "w") as ini_file:
             for section in self.section_names:
                 self.config.add_section(section)
                 for option_name, option_value in self.section_mappings[section].items():
@@ -82,4 +81,4 @@ class __CrowConfigParsingUtils:
                             new_value += "{},".format(value)
                         option_value = new_value[:-1]
                     self.config.set(section, option_name, str(option_value))
-            self.config.write(crow_ini)
+            self.config.write(ini_file)
