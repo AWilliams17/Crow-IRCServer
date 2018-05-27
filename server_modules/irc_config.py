@@ -51,7 +51,7 @@ class IRCConfig:
             return path.exists(self.config_path)
 
         def read_config(self):
-            return_val = []
+            error_list = []
             error_message_entry = "****Error in config: Invalid entry: {}." \
                                   "\nReason: {}" \
                                   "\nUsing default value for this entry instead.****\n"
@@ -62,17 +62,24 @@ class IRCConfig:
             error_message_entry_missing = "****Error in config: Missing entry: {}." \
                                           "\nUsing default value for this entry instead.\n****"
 
+            type_error_mappings = {  # for error messages involving invalid types.
+                int: "Number",
+                str: "String",
+                list: "List eg - val1,val2,val3,etc",
+                dict: "Dict eg - key:value,key2:value,key3:value,etc"
+            }
+
             # Thank god these loops are only run once lol
             if not self.config_exists():
                 raise FileNotFoundError("Configuration file was not found.")
             self.config.read(self.config_path)
             for section, section_options in self.section_mappings.items():
                 if section not in self.config.keys():
-                    return_val.append(error_message_section_missing.format(section))
+                    error_list.append(error_message_section_missing.format(section))
                 else:
                     for option_name, option_value in self.section_mappings[section].items():
                         if option_name not in self.config[section]:
-                            return_val.append(error_message_entry_missing.format(option_name))
+                            error_list.append(error_message_entry_missing.format(option_name))
                         else:
                             user_defined_option = self.config[section][option_name]
                             option_type = type(option_value)
@@ -84,9 +91,13 @@ class IRCConfig:
                                 user_defined_option = option_type(user_defined_option)
                                 setattr(self.section_associations[section], option_name, user_defined_option)
                             except ValueError:
-                                return_val.append(error_message_entry.format(
-                                    option_name, "Option is of an invalid type. Should be: {}".format(option_type)
+                                error_list.append(error_message_entry.format(
+                                    option_name, "Invalid type. Should be: {}".format(type_error_mappings[option_type])
                                 ))
+            if len(error_list) != 0:
+                return error_list
+            return None
+
 
         def flush_config(self):
             with open(self.config_path, "w") as crow_ini:
