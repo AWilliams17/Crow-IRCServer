@@ -98,7 +98,6 @@ class IRCConfig:
                 return error_list
             return None
 
-
         def flush_config(self):
             with open(self.config_path, "w") as crow_ini:
                 for section in self.section_names:
