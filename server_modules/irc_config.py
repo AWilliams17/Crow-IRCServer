@@ -89,13 +89,15 @@ class IRCConfig:
                                 print(error_message_entry.format(
                                     option_name, "Option is of an invalid type. Should be: {}".format(option_type)
                                 ))
-            #  Save the config now
+            self.flush_config()
 
         def flush_config(self):
             with open(self.config_path, "w") as crow_ini:
                 for section, section_options in self.section_mappings.items():
+                    print("Section: {} Section Options: {}".format(section, section_options))
                     self.config.add_section(section)
                     for option_name, option_value in self.section_mappings[section].items():
+                        print("Option Name: {} Option Value: {}".format(option_name, option_value))
                         if type(option_value) is dict:
                             new_value = ""
                             for key, value in option_value.items():

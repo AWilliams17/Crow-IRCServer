@@ -54,7 +54,10 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 
 if __name__ == '__main__':
-	server_config = load_config()
+	try:  # This is not production code - this is just here to hide exceptions while i debug irc_Config
+		server_config = load_config()
+	except Exception as e:
+		exit()
 	server_port = server_config.ServerSettings['Port']
 	server_interface = server_config.ServerSettings['Interface']
 	server_instance = ChatServer(server_config)
