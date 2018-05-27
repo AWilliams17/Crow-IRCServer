@@ -7,12 +7,6 @@ class IRCConfig:
         self.MaintenanceSettings = self.__MaintenanceSettings()
         self.UserSettings = self.__UserSettings()
 
-        # self.__CrowConfigParser = ConfigReaper(self, ini_path)
-
-        #self.__CrowConfigParser = ConfigReaper(
-        #    ini_path, [self.ServerSettings, self.MaintenanceSettings, self.UserSettings]
-        #)
-
     class __ServerSettings:
         def __init__(self):
             self.Port = 6667

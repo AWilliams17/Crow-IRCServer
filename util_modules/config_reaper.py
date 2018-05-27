@@ -1,5 +1,6 @@
+#  ToDo: This all needs to be more thoroughly tested.
 from configparser import ConfigParser
-from os import path, getcwd, remove
+from os import path, getcwd
 
 
 class ConfigReaper:
@@ -31,12 +32,11 @@ class ConfigReaper:
 
     def read_config(self):
         error_list = []
-        error_tail = "\nUsing default value for this entry instead."
+        error_tail = "\nUsing default value ({}) for this entry instead."
         error_tail_section = "\nUsing default values for this section instead."
-        error_message_entry = "\n****Error in config: Invalid entry: {}. Reason: {}" + error_tail
-        error_message_type = "\n****Error in config: Entry {} is of an invalid type - should be {}." + error_tail
-        error_message_section_missing = "\n****Error in config: Missing section: {}." + error_tail_section
-        error_message_entry_missing = "\n****Error in config: Missing entry: {}." + error_tail
+        error_message_type = "****Error in config: Entry {} is of an invalid type - should be a {}." + error_tail
+        error_message_section_missing = "****Error in config: Missing section: {}." + error_tail_section
+        error_message_entry_missing = "****Error in config: Missing entry: {}." + error_tail
 
         type_error_mappings = {  # for error messages involving invalid types.
             int: "Number",
@@ -61,23 +61,29 @@ class ConfigReaper:
                 required_type = type(option_value)
                 user_option_value = self.__config.get(section, option_name)
                 try:
+                    if required_type is dict or required_type is list:
+                        if ',' in user_option_value and ':' in user_option_value:
+                            user_option_value = dict(x.split(":") for x in user_option_value.split(','))
+                        elif ',' in user_option_value and ':' not in user_option_value:
+                            user_option_value = list(user_option_value.split(','))
                     user_option_value = required_type(user_option_value)
                     setattr(self.__section_classes[section], option_name, user_option_value)
                 except ValueError:
-                    error_list.append(error_message_type.format(option_name, type_error_mappings[required_type]))
+                    error_list.append(error_message_type.format(
+                        option_name, type_error_mappings[required_type], option_value)
+                    )
         if len(error_list) != 0:
-            print("\nThere were errors while reading some of the config options.")
-            print("\nA new config file will now be generated (with correctly read values in place) using default "
-                  "values for the options which failed to be read.")
+            error_list.append("\nThere were errors while reading some of the config options.")
+            error_list.append("A new config file will now be generated (with correctly read values preserved) using "
+                              "default values for the options which failed to be read.")
             self.flush_config()
             return error_list
 
     def flush_config(self):
-        if path.exists(self.__ini_path):
-            remove(self.__ini_path)  # Re-make the ini file completely with new and default values.
         with open(self.__ini_path, "w") as ini_file:
             for section in self.__section_names:
-                self.__config.add_section(section)
+                if not self.__config.has_section(section):
+                    self.__config.add_section(section)
                 for option_name, option_value in self.__section_mappings[section].items():
                     if type(option_value) is dict:
                         new_value = ""
