@@ -41,6 +41,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 *Random Nick Generation after 3 failed nick change attempts during initial connection[x]
 *Message Channels + Users[x]
 *Nickname Registering[]
+*Max registered nicks[]
 *Change/Set/Lookup Modes[x]
 *Leave/Disconnect[x]
 *Leave/Disconnect Messages[x]
