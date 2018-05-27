@@ -46,33 +46,33 @@ class IRCConfig:
                 x: {z: getattr(y, z) for z in y.__dict__.keys()}
                 for x, y in zip(self.section_names, self.settings_classes)
             }
-            self.read_config()
 
         def config_exists(self):
             return path.exists(self.config_path)
 
         def read_config(self):
+            return_val = []
             error_message_entry = "****Error in config: Invalid entry: {}." \
                                   "\nReason: {}" \
-                                  "\nUsing default value for this entry instead.****"
+                                  "\nUsing default value for this entry instead.****\n"
 
             error_message_section_missing = "****Error in config: Missing section: {}." \
-                                            "\nUsing default values for this section instead.****"
+                                            "\nUsing default values for this section instead.****\n"
 
             error_message_entry_missing = "****Error in config: Missing entry: {}." \
                                           "\nUsing default value for this entry instead.\n****"
 
             # Thank god these loops are only run once lol
+            if not self.config_exists():
+                raise FileNotFoundError("Configuration file was not found.")
             self.config.read(self.config_path)
             for section, section_options in self.section_mappings.items():
-                for option_name, option_value in self.section_mappings[section].items():
-                    if section not in self.config.keys():
-                        print("1")
-                        #print(error_message_section_missing.format(section))
-                    else:
+                if section not in self.config.keys():
+                    return_val.append(error_message_section_missing.format(section))
+                else:
+                    for option_name, option_value in self.section_mappings[section].items():
                         if option_name not in self.config[section]:
-                            print("2")
-                            #print(error_message_entry_missing.format(option_name))
+                            return_val.append(error_message_entry_missing.format(option_name))
                         else:
                             user_defined_option = self.config[section][option_name]
                             option_type = type(option_value)
@@ -84,10 +84,9 @@ class IRCConfig:
                                 user_defined_option = option_type(user_defined_option)
                                 setattr(self.section_associations[section], option_name, user_defined_option)
                             except ValueError:
-                                print("3")
-                                #print(error_message_entry.format(
-                                #    option_name, "Option is of an invalid type. Should be: {}".format(option_type)
-                                #))
+                                return_val.append(error_message_entry.format(
+                                    option_name, "Option is of an invalid type. Should be: {}".format(option_type)
+                                ))
 
         def flush_config(self):
             with open(self.config_path, "w") as crow_ini:
