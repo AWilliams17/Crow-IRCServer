@@ -6,29 +6,22 @@ class ConfigReaper:
     def __init__(self, config_instance, ini_path):
         self.config = ConfigParser()
         self.ini_path = ini_path
+        self.section_names = list(config_instance.__dict__.keys())
+        self.section_classes = dict(config_instance.__dict__.items())
+        self.section_mappings = {
+            x: {z: getattr(y, z) for z in y.__dict__.keys()}
+            for x, y in zip(self.section_classes.keys(), self.section_classes.values())
+        }
 
-        #test = {x: y for x, y in section_classes.__dict__.items()}
-        #for x, y in test.items():
-        #    print("{}:{}".format(x, y))
-
-        self.section_names = [x for x in config_instance.__dict__.keys()]
-        self.section_classes = [x for x in config_instance.__dict__.values()]
-
-        user_defined_option = 1000
-        uoption_name = "Port"
-        section = "ServerSettings"
 
         # setattr(self.section_associations[section], option_name, user_defined_option)
-        test = config_instance.__dict__
-        for section_name, section_class in test.items():
-            section_mapping = test[section_name].__dict__.items()
-            for option_name, option_value in section_mapping:
-                print("Section: {} - Option: {} - Value: {}".format(section_name, option_name, option_value))
-                if option_name == uoption_name:
-                    print("\nFOUND A MATCH\n")
-                    setattr(section_class, option_name, user_defined_option)
-                    print("\ndid it work: {}\n".format(dict(section_mapping)[option_name]))
+        # setattr(section_class, option_name, user_defined_option)
 
+        #section_objects = config_instance.__dict__
+        #for section_name, section_class in section_objects.items():
+        #    section_mapping = section_objects[section_name].__dict__.items()
+        #    for option_name, option_value in section_mapping:
+        #        pass
 
         #self.section_associations = {x: y for x, y in zip(self.section_names, config_instance)}
 
