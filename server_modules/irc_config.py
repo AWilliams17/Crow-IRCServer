@@ -1,4 +1,10 @@
-# from util_modules.config_reaper import *
+"""
+This module represents the server ini file.
+Each section in the ini has it's own private class with the attributes that will be used as
+the options in the ini for that section, and each section's class is instantiated as an attribute
+in the main class.
+When the config file is read, the values in the sections get updated accordingly.
+"""
 
 
 class IRCConfig:
