@@ -1,14 +1,16 @@
-from configparser import ConfigParser
-from os import getcwd, path
+from util_modules.config_reaper import *
 
 
 class IRCConfig:
-    def __init__(self):
+    def __init__(self, ini_path):
         self.ServerSettings = self.__ServerSettings()
         self.MaintenanceSettings = self.__MaintenanceSettings()
         self.UserSettings = self.__UserSettings()
-        #self.__CrowConfigParser = self.__CrowConfigParsingUtils(
-        #    [self.ServerSettings, self.MaintenanceSettings, self.UserSettings]
+
+        self.__CrowConfigParser = ConfigReaper(self, ini_path)
+
+        #self.__CrowConfigParser = ConfigReaper(
+        #    ini_path, [self.ServerSettings, self.MaintenanceSettings, self.UserSettings]
         #)
 
     class __ServerSettings:

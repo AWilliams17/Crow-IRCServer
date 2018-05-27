@@ -5,6 +5,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * Server Kicks[]
 * TLS[]
 * IPV6(?)[]
+* TCP6(?)[]
 * Ping everyone after a certain amount of time and kick those that haven't responded by the next ping[x]
 * Scan and delete/warn inactive channels[x]
 * Save current server details (channels, banlists, etc)[]
