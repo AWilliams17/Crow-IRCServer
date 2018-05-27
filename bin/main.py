@@ -31,6 +31,7 @@ if __name__ == '__main__':
 	try:
 		server_config = IRCConfig()
 		server_config_parser = ConfigReaper(server_config)
+		server_config_parser.read_config()
 
 		"""
 		server_port = server_config.ServerSettings['Port']
