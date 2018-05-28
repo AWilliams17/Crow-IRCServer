@@ -29,19 +29,19 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 
 if __name__ == '__main__':
-	server_config = IRCConfig()
-	server_config_parser = ConfigReaper(server_config, getcwd().strip("bin"), "crow.ini")
-	config_output = server_config_parser.read_config()
+	server_config = IRCConfig(getcwd().strip("bin") + "crow.ini")
 
-	if config_output is not None:
-		for output in config_output:
-			print(output)
+	#config_output = server_config_parser.read_config()
 
-	server_instance = ChatServer(server_config)
-	setup_loopingcalls(server_instance, server_config.MaintenanceSettings, server_config.ServerSettings)
+	#if config_output is not None:
+	#	for output in config_output:
+	#		print(output)
 
-	endpoint = TCP4ServerEndpoint(
-		reactor, port=server_config.ServerSettings.Port, interface=server_config.ServerSettings.Interface
-	)
-	endpoint.listen(server_instance)
-	reactor.run()
+	#server_instance = ChatServer(server_config)
+	#setup_loopingcalls(server_instance, server_config.MaintenanceSettings, server_config.ServerSettings)
+
+	#endpoint = TCP4ServerEndpoint(
+	#	reactor, port=server_config.ServerSettings.Port, interface=server_config.ServerSettings.Interface
+	#)
+	#endpoint.listen(server_instance)
+	#reactor.run()
