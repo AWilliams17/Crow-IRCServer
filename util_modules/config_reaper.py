@@ -5,8 +5,8 @@ from os import path, getcwd
 
 class ConfigReaper:
     """ This class takes an instance of another class which represents the ini file it is to read/write, and it takes
-     the path and name to use for the ini. The path should be similar to the format getcwd() returns, and the ini
-     name can optionally contain a leading slash and trailing .ini
+     the path and name to use for the ini. The path share be the format getcwd() uses, and the ini name can optionally
+     contain a leading slash and trailing .ini (the slash and .ini will be added if not in the argument).
      If no path is specified, the default directory is getcwd, and the default name is default.ini if no name is passed.
      """
     def __init__(self, config_instance, ini_path=None, ini_name=None):

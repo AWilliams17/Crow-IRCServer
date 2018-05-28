@@ -1,8 +1,9 @@
+from util_modules.config_reaper import *
 from server_modules.irc_server import ChatServer
 from server_modules.irc_config import IRCConfig
-from util_modules.config_reaper import *
 from twisted.internet import reactor, task
 from twisted.internet.endpoints import TCP4ServerEndpoint
+from os import getcwd
 
 import twisted.internet.defer
 twisted.internet.defer.setDebugging(True)
@@ -29,7 +30,7 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 if __name__ == '__main__':
 	server_config = IRCConfig()
-	server_config_parser = ConfigReaper(server_config)
+	server_config_parser = ConfigReaper(server_config, getcwd().strip("bin"), "crow.ini")
 	config_output = server_config_parser.read_config()
 
 	if config_output is not None:
