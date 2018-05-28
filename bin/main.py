@@ -28,13 +28,14 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 
 if __name__ == '__main__':
-	try:
+	#try:
 		server_config = IRCConfig()
 		server_config_parser = ConfigReaper(server_config)
-		errors = server_config_parser.read_config()
-		if errors is not None:
-			for error in errors:
-				print(error)
+		config_output = server_config_parser.read_config()
+		if config_output is not None:
+			for output in config_output:
+				print(output)
+		print(server_config.ServerSettings.Port)
 
 		"""
 		server_port = server_config.ServerSettings['Port']
@@ -46,6 +47,6 @@ if __name__ == '__main__':
 		endpoint.listen(server_instance)
 		reactor.run()
 		"""
-	except Exception as e:
-		print("Exception Triggered: {}".format(e))
-		exit()
+	#except Exception as e:
+	#	print("Exception Triggered: {}".format(e))
+	#	exit()

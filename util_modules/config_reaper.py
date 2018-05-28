@@ -1,9 +1,14 @@
 #  ToDo: This all needs to be more thoroughly tested.
-from configparser import ConfigParser
+from configparser import ConfigParser, DuplicateOptionError, DuplicateSectionError
 from os import path, getcwd
 
 
 class ConfigReaper:
+    """ This class takes an instance of another class which represents the ini file it is to read/write, and it takes
+     the path and name to use for the ini. The path should be similar to the format getcwd() returns, and the ini
+     name can optionally contain a leading slash and trailing .ini
+     If no path is specified, the default directory is getcwd, and the default name is default.ini if no name is passed.
+     """
     def __init__(self, config_instance, ini_path=None, ini_name=None):
         self.__config = ConfigParser()
         self.__ini_path = self.__set_ini_path(ini_path, ini_name)
@@ -31,12 +36,21 @@ class ConfigReaper:
         return ini_path + ini_name
 
     def read_config(self):
-        error_list = []
-        error_tail = "\nUsing default value ({}) for this entry instead."
-        error_tail_section = "\nUsing default values for this section instead."
-        error_message_type = "****Error in config: Entry {} is of an invalid type - should be a {}." + error_tail
-        error_message_section_missing = "****Error in config: Missing section: {}." + error_tail_section
-        error_message_entry_missing = "****Error in config: Missing entry: {}." + error_tail
+        """ Attempts to read the config specified by ini_path. If the file is not found, a new config is generated using
+         default values from the config object.
+         After successfully parsing a value in the config, the method will search for the corresponding attribute in the
+         config object's section class and change it to the parsed one (if it is of a valid type).
+         When handling duplicate sections/options, all but the first instance of the entry is ignored."""
+
+        output_list = []
+        error_message_type = "****Error in config: Entry ({}) Invalid type - should be a ({}). " \
+                             "Using default value instead."
+        error_message_section_missing = "****Error in config: Missing section: ({}). Using default values instead."
+        error_message_entry_missing = "****Error in config: Missing entry: ({}). Using default value instead."
+        error_duplicate_option = "****Error in config: Multiple options named ({}) in section ({}). " \
+                                 "Can not read config until duplicate options are removed."
+        error_duplicate_section = "****Error in config: Multiple sections named ({}). " \
+                                  "Can not read config until duplicate sections are removed."
 
         type_error_mappings = {  # for error messages involving invalid types.
             int: "Number",
@@ -46,40 +60,53 @@ class ConfigReaper:
         }
 
         if not path.exists(self.__ini_path):
-            error_list.append("Ini file did not exist in the specified location.")
+            output_list.append("Ini file did not exist in the specified location.")
             self.flush_config()
-            error_list.append("A new ini file was created with default values.")
-            return error_list
-        self.__config.read(self.__ini_path)
+            output_list.append("A new ini file was created with default values.")
+            return output_list
+
+        try:
+            self.__config.read(self.__ini_path)
+        except DuplicateOptionError as e:
+            output_list.append(error_duplicate_option.format(e.option, e.section))
+        except DuplicateSectionError as e:
+            output_list.append(error_duplicate_section.format(e.section))
+
+        if len(output_list) != 0:  # Can't continue if any of the above is true. # ToDo: find a way to make it work
+            return output_list
+
         for section, section_options in self.__section_mappings.items():
-            if not self.__config.has_section(section):
-                error_list.append(error_message_section_missing.format(section))
+            if not self.__config.has_section(section):  # The user config is missing the section. Skip it.
+                output_list.append(error_message_section_missing.format(section))
                 continue
             for option_name, option_value in self.__section_mappings[section].items():
-                if not self.__config.has_option(section, option_name):
-                    error_list.append(error_message_entry_missing.format(option_name))
-                required_type = type(option_value)
+                if not self.__config.has_option(section, option_name):  # The user config is missing the option. Skip.
+                    output_list.append(error_message_entry_missing.format(option_name))
+                    continue
+                required_type = type(option_value)  # What type is the object expecting the attribute to have?
                 user_option_value = self.__config.get(section, option_name)
                 try:
-                    if required_type is dict or required_type is list:
+                    if required_type is dict or required_type is list:  # Try to handle list/dict options
                         if ',' in user_option_value and ':' in user_option_value:
                             user_option_value = dict(x.split(":") for x in user_option_value.split(','))
                         elif ',' in user_option_value and ':' not in user_option_value:
                             user_option_value = list(user_option_value.split(','))
-                    user_option_value = required_type(user_option_value)
+                    user_option_value = required_type(user_option_value)  # Try to convert user option to correct value
                     setattr(self.__section_classes[section], option_name, user_option_value)
                 except ValueError:
-                    error_list.append(error_message_type.format(
+                    output_list.append(error_message_type.format(
                         option_name, type_error_mappings[required_type], option_value)
                     )
-        if len(error_list) != 0:
-            error_list.append("\nThere were errors while reading some of the config options.")
-            error_list.append("A new config file will now be generated (with correctly read values preserved) using "
-                              "default values for the options which failed to be read.")
-            self.flush_config()
-            return error_list
 
-    def flush_config(self):
+        if len(output_list) != 0:
+            output_list.append("\nThere were errors while reading some of the config options.")
+            output_list.append("A new config file will now be generated (with correctly read values preserved) using "
+                               "default values for the options which failed to be read.")
+            self.flush_config()
+            return output_list
+
+    def flush_config(self):  # ToDo: Add some exception handling to this
+        """ Takes all of the settings in the object representing the config and creates an ini with them. """
         with open(self.__ini_path, "w") as ini_file:
             for section in self.__section_names:
                 if not self.__config.has_section(section):
