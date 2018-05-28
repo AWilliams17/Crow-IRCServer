@@ -15,7 +15,7 @@ class ChatServer(Factory):
         self.ratelimiter = RateLimiter()
         self.clientlimiter = ClientLimiter()
         self.pingmanager = PingManager(self.users)
-        self.channelmanager = ChannelManager(self.channels, self.config.MaintenanceSettings["ChannelUltimatum"])
+        self.channelmanager = ChannelManager(self.channels, self.config.MaintenanceSettings.ChannelUltimatum)
 
     def maintenance_delete_old_channels(self):
         """ This method gets called every x amount of days as defined in crow.ini. The purpose of it is to DELETE

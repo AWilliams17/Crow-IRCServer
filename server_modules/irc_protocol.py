@@ -4,6 +4,7 @@ from server_modules.irc_user import IRCUser
 from server_modules.irc_ratelimiter import rate_limiter
 from server_modules.irc_rplhelper import RPLHelper
 from server_modules.irc_param_count import min_param_count
+from server_modules.irc_config import IRCConfig
 from time import time
 from socket import getfqdn
 from secrets import token_urlsafe
@@ -24,9 +25,9 @@ class IRCProtocol(IRC):
         self.users = users
         self.channels = channels
         self.config = config
-        self.server_name = self.config.ServerSettings['ServerName']
-        self.server_description = self.config.ServerSettings['ServerDescription']
-        self.operators = self.config.UserSettings["Operators"]
+        self.server_name = self.config.ServerSettings.ServerName
+        self.server_description = self.config.ServerSettings.ServerDescription
+        self.operators = self.config.UserSettings.Operators
         self.hostname = getfqdn()
         self.client_host = None
         self.rplhelper = RPLHelper(None)
@@ -38,9 +39,9 @@ class IRCProtocol(IRC):
 
     def connectionMade(self):
         current_time_posix = time()
-        max_nick_length = self.config.NicknameSettings['MaxLength']
-        max_user_length = self.config.UserSettings['MaxLength']
-        max_clients = self.config.UserSettings["MaxClients"]
+        max_nick_length = self.config.UserSettings.MaxNicknameLength
+        max_user_length = self.config.UserSettings.MaxUsernameLength
+        max_clients = self.config.UserSettings.MaxClients
         self.client_host = self.transport.getPeer().host
         self.clientlimiter.add_entry(self.client_host)
         if self.clientlimiter.host_has_too_many_clients(self.client_host, max_clients):
@@ -152,7 +153,7 @@ class IRCProtocol(IRC):
             self.sendLine(":{} {} {} :{}".format(
                 self.hostname, RPL_WELCOME,
                 attempted_nickname,
-                self.config.ServerSettings["ServerWelcome"] + ", {}".format(attempted_nickname))
+                self.config.ServerSettings.ServerWelcome + ", {}!".format(attempted_nickname))
             )
         results = self.user_instance.set_nickname(attempted_nickname, in_use_nicknames)
         if results is not None:
