@@ -124,3 +124,22 @@ class ConfigReaper:
                         option_value = new_value[:-1]
                     self.__config.set(section, option_name, str(option_value))
             self.__config.write(ini_file)
+
+
+class ConfigReaperOption:
+    def __init__(self, value, criteria=None, invalid_value_string="Option criteria not met."):
+        self.__value = value
+        self.__criteria = criteria
+        self.__invalid_value_string = invalid_value_string
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, new_value):
+        if self.__criteria is not None:
+            criteria_met = self.__criteria(new_value)
+            if not criteria_met:
+                raise ValueError(self.__invalid_value_string)
+        self.__value = new_value

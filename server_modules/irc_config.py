@@ -1,3 +1,4 @@
+from util_modules.config_reaper import ConfigReaperOption
 """
 This module represents the server ini file.
 Each section in the ini has it's own private class with the attributes that will be used as
@@ -34,4 +35,4 @@ class IRCConfig:
             self.MaxUsernameLength = 35
             self.MaxNicknameLength = 35
             self.MaxClients = 5
-            self.Operators = {"Admin": "Password", "Admin2": "Password2"}
+            self.Operators = {"Admin": "Password", "Admin2": "Password2"}  # lol
