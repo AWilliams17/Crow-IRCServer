@@ -1,8 +1,5 @@
-from util_modules.config_reaper import *
-from server_modules.irc_server import ChatServer
 from server_modules.irc_config import IRCConfig
 from twisted.internet import reactor, task
-from twisted.internet.endpoints import TCP4ServerEndpoint
 from os import getcwd
 
 import twisted.internet.defer

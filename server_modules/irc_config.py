@@ -1,7 +1,19 @@
-class IRCConfig:
-    pass
+from util_packages.sentry.sentry_config import *
 
 
+class IRCConfig(SentryConfig):
+    class __ServerSettings(SentrySection):
+        Port = SentryOption(6667, lambda x: x != 0, "Port can not be zero.")
+
+    class __MaintenanceSettings(SentrySection):
+        FlushInterval = SentryOption(1, lambda x: x != 0, "Value must not be 0 or server details will never be saved.")
+
+    class __UserSettings(SentrySection):
+        MaxUsernameLength = SentryOption(35, lambda x: x >= 5, "Usernames can not be less than 5.")
+
+    ServerSettings = __ServerSettings()
+    MaintenanceSettings = __MaintenanceSettings()
+    UserSettings = __UserSettings()
 
 """
     class __ServerSettings(ConfigReaperSection):
