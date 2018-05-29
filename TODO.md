@@ -1,6 +1,6 @@
 A (semi incomplete) list of things currently implemented/unimplemented. will definitely be adding additions.
 ## General:
-* Server Operators[x]
+* Server Operators [x]
 * Server Bans[]
 * Server Kicks[]
 * TLS[]
