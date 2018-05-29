@@ -35,6 +35,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * Mutes[]
 * Hash Owner + Oper passwords instead of using plaintext[]
 * NOOPERHOST[]
+* Subchannels(lol)[]
 
 ## Users:
 * Join channels[x]

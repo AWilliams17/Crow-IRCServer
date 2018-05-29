@@ -1,5 +1,6 @@
 from configparser import ConfigParser
-from inspect import getmembers, isclass
+from .sentry_exceptions import *
+from inspect import getmembers
 
 
 class SentryOption:
@@ -7,7 +8,7 @@ class SentryOption:
         if type(criteria) is not list and criteria is not None:
             criteria = [].append(criteria)
         if criteria is not None and criteria_desc is None:
-            raise TypeError("An option can not have criteria to meet without detailing what that criteria is.")
+            raise CriteriaDescriptionError
         self.default = default
         self.criteria = criteria
         self.criteria_error = criteria_desc
@@ -23,7 +24,7 @@ class SentrySection:
             if option.criteria is not None:
                 for validator in option.criteria:
                     if not validator(value):
-                        raise ValueError(option.criteria_error)
+                        raise CriteriaNotMetError(option.criteria_desc)
             setattr(self, option_name, value)
         raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
 
@@ -35,12 +36,14 @@ class SentrySection:
                 return option
             if option.default is not None:
                 return option.default
-            raise ValueError("The option {} in section class {} has not been set nor does it have a default value.".format(option_name, self.section_name))
+            raise MissingOptionError(self.section_name, option_name)
         raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
 
 
 class SentryConfigMetaclass(type):
     def __init__(cls, name, bases, d):
+        print(d)
+        print(bases)
 
         for option_name, option_object in getmembers(cls, lambda x: isinstance(x, SentrySection)):
             print("Test")
@@ -49,8 +52,6 @@ class SentryConfigMetaclass(type):
 
 
 class SentryConfig(metaclass=SentryConfigMetaclass):
-    pass
-    #def __init__(self, ini_path):
-    #    self.ini_path = ini_path
-
+    def read_config(self, ini_path):
+        pass
 
