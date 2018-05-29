@@ -26,7 +26,8 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 
 if __name__ == '__main__':
-	server_config = IRCConfig(getcwd().strip("bin") + "crow.ini")
+	server_config = IRCConfig()
+
 
 	#config_output = server_config_parser.read_config()
 
