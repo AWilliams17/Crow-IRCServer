@@ -22,22 +22,6 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] CTCPs
 
 ## Channels:
-<<<<<<< HEAD
-* Owners[x]
-* Expiration[x]
-* Operators[]
-* Change/Set/Lookup Modes[x]
-* Invites[]
-* Deletion[x] (Deletion works by expiration - still need to let owners delete their own channel)
-* Anti-Spam[] (to be a mode)
-* Topics[]
-* Bans[]
-* Kicks[]
-* Mutes[]
-* Hash Owner + Oper passwords instead of using plaintext[]
-* NOOPERHOST[]
-* Subchannels(lol)[]
-=======
 * [x] Owners
 * [x] Expiration
 * [ ] Operators
@@ -51,7 +35,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] Mutes
 * [ ] Hash Owner + Oper passwords instead of using plaintext
 * [ ] NOOPERHOST
->>>>>>> refs/remotes/origin/master
+* [ ] Sub-Channels (might be a dumb idea)
 
 ## Users:
 * [x] Join channels
