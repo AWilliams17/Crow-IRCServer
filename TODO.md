@@ -69,7 +69,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] 'z' - connected via tls
 * [ ] 'W' - see when someone does a WHOIS on you
 * [ ] 'R' - using a registered nick
-# ## Channel Modes:
+### Channel Modes:
 * [ ] 'S' - slow flood
 * [ ] 'I' - invite only
 * [ ] 'P' - passworded
