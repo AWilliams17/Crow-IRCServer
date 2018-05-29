@@ -6,10 +6,13 @@ from os import path
 
 class SentryOption:
     def __init__(self, default=None, criteria=None, criteria_desc=None):
+
         if type(criteria) is not list and criteria is not None:
             criteria = [].append(criteria)
+
         if criteria is not None and criteria_desc is None:
             raise CriteriaDescriptionError
+
         self.default = default
         self.criteria = criteria
         self.criteria_error = criteria_desc
@@ -43,20 +46,32 @@ class SentrySection:
 
 class SentryConfigMetaclass(type):
     def __init__(cls, name, bases, d):
+        fields = []
 
-        for option_name, option_object in getmembers(cls):
-            pass
-           # print(option_name)
+        for name, obj in getmembers(cls):
+            fields.append(obj)
+
+        print(fields)
 
         super().__init__(name, bases, d)
 
 
 class SentryConfig(metaclass=SentryConfigMetaclass):
-    def __init__(self, ini_path):
-        self.ini_path = ini_path
+    __ini_full_path = None
+    __output = []
 
-    def read_config(self):
+    def start(self, ini_folder, ini_name):
+        self.__ini_full_path = path.join(ini_folder, ini_name)
+
+        if not path.exists(self.__ini_full_path):
+            self.__output.append("No configuration file was found. A new one will be created with default values.")
+            self.__flush_config()  # create a new config
+
+        self.__read_config()
+
+    def __read_config(self):
         pass
 
-    def flush_config(self):
+    def __flush_config(self):
         pass
+
