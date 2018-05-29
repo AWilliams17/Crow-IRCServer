@@ -3,9 +3,11 @@ from util_packages.sentry.sentry_config import *
 
 class IRCConfig(SentryConfig):
     def __init__(self, ini_path):
+        super().__init__(ini_path)
         self.ServerSettings = self.__ServerSettingsSection("ServerSettings")
         self.MaintenanceSettings = self.__MaintenanceSettingsSection("MaintenanceSettings")
         self.UserSettings = self.__UserSettingsSection("UserSettings")
+
 
     class __ServerSettingsSection(SentrySection):
         Port = SentryOption(6667, lambda x: x != 0, "Port can not be zero.")

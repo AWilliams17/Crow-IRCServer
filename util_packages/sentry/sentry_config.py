@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from .sentry_exceptions import *
 from inspect import getmembers
+from os import path
 
 
 class SentryOption:
@@ -42,16 +43,20 @@ class SentrySection:
 
 class SentryConfigMetaclass(type):
     def __init__(cls, name, bases, d):
-        print(d)
-        print(bases)
 
-        for option_name, option_object in getmembers(cls, lambda x: isinstance(x, SentrySection)):
-            print("Test")
+        for option_name, option_object in getmembers(cls):
+            pass
+           # print(option_name)
 
         super().__init__(name, bases, d)
 
 
 class SentryConfig(metaclass=SentryConfigMetaclass):
-    def read_config(self, ini_path):
+    def __init__(self, ini_path):
+        self.ini_path = ini_path
+
+    def read_config(self):
         pass
 
+    def flush_config(self):
+        pass
