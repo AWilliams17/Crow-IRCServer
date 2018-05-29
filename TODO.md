@@ -24,7 +24,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 ## Channels:
 * [x] Owners
 * [x] Expiration
-* [] Operators
+* [ ] Operators
 * [x] Change/Set/Lookup Modes
 * [ ] Invites
 * [x] Deletion (Deletion works by expiration - still need to let owners delete their own channel)
