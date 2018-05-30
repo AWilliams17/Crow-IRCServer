@@ -81,10 +81,17 @@ class SentryConfig:
         self._config.read(self._ini_full_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
-        for section, options in self._sections.items():
-            print(section)
-
-
+        for section_name, section_object in self._sections.items():
+            if section_name not in config_sections:
+                pass
+            config_options = dict(config_sections[section_name])
+            current_section = section_object
+            current_options = current_section.section_options
+            for option in current_options:
+                if option.option_name not in config_options:
+                    pass
+                config_option_val = config_options[option.option_name]
+                option.set_option(config_option_val)
 
     def _flush_config(self):
         print("Flush Config")
