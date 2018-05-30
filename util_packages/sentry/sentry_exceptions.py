@@ -12,8 +12,8 @@ class MissingOptionError(Exception):
 
 
 class CriteriaDescriptionError(Exception):
-    def __init__(self):
-        message = "An option can not have criteria to meet without describing what that criteria is."
+    def __init__(self, option):
+        message = "{}: an option can not have criteria to meet without describing what that criteria is.".format(option)
         super().__init__(message)
 
 

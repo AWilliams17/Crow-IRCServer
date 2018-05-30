@@ -53,23 +53,28 @@ class SentrySection(metaclass=_SentrySectionMetaclass):
     def set_option(self, option_name, value):
         if not hasattr(self, option_name):
             raise MissingOptionError(self.section_name, option_name)
+
         option = getattr(self, option_name)
         if isinstance(option, SentryOption) and option.criteria is not None:
             for validator in option.criteria:
-                if not validator(value):
+                if not validator(value) and option.criteria_desc is not None:
                     raise CriteriaNotMetError(option.criteria_desc)
+                raise CriteriaDescriptionError(option_name)
+
         setattr(self, option_name, value)
 
     def get_option(self, option_name):
         if not hasattr(self, option_name):
-            raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
+            raise MissingOptionError(self.section_name, option_name)
+
         option = getattr(self, option_name)
         option_already_set = not isinstance(option, SentryOption)
+
         if option_already_set:
             return option
+
         if option.default is not None:
             return option.default
-        raise MissingOptionError(self.section_name, option_name)
 
 
 class SentryConfig(metaclass=_SentryConfigMetaclass):
@@ -81,26 +86,26 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
         self._config.read(self._ini_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
-        for section_name, section_object in self._sections.items():
+        for section_name, section in self._sections.items():
             if section_name not in config_sections:
                 raise MissingSectionError(self.__class__.__name__, section_name)
             config_options = dict(config_sections[section_name])
-            current_section = section_object
-            current_options = current_section.section_options
-            for option in current_options:
+
+            for option in section.config_options:
                 if option.option_name not in config_options:
                     raise MissingOptionError(section_name, option.option_name)
+
                 config_option_val = config_options[option.option_name]
                 option.set_option(config_option_val)
 
     def flush_config(self):
         with open(self._ini_path, "w") as ini_file:
-            for section_name, section_object in self._sections.items():
+            for section_name, section in self._sections.items():
                 if not self._config.has_section(section_name):
                     self._config.add_section(section_name)
-                current_section = section_object
-                current_options = current_section.section_options
-                for option in current_options:
-                    option_value = str(current_section.get_option(current_section, option.option_name))
+
+                for option in section.section_options:
+                    option_value = str(section.get_option(section, option.option_name))
                     self._config.set(section_name, option.option_name, option_value)
+
             self._config.write(ini_file)
