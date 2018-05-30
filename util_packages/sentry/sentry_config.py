@@ -50,7 +50,7 @@ class SentrySection(metaclass=SentrySectionMetaclass):
         if not hasattr(self, option_name):
             raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
         option = getattr(self, option_name)
-        option_already_set = isinstance(option, SentryOption)
+        option_already_set = not isinstance(option, SentryOption)
         if option_already_set:
             return option
         if option.default is not None:
@@ -73,10 +73,9 @@ class SentryConfig:
 
         if not path.exists(self._ini_full_path):
             self._output.append("No configuration file was found. A new one will be created with default values.")
-            self._flush_config()  # create a new config
+            self._flush_config()  # create a new config with them
 
-        self._set_defaults()
-        #self._flush_config()
+        self._flush_config()
         #self._read_config()
 
     def _read_config(self):
@@ -98,14 +97,11 @@ class SentryConfig:
     def _flush_config(self):
         with open(self._ini_full_path, "w") as ini_file:
             for section_name, section_object in self._sections.items():
-                current_section = section_object
-                current_options = current_section.section_options
                 if not self._config.has_section(section_name):
                     self._config.add_section(section_name)
-
-    def _set_defaults(self):
-        for section_name, section_object in self._sections.items():
-            current_section = section_object
-            current_options = current_section.section_options
-            for option in current_options:
-                current_section.set_option(current_section, option.option_name, option.default)
+                current_section = section_object
+                current_options = current_section.section_options
+                for option in current_options:
+                    option_value = str(current_section.get_option(current_section, option.option_name))
+                    self._config.set(section_name, option.option_name, option_value)
+            self._config.write(ini_file)
