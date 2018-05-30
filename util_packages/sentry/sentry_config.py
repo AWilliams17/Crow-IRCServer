@@ -25,12 +25,9 @@ class _SentryConfigMetaclass(type):
         for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
             if obj is not cls:
                 obj.section_name = name
+                for name2, obj2 in getmembers(obj, lambda x: isinstance(x, SentryOption)):
+                    print("Property {} of section {}".format(name2, name))
                 sections[name] = obj
-
-        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
-            if obj is not cls:
-                for name2, obj2 in getmembers(obj, lambda x: type(x) is type(SentryOption)):
-                    print(obj2)
 
         cls.sections = sections
 
