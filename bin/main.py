@@ -1,6 +1,6 @@
 from server_modules.irc_config import IRCConfig
 from twisted.internet import reactor, task
-from os import getcwd
+from os import getcwd, path
 
 import twisted.internet.defer
 twisted.internet.defer.setDebugging(True)
@@ -26,8 +26,13 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 
 if __name__ == '__main__':
-	server_config = IRCConfig(getcwd().strip("bin"), "crow.ini")
-	server_config.start()
+	ini_path = getcwd().strip("bin") + "/crow.ini"
+	server_config = IRCConfig(ini_path)
+	if not path.exists(ini_path):
+		server_config.flush_config()
+	server_config.read_config()
+
+
 
 
 

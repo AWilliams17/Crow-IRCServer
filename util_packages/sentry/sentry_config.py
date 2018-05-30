@@ -74,26 +74,12 @@ class _SentryConfigMetaclass(type):
 
 
 class SentryConfig(metaclass=_SentryConfigMetaclass):
-    def __init__(self, ini_folder, ini_name):
-        self._ini_full_path = path.join(ini_folder, ini_name)
+    def __init__(self, ini_path):
+        self._ini_path = ini_path
         self._config = ConfigParser()
 
-    _output = []
-
-    def start(self):
-        for name, obj in getmembers(self, lambda x: type(x) is type(SentrySection)):
-            if obj is not self.__class__:
-                obj.section_name = name
-                self._sections[name] = obj
-
-        if not path.exists(self._ini_full_path):
-            self._output.append("No configuration file was found. A new one will be created with default values.")
-            self._flush_config()  # create a new config with them
-
-        self._read_config()
-
-    def _read_config(self):
-        self._config.read(self._ini_full_path)
+    def read_config(self):
+        self._config.read(self._ini_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
         for section_name, section_object in self._sections.items():
@@ -108,8 +94,8 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                 config_option_val = config_options[option.option_name]
                 option.set_option(config_option_val)
 
-    def _flush_config(self):
-        with open(self._ini_full_path, "w") as ini_file:
+    def flush_config(self):
+        with open(self._ini_path, "w") as ini_file:
             for section_name, section_object in self._sections.items():
                 if not self._config.has_section(section_name):
                     self._config.add_section(section_name)
