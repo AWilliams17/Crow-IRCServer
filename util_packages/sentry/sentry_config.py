@@ -3,20 +3,6 @@ from .sentry_exceptions import *
 from inspect import getmembers
 
 
-class SentryOption:
-    def __init__(self, default=None, criteria=None, criteria_desc=None):
-
-        if type(criteria) is not list and criteria is not None:
-            criteria = [].append(criteria)
-
-        if criteria is not None and criteria_desc is None:
-            raise CriteriaDescriptionError
-
-        self.default = default
-        self.criteria = criteria
-        self.criteria_desc = criteria_desc
-
-
 class _SentrySectionMetaclass(type):
     def __init__(cls, name, bases, d):
 
@@ -31,13 +17,42 @@ class _SentrySectionMetaclass(type):
         super().__init__(name, bases, d)
 
 
+class _SentryConfigMetaclass(type):
+    def __init__(cls, name, bases, d):
+
+        sections = {}
+
+        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
+            if obj is not cls:
+                obj.section_name = name
+                sections[name] = obj
+
+        cls._sections = sections
+
+        super().__init__(name, bases, d)
+
+
+class SentryOption:
+    def __init__(self, default=None, criteria=None, criteria_desc=None):
+
+        if type(criteria) is not list and criteria is not None:
+            criteria = [].append(criteria)
+
+        if criteria is not None and criteria_desc is None:
+            raise CriteriaDescriptionError
+
+        self.default = default
+        self.criteria = criteria
+        self.criteria_desc = criteria_desc
+
+
 class SentrySection(metaclass=_SentrySectionMetaclass):
     def __init__(self):
         self.section_name = None  # automatically set
 
     def set_option(self, option_name, value):
         if not hasattr(self, option_name):
-            raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
+            raise MissingOptionError(self.section_name, option_name)
         option = getattr(self, option_name)
         if isinstance(option, SentryOption) and option.criteria is not None:
             for validator in option.criteria:
@@ -55,21 +70,6 @@ class SentrySection(metaclass=_SentrySectionMetaclass):
         if option.default is not None:
             return option.default
         raise MissingOptionError(self.section_name, option_name)
-
-
-class _SentryConfigMetaclass(type):
-    def __init__(cls, name, bases, d):
-
-        sections = {}
-
-        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
-            if obj is not cls:
-                obj.section_name = name
-                sections[name] = obj
-
-        cls._sections = sections
-
-        super().__init__(name, bases, d)
 
 
 class SentryConfig(metaclass=_SentryConfigMetaclass):
