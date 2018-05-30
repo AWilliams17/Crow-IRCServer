@@ -48,10 +48,11 @@ class SentryConfigMetaclass(type):
     def __init__(cls, name, bases, d):
         fields = []
 
-        for name, obj in getmembers(cls):
-            fields.append(obj)
+        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
+            if not isinstance(cls, obj):  # ignore the metaclass, only get section classes
+                fields.append(obj)
 
-        print(fields)
+        cls.fields = fields
 
         super().__init__(name, bases, d)
 
@@ -70,8 +71,8 @@ class SentryConfig(metaclass=SentryConfigMetaclass):
         self.__read_config()
 
     def __read_config(self):
-        pass
+        print("Read Config")
 
     def __flush_config(self):
-        pass
+        print("Flush Config")
 
