@@ -29,6 +29,8 @@ if __name__ == '__main__':
 	server_config = IRCConfig()
 	server_config.start(getcwd().strip("bin"), "crow.ini")
 
+
+
 	#config_output = server_config_parser.read_config()
 
 	#if config_output is not None:
