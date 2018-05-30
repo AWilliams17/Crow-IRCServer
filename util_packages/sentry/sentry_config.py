@@ -15,7 +15,7 @@ class SentryOption:
 
         self.default = default
         self.criteria = criteria
-        self.criteria_error = criteria_desc
+        self.criteria_desc = criteria_desc
 
 
 class SentrySectionMetaclass(type):
@@ -37,25 +37,25 @@ class SentrySection(metaclass=SentrySectionMetaclass):
         self.section_name = None  # automatically set
 
     def set_option(self, option_name, value):
-        if hasattr(self, option_name):
-            option = getattr(self, option_name)
-            if option.criteria is not None:
-                for validator in option.criteria:
-                    if not validator(value):
-                        raise CriteriaNotMetError(option.criteria_desc)
-            setattr(self, option_name, value)
-        raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
+        if not hasattr(self, option_name):
+            raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
+        option = getattr(self, option_name)
+        if isinstance(option, SentryOption) and option.criteria is not None:
+            for validator in option.criteria:
+                if not validator(value):
+                    raise CriteriaNotMetError(option.criteria_desc)
+        setattr(self, option_name, value)
 
     def get_option(self, option_name):
-        if hasattr(self, option_name):
-            option = getattr(self, option_name)
-            option_set = type(option) is SentryOption
-            if option_set:
-                return option
-            if option.default is not None:
-                return option.default
-            raise MissingOptionError(self.section_name, option_name)
-        raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
+        if not hasattr(self, option_name):
+            raise KeyError("Option {} was not found in the section class {}.".format(option_name, self.section_name))
+        option = getattr(self, option_name)
+        option_already_set = isinstance(option, SentryOption)
+        if option_already_set:
+            return option
+        if option.default is not None:
+            return option.default
+        raise MissingOptionError(self.section_name, option_name)
 
 
 class SentryConfig:
@@ -75,7 +75,9 @@ class SentryConfig:
             self._output.append("No configuration file was found. A new one will be created with default values.")
             self._flush_config()  # create a new config
 
-        self._read_config()
+        self._set_defaults()
+        #self._flush_config()
+        #self._read_config()
 
     def _read_config(self):
         self._config.read(self._ini_full_path)
@@ -94,4 +96,16 @@ class SentryConfig:
                 option.set_option(config_option_val)
 
     def _flush_config(self):
-        print("Flush Config")
+        with open(self._ini_full_path, "w") as ini_file:
+            for section_name, section_object in self._sections.items():
+                current_section = section_object
+                current_options = current_section.section_options
+                if not self._config.has_section(section_name):
+                    self._config.add_section(section_name)
+
+    def _set_defaults(self):
+        for section_name, section_object in self._sections.items():
+            current_section = section_object
+            current_options = current_section.section_options
+            for option in current_options:
+                current_section.set_option(current_section, option.option_name, option.default)
