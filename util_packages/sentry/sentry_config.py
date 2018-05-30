@@ -12,7 +12,7 @@ class _SentrySectionMetaclass(type):
             obj.option_name = name
             section_options.append(obj)
 
-        cls._section_options = section_options
+        cls.section_options = section_options
 
         super().__init__(name, bases, d)
 
@@ -27,7 +27,12 @@ class _SentryConfigMetaclass(type):
                 obj.section_name = name
                 sections[name] = obj
 
-        cls._sections = sections
+        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
+            if obj is not cls:
+                for name2, obj2 in getmembers(obj, lambda x: type(x) is type(SentryOption)):
+                    print(obj2)
+
+        cls.sections = sections
 
         super().__init__(name, bases, d)
 
@@ -86,21 +91,21 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
         self._config.read(self._ini_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
-        for section_name, section in self._sections.items():
+        for section_name, section in self.sections.items():
             if section_name not in config_sections:
                 raise MissingSectionError(self.__class__.__name__, section_name)
             config_options = dict(config_sections[section_name])
 
-            for option in section.config_options:
-                if option.option_name not in config_options:
+            for option in section.section_options:
+                if option.option_name.lower() not in config_options:
                     raise MissingOptionError(section_name, option.option_name)
 
-                config_option_val = config_options[option.option_name]
-                option.set_option(config_option_val)
+                config_option_val = config_options[option.option_name.lower()]
+                section.set_option(section, option.option_name, config_option_val)
 
     def flush_config(self):
         with open(self._ini_path, "w") as ini_file:
-            for section_name, section in self._sections.items():
+            for section_name, section in self.sections.items():
                 if not self._config.has_section(section_name):
                     self._config.add_section(section_name)
 
