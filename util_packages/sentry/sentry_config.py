@@ -1,7 +1,6 @@
 from configparser import ConfigParser
 from .sentry_exceptions import *
 from inspect import getmembers
-from os import path
 
 
 class SentryOption:
