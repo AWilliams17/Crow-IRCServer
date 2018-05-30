@@ -84,13 +84,13 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
 
         for section_name, section_object in self._sections.items():
             if section_name not in config_sections:
-                pass
+                raise MissingSectionError(self.__class__.__name__, section_name)
             config_options = dict(config_sections[section_name])
             current_section = section_object
             current_options = current_section.section_options
             for option in current_options:
                 if option.option_name not in config_options:
-                    pass
+                    raise MissingOptionError(section_name, option.option_name)
                 config_option_val = config_options[option.option_name]
                 option.set_option(config_option_val)
 

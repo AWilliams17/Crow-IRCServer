@@ -1,7 +1,13 @@
 #  is this bad practice?
+class MissingSectionError(Exception):
+    def __init__(self, config_class, section):
+        message = "The configuration class '{}' does not have the section class '{}'.".format(config_class, section)
+        super().__init__(message)
+
+
 class MissingOptionError(Exception):
     def __init__(self, section, option):
-        message = "Section class {} has no option named {}".format(section, option)
+        message = "Section class '{}' has no option named '{}'".format(section, option)
         super().__init__(message)
 
 
@@ -19,6 +25,5 @@ class CriteriaNotMetError(Exception):
 
 class NoDefaultGivenError(Exception):
     def __init__(self, section, option):
-        message = "The option {} in section class {} has not been set nor does it have a default value.".format(section, option)
+        message = "Option '{}' in section class '{}' has not been set and does not have a default value.".format(section, option)
         super().__init__(message)
-
