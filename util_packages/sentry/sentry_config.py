@@ -18,7 +18,7 @@ class SentryOption:
         self.criteria_desc = criteria_desc
 
 
-class SentrySectionMetaclass(type):
+class _SentrySectionMetaclass(type):
     def __init__(cls, name, bases, d):
 
         section_options = []
@@ -27,12 +27,12 @@ class SentrySectionMetaclass(type):
             obj.option_name = name
             section_options.append(obj)
 
-        cls.section_options = section_options
+        cls._section_options = section_options
 
         super().__init__(name, bases, d)
 
 
-class SentrySection(metaclass=SentrySectionMetaclass):
+class SentrySection(metaclass=_SentrySectionMetaclass):
     def __init__(self):
         self.section_name = None  # automatically set
 
@@ -58,14 +58,29 @@ class SentrySection(metaclass=SentrySectionMetaclass):
         raise MissingOptionError(self.section_name, option_name)
 
 
-class SentryConfig:
-    _ini_full_path = None
-    _output = []
-    _sections = {}
-    _config = ConfigParser()
+class _SentryConfigMetaclass(type):
+    def __init__(cls, name, bases, d):
 
-    def start(self, ini_folder, ini_name):
+        sections = {}
+
+        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
+            if obj is not cls:
+                obj.section_name = name
+                sections[name] = obj
+
+        cls._sections = sections
+
+        super().__init__(name, bases, d)
+
+
+class SentryConfig(metaclass=_SentryConfigMetaclass):
+    def __init__(self, ini_folder, ini_name):
         self._ini_full_path = path.join(ini_folder, ini_name)
+        self._config = ConfigParser()
+
+    _output = []
+
+    def start(self):
         for name, obj in getmembers(self, lambda x: type(x) is type(SentrySection)):
             if obj is not self.__class__:
                 obj.section_name = name
@@ -75,8 +90,7 @@ class SentryConfig:
             self._output.append("No configuration file was found. A new one will be created with default values.")
             self._flush_config()  # create a new config with them
 
-        self._flush_config()
-        #self._read_config()
+        self._read_config()
 
     def _read_config(self):
         self._config.read(self._ini_full_path)
