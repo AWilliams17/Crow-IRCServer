@@ -94,8 +94,8 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                 if not self._config.has_section(section_name):
                     self._config.add_section(section_name)
 
-                for option in section.section_options:
-                    option_value = str(section.get_option(section, option.option_name))
-                    self._config.set(section_name, option.option_name, option_value)
+                for option in section.options:
+                    option_value = str(section.get_option(section, option))
+                    self._config.set(section_name, option, option_value)
 
             self._config.write(ini_file)
