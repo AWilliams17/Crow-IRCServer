@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 from .sentry_exceptions import *
+from .sentry_criteria import SentryCriteria, SentryCriteriaTypeEnforcer
 from inspect import getmembers
-from abc import abstractmethod
 
 
 class _SentryConfigMetaclass(type):
@@ -26,18 +26,6 @@ class _SentryConfigMetaclass(type):
         super().__init__(name, bases, d)
 
 
-class SentryCriteria:
-    @abstractmethod
-    def criteria(self, value):
-        pass
-
-    def __call__(self, option_name, value):
-        result = self.criteria(value)
-        if result is not None:
-            raise CriteriaNotMetError(option_name, result)
-        return True
-
-
 class SentryOption:
     def __init__(self, default=None, criteria=None, description=None):
         if type(criteria) is not list:
@@ -56,7 +44,7 @@ class SentryOption:
 
     def criteria_met(self, value):
         for criteria in self.criteria:
-            criteria(self.name, value)
+            return criteria(self.name, value)
 
     def about(self):
         if self.description is None:
@@ -75,8 +63,9 @@ class SentrySection:
         option = getattr(self, option_name)
 
         if isinstance(option, SentryOption):
-            
-            option.criteria_met(value)
+            converted = option.criteria_met(value)
+            if converted is not None:
+                value = converted
 
         setattr(self, option_name, value)
 
