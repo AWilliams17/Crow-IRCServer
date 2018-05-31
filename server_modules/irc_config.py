@@ -1,5 +1,4 @@
 from util_packages.sentry.sentry_config import *
-from util_packages.sentry.sentry_type_converters import *
 
 
 class IRCConfig(SentryConfig):
@@ -21,4 +20,4 @@ class IRCConfig(SentryConfig):
         MaxUsernameLength = SentryOption(35)
         MaxNicknameLength = SentryOption(35)
         MaxClients = SentryOption(5)
-        Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"}, DictConverter)  # lol
+        Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"})  # lol

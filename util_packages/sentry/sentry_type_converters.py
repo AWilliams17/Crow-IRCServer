@@ -38,7 +38,7 @@ class DictConverter(SentryCriteriaConverter):
         def dict_maker(value):
             if ":" and "," in value:
                 return dict(x.split(":") for x in value.split(','))
-            return None
+            raise ValueError("Bad conversion")
 
         return dict_maker
 
@@ -54,13 +54,10 @@ class ListConverter(SentryCriteriaConverter):
         def list_maker(value):
             if ',' in value:
                 return list(value.split(','))
-            return None
+            raise ValueError("Bad conversion")
 
         return list_maker
 
     @property
     def type_error_message(self):
         return "This option must be a list EG: option = [1, 2, 3]"
-
-
-
