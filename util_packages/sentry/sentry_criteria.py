@@ -14,7 +14,7 @@ class SentryCriteria:
         return True
 
 
-class SentryCriteriaTypeEnforcer:
+class SentryCriteriaConverter:
     @property
     @abstractmethod
     def required_type(self):
