@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from .sentry_exceptions import *
 from inspect import getmembers
+from abc import abstractmethod
 
 
 class _SentryConfigMetaclass(type):
@@ -12,6 +13,7 @@ class _SentryConfigMetaclass(type):
             if section_object is not cls.__class__:
                 section_object.name = section_name
                 section_object.options = {}
+
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
                     option_object.name = option_name
                     section_object.options[option_name] = option_object
@@ -20,6 +22,30 @@ class _SentryConfigMetaclass(type):
         cls.sections = sections
 
         super().__init__(name, bases, d)
+
+
+"""
+Port = SentryOption(6667, PortValidator)
+
+PortValidator will be like a function. It needs to have a thing with the description of the criteria.
+It needs to have a bunch of methods which take the value passed and then runs it through. If any of them
+fail then raise a CriteriaNotMet exception with the criteria description.
+"""
+
+
+class SentryCriteria:
+    @property
+    @abstractmethod
+    def criteria_description(self):
+        pass
+
+    @abstractmethod
+    def criteria(self, value):
+        pass
+
+    def __call__(self, value):
+        if not self.criteria(value):
+            raise CriteriaNotMetError(self.criteria_description)
 
 
 class SentryOption:
