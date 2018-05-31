@@ -21,15 +21,30 @@ class _SentryConfigMetaclass(type):
     def __init__(cls, name, bases, d):
 
         sections = {}
+        """
+        ok so, sections is like this:
+        
+        { section_name: section_object, and section object needs to have a list, section options, which has all
+         the members of type sentry option }
+        """
 
-        for name, obj in getmembers(cls, lambda x: type(x) is type(SentrySection)):
-            if obj is not cls:
-                obj.section_name = name
-                for name2, obj2 in getmembers(obj, lambda x: isinstance(x, SentryOption)):
-                    print("Property {} of section {}".format(name2, name))
-                sections[name] = obj
+        for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
+
+            if section_object is not cls:
+                section_object.name = section_name
+                section_object.options = []
+
+                for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
+                    option_object.name = option_name
+                    section_object.options.append(option_object)
+
+                    # print("Property {} of section {}".format(name2, name))
+                sections[section_name] = section_object
+                # sections[name] = obj
 
         cls.sections = sections
+        for key, value in sections.items():
+            print(value.options)
 
         super().__init__(name, bases, d)
 
