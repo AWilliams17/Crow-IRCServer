@@ -8,7 +8,7 @@ class StringConverter(SentryCriteriaConverter):
 
     @property
     def type_error_message(self):
-        return "This option must be a text."
+        return "This option must be a string."
 
 
 class IntConverter(SentryCriteriaConverter):

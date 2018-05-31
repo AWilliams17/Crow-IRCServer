@@ -32,12 +32,6 @@ if __name__ == '__main__':
 		server_config.flush_config()
 	server_config.read_config()
 
-
-
-
-
-	#config_output = server_config_parser.read_config()
-
 	#if config_output is not None:
 	#	for output in config_output:
 	#		print(output)
