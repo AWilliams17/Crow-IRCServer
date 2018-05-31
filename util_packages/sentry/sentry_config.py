@@ -79,7 +79,7 @@ class SentrySection:
         if isinstance(option, SentryOption):
             if option.default is None:
                 raise NoDefaultGivenError(self.section_name, option_name)
-            self.set_option(option_name, option.default)
+            self.set_option(self, option_name, option.default)
 
     def get_option(self, option_name):
         if not hasattr(self, option_name):

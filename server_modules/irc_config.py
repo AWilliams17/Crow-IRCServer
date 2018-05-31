@@ -9,13 +9,13 @@ class TestOptionNotTest(SentryCriteria):
 
 class TestOptionNotNone(SentryCriteria):
     def criteria(self, value):
-        if value == "None":
-            return "Value must not be none."
+        if value != "None":
+            return "Value must be none."
 
 
 class IRCConfig(SentryConfig):
     class TestSection(SentrySection):
-        TestOption = SentryOption("Default", TestOptionNotNone)
+        TestOption = SentryOption("None", TestOptionNotNone)
 
 """
 class IRCConfig(SentryConfig):
