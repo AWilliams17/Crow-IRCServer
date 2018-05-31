@@ -8,21 +8,16 @@ class _SentryConfigMetaclass(type):
 
         sections = {}
 
-
         for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
-
             if section_object is not cls.__class__:
                 section_object.name = section_name
                 section_object.options = {}
-
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
                     option_object.name = option_name
                     section_object.options[option_name] = option_object
                 sections[section_name] = section_object
 
         cls.sections = sections
-        for key, value in sections.items():
-            print("Section {}'s options are: {}".format(key, value.options.items()))
 
         super().__init__(name, bases, d)
 
@@ -87,11 +82,11 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
             config_options = dict(config_sections[section_name])
 
             for option in section.options:
-                if option.option_name.lower() not in config_options:
-                    raise MissingOptionError(section_name, option.option_name)
+                if option.lower() not in config_options:
+                    raise MissingOptionError(section_name, option)
 
-                config_option_val = config_options[option.option_name.lower()]
-                section.set_option(section, option.option_name, config_option_val)
+                config_option_val = config_options[option.lower()]
+                section.set_option(section, option, config_option_val)
 
     def flush_config(self):
         with open(self._ini_path, "w") as ini_file:
