@@ -3,48 +3,26 @@ from .sentry_exceptions import *
 from inspect import getmembers
 
 
-class _SentrySectionMetaclass(type):
-    def __init__(cls, name, bases, d):
-
-        section_options = []
-
-        for name, obj in getmembers(cls, lambda x: isinstance(x, SentryOption)):
-            obj.option_name = name
-            section_options.append(obj)
-
-        cls.section_options = section_options
-
-        super().__init__(name, bases, d)
-
-
 class _SentryConfigMetaclass(type):
     def __init__(cls, name, bases, d):
 
         sections = {}
-        """
-        ok so, sections is like this:
-        
-        { section_name: section_object, and section object needs to have a list, section options, which has all
-         the members of type sentry option }
-        """
+
 
         for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
 
-            if section_object is not cls:
+            if section_object is not cls.__class__:
                 section_object.name = section_name
-                section_object.options = []
+                section_object.options = {}
 
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
                     option_object.name = option_name
-                    section_object.options.append(option_object)
-
-                    # print("Property {} of section {}".format(name2, name))
+                    section_object.options[option_name] = option_object
                 sections[section_name] = section_object
-                # sections[name] = obj
 
         cls.sections = sections
         for key, value in sections.items():
-            print(value.options)
+            print("Section {}'s options are: {}".format(key, value.options.items()))
 
         super().__init__(name, bases, d)
 
@@ -63,7 +41,7 @@ class SentryOption:
         self.criteria_desc = criteria_desc
 
 
-class SentrySection(metaclass=_SentrySectionMetaclass):
+class SentrySection:
     def __init__(self):
         self.section_name = None  # automatically set
 
@@ -108,7 +86,7 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                 raise MissingSectionError(self.__class__.__name__, section_name)
             config_options = dict(config_sections[section_name])
 
-            for option in section.section_options:
+            for option in section.options:
                 if option.option_name.lower() not in config_options:
                     raise MissingOptionError(section_name, option.option_name)
 
