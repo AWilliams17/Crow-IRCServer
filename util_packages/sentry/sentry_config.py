@@ -24,15 +24,6 @@ class _SentryConfigMetaclass(type):
         super().__init__(name, bases, d)
 
 
-"""
-Port = SentryOption(6667, PortValidator)
-
-PortValidator will be like a function. It needs to have a thing with the description of the criteria.
-It needs to have a bunch of methods which take the value passed and then runs it through. If any of them
-fail then raise a CriteriaNotMet exception with the criteria description.
-"""
-
-
 class SentryCriteria:
     @abstractmethod
     def criteria(self, value):
@@ -58,6 +49,15 @@ class SentryOption:
         self.criteria = criteria
         self.description = description
 
+    def criteria_met(self, value):
+        for criteria in self.criteria:
+            criteria(value)
+
+    def about(self):
+        if self.description is None:
+            return "No description for this option exists."
+        return self.description
+
 
 class SentrySection:
     def __init__(self):
@@ -69,11 +69,17 @@ class SentrySection:
 
         option = getattr(self, option_name)
 
-        if isinstance(option, SentryOption) and option.criteria is not None:
-            for criteria in option.criteria:
-                criteria(value)
+        if isinstance(option, SentryOption):
+            option.criteria_met(value)
 
         setattr(self, option_name, value)
+
+    def set_default(self, option_name):
+        option = getattr(self, option_name)
+        if isinstance(option, SentryOption):
+            if option.default is None:
+                raise NoDefaultGivenError(self.section_name, option_name)
+            self.set_option(option_name, option.default)
 
     def get_option(self, option_name):
         if not hasattr(self, option_name):
@@ -94,7 +100,7 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
         self._ini_path = ini_path
         self._config = ConfigParser()
 
-    def read_config(self):
+    def read_config(self, set_default_on_fail=False):
         self._config.read(self._ini_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
@@ -108,7 +114,12 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                     raise MissingOptionError(section_name, option)
 
                 config_option_val = config_options[option.lower()]
-                section.set_option(section, option, config_option_val)
+                try:
+                    section.set_option(section, option, config_option_val)
+                except CriteriaNotMetError:
+                    if not set_default_on_fail:
+                        raise
+                    section.set_default(section, option)
 
     def flush_config(self):
         with open(self._ini_path, "w") as ini_file:
