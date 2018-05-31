@@ -1,19 +1,27 @@
 from util_packages.sentry.sentry_config import *
 
 
-class ValidatorTest(SentryCriteria):
+class TestOptionNotTest(SentryCriteria):
+    def criteria(self, value):
+        if value == "Test":
+            return "Value must not be test."
+
+
+class TestOptionNotNone(SentryCriteria):
+    def criteria(self, value):
+        if value == "None":
+            return "Value must not be none."
+
+
+class TestOptionISTest(SentryCriteria):
     def criteria(self, value):
         if value != "Test":
-            return False
-
-    @property
-    def criteria_description(self):
-        return "Not valid."
+            return "Value MUST be test!"
 
 
 class IRCConfig(SentryConfig):
     class TestSection(SentrySection):
-        TestOption = SentryOption("Default", ValidatorTest())
+        TestOption = SentryOption("Default", TestOptionISTest)
 
 """
 class IRCConfig(SentryConfig):

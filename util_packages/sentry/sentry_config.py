@@ -34,34 +34,29 @@ fail then raise a CriteriaNotMet exception with the criteria description.
 
 
 class SentryCriteria:
-    @property
-    @abstractmethod
-    def criteria_description(self):
-        pass
-
     @abstractmethod
     def criteria(self, value):
         pass
 
     def __call__(self, value):
-        if not self.criteria(value):
-            raise CriteriaNotMetError(self.criteria_description)
+        result = self.criteria(value)
+        if result is not None:
+            raise CriteriaNotMetError(result)
         return True
 
 
 class SentryOption:
     def __init__(self, default=None, criteria=None, description=None):
+        if type(criteria) is not list and criteria is not None:
+            criteria = [criteria]
 
-        # if type(criteria) is not list and criteria is not None:
-        #    criteria = [].append(criteria)
-
-        # if criteria is not None and criteria_desc is None:
-        #    raise CriteriaDescriptionError
+        for criteria_obj in criteria:
+            if not isinstance(criteria_obj, SentryCriteria):
+                criteria[criteria.index(criteria_obj)] = criteria_obj()
 
         self.default = default
         self.criteria = criteria
         self.description = description
-        #  self.criteria_desc = criteria_desc
 
 
 class SentrySection:
@@ -73,14 +68,10 @@ class SentrySection:
             raise MissingOptionError(self.section_name, option_name)
 
         option = getattr(self, option_name)
+
         if isinstance(option, SentryOption) and option.criteria is not None:
-            option.criteria(value)
-            """
-            for validator in option.criteria:
-                if not validator(value) and option.criteria_desc is not None:
-                    raise CriteriaNotMetError(option.criteria_desc)
-                raise CriteriaDescriptionError(option_name)
-            """
+            for criteria in option.criteria:
+                criteria(value)
 
         setattr(self, option_name, value)
 
