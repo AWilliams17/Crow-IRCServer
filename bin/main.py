@@ -31,6 +31,7 @@ if __name__ == '__main__':
 	if not path.exists(ini_path):
 		server_config.flush_config()
 	server_config.read_config()
+	print(server_config.ServerSettings.Port)
 
 
 

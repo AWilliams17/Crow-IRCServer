@@ -1,9 +1,15 @@
 from util_packages.sentry.sentry_config import *
 
 
+class Not6667(SentryCriteria):
+    def criteria(self, value):
+        if value == 6667:
+            return "This value not be 6667."
+
+
 class IRCConfig(SentryConfig):
     class ServerSettings(SentrySection):
-        Port = SentryOption(6667)
+        Port = SentryOption(6667, Not6667)
         Interface = SentryOption("127.0.0.1")
         PingInterval = SentryOption(3)
         ServerName = SentryOption("Crow IRC")
