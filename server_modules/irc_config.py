@@ -1,10 +1,10 @@
 from util_packages.sentry.sentry_config import *
-from util_packages.sentry.sentry_type_converters import IntConverter
+from util_packages.sentry.sentry_type_converters import *
 
 
 class IRCConfig(SentryConfig):
     class ServerSettings(SentrySection):
-        Port = SentryOption(6667, IntConverter)
+        Port = SentryOption(6667)
         Interface = SentryOption("127.0.0.1")
         PingInterval = SentryOption(3)
         ServerName = SentryOption("Crow IRC")
@@ -21,4 +21,4 @@ class IRCConfig(SentryConfig):
         MaxUsernameLength = SentryOption(35)
         MaxNicknameLength = SentryOption(35)
         MaxClients = SentryOption(5)
-        Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"})  # lol
+        Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"}, DictConverter)  # lol
