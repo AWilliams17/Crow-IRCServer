@@ -1,7 +1,7 @@
 #  is this bad practice?
 class MissingSectionError(Exception):
     def __init__(self, config_class, section):
-        message = "The configuration class '{}' does not have the section class '{}'.".format(config_class, section)
+        message = "The configuration file for class '{}' does not have the section class '{}'.".format(config_class, section)
         super().__init__(message)
 
 
@@ -18,8 +18,8 @@ class CriteriaDescriptionError(Exception):
 
 
 class CriteriaNotMetError(Exception):
-    def __init__(self, message):
-        self.message = message
+    def __init__(self, option, message):
+        message = "Criteria not met for option {}. Reason: {}".format(option, message)
         super().__init__(message)
 
 

@@ -1,23 +1,6 @@
 from util_packages.sentry.sentry_config import *
 
 
-class TestOptionNotTest(SentryCriteria):
-    def criteria(self, value):
-        if value == "Test":
-            return "Value must not be test."
-
-
-class TestOptionNotNone(SentryCriteria):
-    def criteria(self, value):
-        if value != "None":
-            return "Value must be none."
-
-
-class IRCConfig(SentryConfig):
-    class TestSection(SentrySection):
-        TestOption = SentryOption("None", TestOptionNotNone)
-
-"""
 class IRCConfig(SentryConfig):
     class ServerSettings(SentrySection):
         Port = SentryOption(6667)
@@ -38,4 +21,3 @@ class IRCConfig(SentryConfig):
         MaxNicknameLength = SentryOption(35)
         MaxClients = SentryOption(5)
         Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"})  # lol
-"""

@@ -29,17 +29,20 @@ class SentryCriteria:
     def criteria(self, value):
         pass
 
-    def __call__(self, value):
+    def __call__(self, option_name, value):
         result = self.criteria(value)
         if result is not None:
-            raise CriteriaNotMetError(result)
+            raise CriteriaNotMetError(option_name, result)
         return True
 
 
 class SentryOption:
     def __init__(self, default=None, criteria=None, description=None):
-        if type(criteria) is not list and criteria is not None:
-            criteria = [criteria]
+        if type(criteria) is not list:
+            if criteria is None:
+                criteria = []
+            else:
+                criteria = [criteria]
 
         for criteria_obj in criteria:
             if not isinstance(criteria_obj, SentryCriteria):
@@ -51,7 +54,7 @@ class SentryOption:
 
     def criteria_met(self, value):
         for criteria in self.criteria:
-            criteria(value)
+            criteria(self.name, value)
 
     def about(self):
         if self.description is None:
