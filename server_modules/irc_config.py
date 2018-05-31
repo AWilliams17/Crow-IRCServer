@@ -2,19 +2,18 @@ from util_packages.sentry.sentry_config import *
 
 
 class ValidatorTest(SentryCriteria):
+    def criteria(self, value):
+        if value != "Test":
+            return False
+
     @property
     def criteria_description(self):
         return "Not valid."
 
-    def criteria(self, value):
-        if value != "Valid":
-            return False
-        return True
-
 
 class IRCConfig(SentryConfig):
     class TestSection(SentrySection):
-        TestOption = SentryOption("Default", ValidatorTest)
+        TestOption = SentryOption("Default", ValidatorTest())
 
 """
 class IRCConfig(SentryConfig):

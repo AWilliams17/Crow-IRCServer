@@ -46,20 +46,22 @@ class SentryCriteria:
     def __call__(self, value):
         if not self.criteria(value):
             raise CriteriaNotMetError(self.criteria_description)
+        return True
 
 
 class SentryOption:
-    def __init__(self, default=None, criteria=None, criteria_desc=None):
+    def __init__(self, default=None, criteria=None, description=None):
 
-        if type(criteria) is not list and criteria is not None:
-            criteria = [].append(criteria)
+        # if type(criteria) is not list and criteria is not None:
+        #    criteria = [].append(criteria)
 
-        if criteria is not None and criteria_desc is None:
-            raise CriteriaDescriptionError
+        # if criteria is not None and criteria_desc is None:
+        #    raise CriteriaDescriptionError
 
         self.default = default
         self.criteria = criteria
-        self.criteria_desc = criteria_desc
+        self.description = description
+        #  self.criteria_desc = criteria_desc
 
 
 class SentrySection:
@@ -72,10 +74,13 @@ class SentrySection:
 
         option = getattr(self, option_name)
         if isinstance(option, SentryOption) and option.criteria is not None:
+            option.criteria(value)
+            """
             for validator in option.criteria:
                 if not validator(value) and option.criteria_desc is not None:
                     raise CriteriaNotMetError(option.criteria_desc)
                 raise CriteriaDescriptionError(option_name)
+            """
 
         setattr(self, option_name, value)
 
