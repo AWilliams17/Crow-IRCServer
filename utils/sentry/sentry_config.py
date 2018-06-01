@@ -32,7 +32,8 @@ class _SentryConfigMetaclass(type):
 class SentryOption:
     """ Represent the option in the section. Default is the default value to fall back on in the event of failing to pass
      any criteria (if specified to do this), criteria can be either a list of SentryCriteria/SentryConverter instances
-     or a single SentryCriteria/SentryConverter instance. they automatically are instantiated if needed. """
+     or a single SentryCriteria/SentryConverter instance. they automatically are instantiated if needed. Description
+     can optionally describe what an option does/is for."""
     def __init__(self, default=None, criteria=None, description=None):
         self.name = None
 

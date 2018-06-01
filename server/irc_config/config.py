@@ -1,8 +1,10 @@
 from utils.sentry.sentry_config import *
 from utils.sentry.sentry_type_converters import *
+from server.irc_config.validators import *
 
 
 class IRCConfig(SentryConfig):
+    """ Represents the server configuration file. """
     class ServerSettings(SentrySection):
         Port = SentryOption(6667, IntConverter)
         Interface = SentryOption("127.0.0.1")
@@ -18,7 +20,7 @@ class IRCConfig(SentryConfig):
         ChannelUltimatum = SentryOption(7, IntConverter)
 
     class UserSettings(SentrySection):
-        MaxUsernameLength = SentryOption(35, IntConverter)
-        MaxNicknameLength = SentryOption(35, IntConverter)
-        MaxClients = SentryOption(5, IntConverter)
+        MaxUsernameLength = SentryOption(35, [IntConverter, MaxUsernameLengthCriteria])
+        MaxNicknameLength = SentryOption(35, [IntConverter, MaxNicknameLengthCriteria])
+        MaxClients = SentryOption(5, [IntConverter, MaxClientsCriteria])
         Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"}, DictConverter)  # lol

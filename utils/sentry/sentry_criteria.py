@@ -3,7 +3,9 @@ from .sentry_exceptions import CriteriaNotMetError
 
 
 class SentryCriteria:
-    """ In order for a config value to be properly set, it must pass any and all checks defined in criteria. """
+    """ In order for a config value to be properly set, it must pass any and all checks defined in criteria by way of
+    if statements. The return value only should be a string which explains why the check failed. Otherwise, don't
+    return anything. """
     @abstractmethod
     def criteria(self, value):
         pass
