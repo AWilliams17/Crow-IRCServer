@@ -1,13 +1,21 @@
 from configparser import ConfigParser
 from .sentry_exceptions import *
-from .sentry_criteria import SentryCriteria
+from .sentry_criteria import SentryCriteria, SentryCriteriaConverter
 from inspect import getmembers
 
 
 class _SentryConfigMetaclass(type):
-    """  """
+    """ This metaclass does the following:
+    1: For every class in the config class derived from SentrySection, create a dict of options containing the options
+    for that section. Set the name attribute of the SentrySection to be the name of the class.
+    2: For all the options in the section, set the name attribute on it to be the name of the member.
+    3: Now map all this into the new section dict of the config class.
+    so for dicts:
+        config_instance._sections = {section_name: section_instance }
+        section_instance.options = { option_name: option_instance }
+    """
     def __init__(cls, name, bases, d):
-        _sections = {}
+        sections = {}
 
         for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
             if section_object is not cls.__class__:  # so it doesn't pick up the metaclass itself
@@ -19,9 +27,9 @@ class _SentryConfigMetaclass(type):
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
                     setattr(option_object, "name", option_name)
                     section_object.options[option_name] = option_object
-                _sections[section_name] = section_object
+                sections[section_name] = section_object
 
-        setattr(cls, "_sections", _sections)
+        setattr(cls, "_sections", sections)
 
         super().__init__(name, bases, d)
 
@@ -29,11 +37,13 @@ class _SentryConfigMetaclass(type):
 class SentryOption:
     def __init__(self, default=None, criteria=None, description=None):
         """
-
+        Represents an option in the section of the config.
         Args:
-            default:
-            criteria:
-            description:
+            default (str):
+            criteria ():
+            description (str):
+        Attributes:
+            self.name:
         """
         self.name = None
 
