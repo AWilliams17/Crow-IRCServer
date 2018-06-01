@@ -5,19 +5,22 @@ from inspect import getmembers
 
 
 class _SentryConfigMetaclass(type):
+    """ Give all section classes in the config class a name based off their class name; Give all options a name based off
+     their name as well - map the section to the SentryConfig instance's sections dict + mapg all options into a dict
+      inside the section itself."""
     def __init__(cls, name, bases, d):
 
         sections = {}
 
         for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
-            if section_object is not cls.__class__:
+            if section_object is not cls.__class__:  # so it doesn't pick up the metaclass itself
                 section_object.name = section_name
                 section_object.options = {}
                 section_object = section_object()
                 setattr(cls, section_name, section_object)
 
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
-                    option_object.name = option_name
+                    setattr(option_object, "name", option_name)
                     section_object.options[option_name] = option_object
                 sections[section_name] = section_object
 
@@ -27,7 +30,12 @@ class _SentryConfigMetaclass(type):
 
 
 class SentryOption:
+    """ Represent the option in the section. Default is the default value to fall back on in the event of failing to pass
+     any criteria (if specified to do this), criteria can be either a list of SentryCriteria/SentryConverter instances
+     or a single SentryCriteria/SentryConverter instance. they automatically are instantiated if needed. """
     def __init__(self, default=None, criteria=None, description=None):
+        self.name = None
+
         if type(criteria) is not list:
             if criteria is None:
                 criteria = []
@@ -53,6 +61,7 @@ class SentryOption:
 
 
 class SentrySection:
+    """ Represent the section in the config. Contains the methods for manipulating the options in the section. """
     def __init__(self):
         self.name = None  # automatically set
 
@@ -93,6 +102,8 @@ class SentrySection:
 
 
 class SentryConfig(metaclass=_SentryConfigMetaclass):
+    """ The actual config class. Represents the configuration file. 
+    Exposes methods for manipulating the config object + the file itself. """
     def __init__(self, ini_path):
         self._ini_path = ini_path
         self._config = ConfigParser()
