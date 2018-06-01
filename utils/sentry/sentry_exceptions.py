@@ -1,4 +1,3 @@
-#  is this bad practice?
 class MissingSectionError(Exception):
     def __init__(self, config_class, section):
         message = "The configuration file for class '{}' does not have the section class '{}'.".format(config_class, section)

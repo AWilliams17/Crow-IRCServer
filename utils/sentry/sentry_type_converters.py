@@ -1,5 +1,8 @@
 from .sentry_criteria import SentryCriteriaConverter
 
+""" Predefined converter objects. These will (attempt to) convert any values before they get set to the config object's
+ appropriate attribute. """
+
 
 class StringConverter(SentryCriteriaConverter):
     @property

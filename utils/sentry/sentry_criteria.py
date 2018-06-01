@@ -3,6 +3,7 @@ from .sentry_exceptions import CriteriaNotMetError
 
 
 class SentryCriteria:
+    """ In order for a config value to be properly set, it must pass any and all checks defined in criteria. """
     @abstractmethod
     def criteria(self, value):
         pass
@@ -15,6 +16,7 @@ class SentryCriteria:
 
 
 class SentryCriteriaConverter:
+    """ For handling conversions of a value before the attribute in the config section is set. """
     @property
     @abstractmethod
     def required_type(self):
