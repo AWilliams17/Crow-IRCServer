@@ -1,5 +1,11 @@
-#  yep I am doing this I guess.
-#  why am I doing this? because I don't want it all in config.py :#
+"""
+This module contains the descriptions for each of the config options in config.py. I put them here since
+I did not want them bloating up the main config module.
+
+All of this is just copied from here https://github.com/AWilliams17/Crow-IRCServer/blob/master/INI_DOCS.md
+
+Might try to do some fancy stuff and dynamically get these all from that file, but for now this will do.
+"""
 
 
 # ServerSettings option descriptions

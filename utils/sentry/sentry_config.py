@@ -5,11 +5,8 @@ from inspect import getmembers
 
 
 class _SentryConfigMetaclass(type):
-    """ Give all section classes in the config class a name based off their class name; Give all options a name based off
-     their name as well - map the section to the SentryConfig instance's sections dict + mapg all options into a dict
-      inside the section itself."""
+    """  """
     def __init__(cls, name, bases, d):
-
         _sections = {}
 
         for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
@@ -30,11 +27,14 @@ class _SentryConfigMetaclass(type):
 
 
 class SentryOption:
-    """ Represent the option in the section. Default is the default value to fall back on in the event of failing to pass
-     any criteria (if specified to do this), criteria can be either a list of SentryCriteria/SentryConverter instances
-     or a single SentryCriteria/SentryConverter instance. they automatically are instantiated if needed. Description
-     can optionally describe what an option does/is for."""
     def __init__(self, default=None, criteria=None, description=None):
+        """
+
+        Args:
+            default:
+            criteria:
+            description:
+        """
         self.name = None
 
         if type(criteria) is not list:
@@ -103,9 +103,15 @@ class SentrySection:
 
 
 class SentryConfig(metaclass=_SentryConfigMetaclass):
-    """ The actual config class. Represents the configuration file. 
-    Exposes methods for manipulating the config object + the file itself. """
     def __init__(self, ini_path):
+        """
+
+        Args:
+            ini_path:
+        Attributes:
+            self._config:
+            self._sections:
+        """
         self._ini_path = ini_path
         self._config = ConfigParser()
         self._sections = self._sections  # hide the unresolved attribute error. unnecessary but it bothers me.
@@ -132,6 +138,7 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                     section.set_default(option)
 
     def flush_config(self):
+        """ """
         with open(self._ini_path, "w") as ini_file:
             for section_name, section in self._sections.items():
                 if not self._config.has_section(section_name):

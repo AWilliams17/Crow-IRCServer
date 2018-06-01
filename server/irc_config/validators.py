@@ -1,6 +1,8 @@
 from utils.sentry.sentry_criteria import SentryCriteria
 
-# more to be decided (maybe)
+"""
+This module contains the criteria checks for options in the config file.
+"""
 
 
 class MaxUsernameLengthCriteria(SentryCriteria):
