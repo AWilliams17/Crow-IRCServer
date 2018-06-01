@@ -1,5 +1,7 @@
 from utils.sentry.sentry_criteria import SentryCriteria
 
+# more to be decided (maybe)
+
 
 class MaxUsernameLengthCriteria(SentryCriteria):
     def criteria(self, value):

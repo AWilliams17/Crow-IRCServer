@@ -10,7 +10,7 @@ class _SentryConfigMetaclass(type):
       inside the section itself."""
     def __init__(cls, name, bases, d):
 
-        sections = {}
+        _sections = {}
 
         for section_name, section_object in getmembers(cls, lambda x: type(x) is type(SentrySection)):
             if section_object is not cls.__class__:  # so it doesn't pick up the metaclass itself
@@ -22,9 +22,9 @@ class _SentryConfigMetaclass(type):
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
                     setattr(option_object, "name", option_name)
                     section_object.options[option_name] = option_object
-                sections[section_name] = section_object
+                _sections[section_name] = section_object
 
-        cls.sections = sections
+        setattr(cls, "_sections", _sections)
 
         super().__init__(name, bases, d)
 
@@ -108,12 +108,13 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
     def __init__(self, ini_path):
         self._ini_path = ini_path
         self._config = ConfigParser()
+        self._sections = self._sections  # hide the unresolved attribute error. unnecessary but it bothers me.
 
     def read_config(self, set_default_on_fail=False):
         self._config.read(self._ini_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
-        for section_name, section in self.sections.items():
+        for section_name, section in self._sections.items():
             if section_name not in config_sections:
                 raise MissingSectionError(self.__class__.__name__, section_name)
             config_options = dict(config_sections[section_name])
@@ -132,7 +133,7 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
 
     def flush_config(self):
         with open(self._ini_path, "w") as ini_file:
-            for section_name, section in self.sections.items():
+            for section_name, section in self._sections.items():
                 if not self._config.has_section(section_name):
                     self._config.add_section(section_name)
 
