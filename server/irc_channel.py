@@ -1,4 +1,4 @@
-from util_modules.irc_quitreason_enum import QuitReason
+from utils.irc_quitreason_enum import QuitReason
 from time import time
 
 

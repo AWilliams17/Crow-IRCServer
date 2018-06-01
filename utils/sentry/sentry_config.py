@@ -89,6 +89,8 @@ class SentrySection:
         if option.default is not None:
             return option.default
 
+        raise NoDefaultGivenError(self.name, option_name)
+
 
 class SentryConfig(metaclass=_SentryConfigMetaclass):
     def __init__(self, ini_path):

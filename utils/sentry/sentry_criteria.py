@@ -18,7 +18,7 @@ class SentryCriteriaConverter:
     @property
     @abstractmethod
     def required_type(self):
-        return str
+        return type
 
     @property
     @abstractmethod

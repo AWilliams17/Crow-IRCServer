@@ -1,5 +1,5 @@
 from time import time
-from util_modules.irc_random_nick_generation import generate_random_nick
+from utils.irc_random_nick_generation import generate_random_nick
 
 
 class IRCUser:

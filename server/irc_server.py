@@ -1,9 +1,9 @@
 from twisted.internet.protocol import Factory
-from server_modules.irc_protocol import IRCProtocol
-from server_modules.irc_ratelimiter import RateLimiter
-from server_modules.irc_clientlimiter import ClientLimiter
-from server_modules.irc_ping_manager import PingManager
-from server_modules.irc_channelmanager import ChannelManager
+from server.irc_protocol import IRCProtocol
+from server.irc_ratelimiter import RateLimiter
+from server.irc_clientlimiter import ClientLimiter
+from server.irc_ping_manager import PingManager
+from server.irc_channelmanager import ChannelManager
 from collections import OrderedDict
 
 

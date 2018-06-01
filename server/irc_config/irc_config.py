@@ -1,5 +1,5 @@
-from util_packages.sentry.sentry_config import *
-from util_packages.sentry.sentry_type_converters import *
+from utils.sentry.sentry_config import *
+from utils.sentry.sentry_type_converters import *
 
 
 class IRCConfig(SentryConfig):

@@ -1,4 +1,4 @@
-from server_modules.irc_config import IRCConfig
+from server.irc_config import IRCConfig
 from twisted.internet import reactor, task
 from os import getcwd, path
 
