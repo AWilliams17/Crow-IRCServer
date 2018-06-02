@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from .sentry_exceptions import CriteriaNotMetError
+from .sentry_exceptions import CriteriaNotMetError, CriteriaDescriptionError
 
 
 class SentryCriteria:
@@ -8,13 +8,40 @@ class SentryCriteria:
     return anything. """
     @abstractmethod
     def criteria(self, value):
+        """ etc: return "Criteria was not met" """
         pass
 
+    @property
+    @abstractmethod
+    def required_type(self):
+        return type
+
+    @property
+    @abstractmethod
+    def type_error_message(self):
+        return ""
+
+    def convert(self, option_name, value):
+        try:
+            value = self.required_type(value)
+            return value
+        except ValueError:
+            if self.type_error_message == "":
+                raise CriteriaDescriptionError(option_name)
+            raise CriteriaNotMetError(option_name, self.type_error_message)
+
     def __call__(self, option_name, value):
-        result = self.criteria(value)
-        if result is not None:
-            raise CriteriaNotMetError(option_name, result)
-        return True
+        value_converted = False
+        if self.required_type is not type:
+            value = self.convert(option_name, value)
+            value_converted = True
+
+        failed_criteria_message = self.criteria(value)
+        if failed_criteria_message is not None:
+            raise CriteriaNotMetError(option_name, failed_criteria_message)
+
+        if value_converted:
+            return value
 
 
 class SentryCriteriaConverter:

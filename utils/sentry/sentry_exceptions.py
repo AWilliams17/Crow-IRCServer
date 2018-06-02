@@ -16,6 +16,12 @@ class CriteriaDescriptionError(Exception):
         super().__init__(message)
 
 
+class CriteriaTypeDescriptionError(Exception):
+    def __init__(self, option):
+        message = "{}: an option can not have a required type without having an error message for it.".format(option)
+        super().__init__(message)
+
+
 class CriteriaNotMetError(Exception):
     def __init__(self, option, message):
         message = "Criteria not met for option {}. Reason: {}".format(option, message)

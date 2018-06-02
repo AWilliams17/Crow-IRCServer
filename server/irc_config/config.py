@@ -6,6 +6,8 @@ from server.irc_config.option_descriptions import *
 
 class IRCConfig(SentryConfig):
     """ Represents the server configuration file. """
+    
+"""
     class ServerSettings(SentrySection):
         Port = SentryOption(6667, IntConverter, PortDescription)
         Interface = SentryOption("127.0.0.1", description=InterfaceDescription)
@@ -26,3 +28,4 @@ class IRCConfig(SentryConfig):
         MaxClients = SentryOption(5, [IntConverter, MaxClientsCriteria], MaxClientsDescription)
         Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"}, DictConverter, OperatorsDescription)
         # lol ^
+"""
