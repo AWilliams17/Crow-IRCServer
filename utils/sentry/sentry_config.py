@@ -1,6 +1,6 @@
 from configparser import ConfigParser
 from .sentry_exceptions import *
-from .sentry_criteria import SentryCriteria, SentryCriteriaConverter
+from .sentry_criteria import SentryCriteria
 from inspect import getmembers
 
 

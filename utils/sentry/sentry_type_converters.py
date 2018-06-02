@@ -1,10 +1,10 @@
-from .sentry_criteria import SentryCriteriaConverter
+from .sentry_criteria import SentryCriteria
 
 """ Predefined converter objects. These will (attempt to) convert any values before they get set to the config object's
  appropriate attribute. """
 
 
-class StringConverter(SentryCriteriaConverter):
+class StringConverter(SentryCriteria):
     @property
     def required_type(self):
         return str
@@ -14,7 +14,7 @@ class StringConverter(SentryCriteriaConverter):
         return "This option must be a string."
 
 
-class IntConverter(SentryCriteriaConverter):
+class IntConverter(SentryCriteria):
     @property
     def required_type(self):
         return int
@@ -24,7 +24,7 @@ class IntConverter(SentryCriteriaConverter):
         return "This option must be a number."
 
 
-class BoolConverter(SentryCriteriaConverter):
+class BoolConverter(SentryCriteria):
     @property
     def required_type(self):
         return bool
@@ -34,7 +34,7 @@ class BoolConverter(SentryCriteriaConverter):
         return "This option must be a boolean."
 
 
-class DictConverter(SentryCriteriaConverter):
+class DictConverter(SentryCriteria):
     @property
     def required_type(self):
 
@@ -50,7 +50,7 @@ class DictConverter(SentryCriteriaConverter):
         return "This option must be a dict EG: option = key:value, key2:value"
 
 
-class ListConverter(SentryCriteriaConverter):
+class ListConverter(SentryCriteria):
     @property
     def required_type(self):
 
