@@ -1,5 +1,7 @@
 from server.irc_config import config
+from server.irc_server import ChatServer
 from twisted.internet import reactor, task
+from twisted.internet.endpoints import TCP4ServerEndpoint
 from os import getcwd, path
 
 import twisted.internet.defer
@@ -30,17 +32,17 @@ if __name__ == '__main__':
 	server_config = config.IRCConfig(ini_path)
 	if not path.exists(ini_path):
 		server_config.flush_config()
-	server_config.read_config()
+	config_output = server_config.read_config()
 
-	#if config_output is not None:
-	#	for output in config_output:
-	#		print(output)
+	if config_output is not None:
+		for output in config_output:
+			print(output)
 
-	#server_instance = ChatServer(server_config)
-	#setup_loopingcalls(server_instance, server_config.MaintenanceSettings, server_config.ServerSettings)
+	server_instance = ChatServer(server_config)
+	setup_loopingcalls(server_instance, server_config.MaintenanceSettings, server_config.ServerSettings)
 
-	#endpoint = TCP4ServerEndpoint(
-	#	reactor, port=server_config.ServerSettings.Port, interface=server_config.ServerSettings.Interface
-	#)
-	#endpoint.listen(server_instance)
-	#reactor.run()
+	endpoint = TCP4ServerEndpoint(
+		reactor, port=server_config.ServerSettings.Port, interface=server_config.ServerSettings.Interface
+	)
+	endpoint.listen(server_instance)
+	reactor.run()

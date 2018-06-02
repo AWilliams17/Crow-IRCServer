@@ -36,6 +36,15 @@ class _SentryConfigMetaclass(type):
 
 class SentryOption:
     def __init__(self, default=None, criteria=None, description=None):
+        """
+        Represent an option in the config file.
+        Args:
+            default: The default value to use in the event of a failed validation (if set_to_defaults on fail is True)
+            criteria (ServerCriteria[] | ServerCriteria): A list of criteria objects, or a single criteria object.
+            the object(s) can optionally be instantiated before being passed. If they aren't instantiated, they
+            automatically will be instantiated.
+            description (str): A description which describes what the option is for. Optional.
+        """
         self.name = None
 
         if type(criteria) is not list:
@@ -106,18 +115,26 @@ class SentrySection:
 class SentryConfig(metaclass=_SentryConfigMetaclass):
     def __init__(self, ini_path):
         """
-
+        The actual configuration class representing the configuration file,
+        which wraps all the sections in the configuration file.
         Args:
-            ini_path:
+            ini_path (str): The path to the ini to use.
         Attributes:
-            self._config:
-            self._sections:
+            self._config: A ConfigParser instance. Automatically instantiated.
+            self._sections: A mapping of all the sections and their options in the config class.
+            Automatically instantiated.
         """
         self._ini_path = ini_path
         self._config = ConfigParser()
         self._sections = self._sections  # hide the unresolved attribute error. unnecessary but it bothers me.
 
     def read_config(self, set_default_on_fail=False):
+        """
+        Read all the options in the config file and set the appropriate values in the class.
+        Args:
+            set_default_on_fail: If True, then if an option fails to validate, it will be set to the default. If True
+            and a default value does not exist, then an exception of type NoDefaultGivenError is raised.
+        """
         self._config.read(self._ini_path)
         config_sections = {x: [z for z in self._config.items(x)] for x in self._config.sections()}
 
@@ -139,7 +156,7 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                     section.set_default(option)
 
     def flush_config(self):
-        """ """
+        """ Flush the configuration class into the configuration file. """
         with open(self._ini_path, "w") as ini_file:
             for section_name, section in self._sections.items():
                 if not self._config.has_section(section_name):

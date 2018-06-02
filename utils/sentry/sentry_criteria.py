@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from .sentry_exceptions import CriteriaNotMetError, CriteriaDescriptionError
 
 
