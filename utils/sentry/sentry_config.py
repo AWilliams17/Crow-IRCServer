@@ -36,15 +36,6 @@ class _SentryConfigMetaclass(type):
 
 class SentryOption:
     def __init__(self, default=None, criteria=None, description=None):
-        """
-        Represents an option in the section of the config.
-        Args:
-            default (optional):
-            criteria ():
-            description (str):
-        Attributes:
-            self.name:
-        """
         self.name = None
 
         if type(criteria) is not list:
