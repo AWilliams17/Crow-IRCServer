@@ -1,4 +1,4 @@
-from server.irc_config import config
+from server.irc_config.config import IRCConfig
 from server.irc_server import ChatServer
 from twisted.internet import reactor, task
 from twisted.internet.endpoints import TCP4ServerEndpoint
@@ -29,7 +29,7 @@ def setup_loopingcalls(server, maintenance_settings, server_settings):
 
 if __name__ == '__main__':
 	ini_path = getcwd().strip("bin") + "/crow.ini"
-	server_config = config.IRCConfig(ini_path)
+	server_config = IRCConfig(ini_path)
 	if not path.exists(ini_path):
 		server_config.flush_config()
 	config_output = server_config.read_config()

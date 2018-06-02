@@ -1,4 +1,4 @@
-from sentry import SentryCriteria
+from sentry.sentry_criteria import *
 
 """
 This module contains the criteria checks for options in the config file.
