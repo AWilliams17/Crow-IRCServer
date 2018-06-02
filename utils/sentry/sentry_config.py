@@ -1,3 +1,4 @@
+# ToDo: Add optional output to read_config and flush_config to be returned if requested.
 from configparser import ConfigParser
 from .sentry_exceptions import *
 from .sentry_criteria import SentryCriteria
