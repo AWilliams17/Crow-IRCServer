@@ -20,6 +20,10 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] ISUPPORT
 * [ ] CAP
 * [ ] CTCPs
+* [ ] Server OP alerts
+* [ ] Ban time limits
+* [ ] Server monitoring console/command for ops
+* [ ] NickServ/CrowBot (maybe)
 
 ## Channels:
 * [x] Owners
