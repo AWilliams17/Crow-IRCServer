@@ -39,7 +39,7 @@ class SentryOption:
         """
         Represents an option in the section of the config.
         Args:
-            default (str):
+            default (optional):
             criteria ():
             description (str):
         Attributes:

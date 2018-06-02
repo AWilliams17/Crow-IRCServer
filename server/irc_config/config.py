@@ -4,9 +4,29 @@ from server.irc_config.validators import *
 from server.irc_config.option_descriptions import *
 
 
+class OptionMustBeInt(SentryCriteria):
+    def criteria(self, value):
+        if value != 1:
+            return "Value must be 1!"
+
+    @property
+    def required_type(self):
+        return int
+
+    @property
+    def type_error_message(self):
+        return "This option must be a number."
+
+
 class IRCConfig(SentryConfig):
     """ Represents the server configuration file. """
-    
+    class TestSection(SentrySection):
+        TestOption = SentryOption(
+            default=1,
+            criteria=OptionMustBeInt,
+            description="This is a test option."
+        )
+
 """
     class ServerSettings(SentrySection):
         Port = SentryOption(6667, IntConverter, PortDescription)
