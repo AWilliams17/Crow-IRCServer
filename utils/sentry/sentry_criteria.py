@@ -8,16 +8,13 @@ class SentryCriteria:
     return anything. """
     @abstractmethod
     def criteria(self, value):
-        """ etc: return "Criteria was not met" """
         pass
 
     @property
-    @abstractmethod
     def required_type(self):
         return type
 
     @property
-    @abstractmethod
     def type_error_message(self):
         return ""
 
