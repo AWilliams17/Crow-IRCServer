@@ -1,7 +1,8 @@
 # ToDo: Add optional output to read_config and flush_config to be returned if requested.
+# ToDo: Move Sentry into it's own
+from sentry.sentry_exceptions import *
+from sentry.sentry_criteria import SentryCriteria
 from configparser import ConfigParser
-from .sentry_exceptions import *
-from .sentry_criteria import SentryCriteria
 from inspect import getmembers
 
 

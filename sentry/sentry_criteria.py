@@ -1,4 +1,4 @@
-from .sentry_exceptions import CriteriaNotMetError, CriteriaDescriptionError
+from sentry.sentry_exceptions import CriteriaNotMetError, CriteriaDescriptionError
 
 
 class SentryCriteria:

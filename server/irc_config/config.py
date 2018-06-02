@@ -1,5 +1,5 @@
-from utils.sentry.sentry_config import *
-from utils.sentry.sentry_type_converters import *
+from sentry.sentry_config import *
+from sentry.sentry_type_converters import *
 from server.irc_config.validators import *
 from server.irc_config.option_descriptions import *
 
