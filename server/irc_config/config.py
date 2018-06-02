@@ -7,21 +7,77 @@ from server.irc_config.option_descriptions import *
 class IRCConfig(SentryConfig):
     """ Represents the server configuration file. """
     class ServerSettings(SentrySection):
-        Port = SentryOption(6667)
-        Interface = SentryOption("127.0.0.1")
-        PingInterval = SentryOption(3)
-        ServerName = SentryOption("Crow IRC")
-        ServerDescription = SentryOption("WIP IRC Server implementation w/ Twisted.")
-        ServerWelcome = SentryOption("Welcome to Crow IRC")
+        Port = SentryOption(
+            default=6667,
+            criteria=IntRequired,
+            description=PortDescription
+        )
+        Interface = SentryOption(
+            default="127.0.0.1",
+            criteria=None,
+            description=InterfaceDescription
+        )
+        PingInterval = SentryOption(
+            default=3,
+            criteria=IntRequired,
+            description=PingIntervalDescription
+        )
+        ServerName = SentryOption(
+            default="Crow IRC",
+            criteria=None,
+            description=ServerNameDescription
+        )
+        ServerDescription = SentryOption(
+            default="WIP IRC Server implementation w/ Twisted.",
+            criteria=None,
+            description=ServerDescriptionDescription
+        )
+        ServerWelcome = SentryOption(
+            default="Welcome to Crow IRC",
+            criteria=None,
+            description=ServerWelcomeDescription
+        )
 
     class MaintenanceSettings(SentrySection):
-        RateLimitClearInterval = SentryOption(5)
-        FlushInterval = SentryOption(1)
-        ChannelScanInterval = SentryOption(1)
-        ChannelUltimatum = SentryOption(7)
+        RateLimitClearInterval = SentryOption(
+            default=5,
+            criteria=IntRequired,
+            description=RateLimitClearIntervalDescription
+        )
+        FlushInterval = SentryOption(
+            default=1,
+            criteria=IntRequired,
+            description=FlushIntervalDescription
+        )
+        ChannelScanInterval = SentryOption(
+            default=1,
+            criteria=IntRequired,
+            description=ChannelScanIntervalDescription
+        )
+        ChannelUltimatum = SentryOption(
+            default=7,
+            criteria=IntRequired,
+            description=ChannelUltimatumDescription
+        )
 
     class UserSettings(SentrySection):
-        MaxUsernameLength = SentryOption(35)
-        MaxNicknameLength = SentryOption(35)
-        MaxClients = SentryOption(5)
-        Operators = SentryOption({"Admin": "Password", "Admin2": "Password2"})
+        MaxUsernameLength = SentryOption(
+            default=35,
+            criteria=[IntRequired, MaxUsernameLengthCriteria],
+            description=MaxUsernameLengthDescription
+        )
+        MaxNicknameLength = SentryOption(
+            default=35,
+            criteria=[IntRequired, MaxNicknameLengthCriteria],
+            description=MaxNicknameLengthDescription
+        )
+        MaxClients = SentryOption(
+            default=5,
+            criteria=[IntRequired, MaxClientsCriteria],
+            description=MaxClientsDescription
+        )
+        Operators = SentryOption(
+            default={"Admin": "Password", "Admin2": "Password2"},
+            criteria=None,
+            description=OperatorsDescription
+        )

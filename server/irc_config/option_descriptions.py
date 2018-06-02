@@ -20,7 +20,8 @@ PingIntervalDescription = "How often clients connected to the server should be p
 
 ServerNameDescription = "The name communicated to the client on initial connection."
 
-ServerDescription = "Describes the server. At the moment it is only used in WHOIS replies."
+# ...
+ServerDescriptionDescription = "Describes the server. At the moment it is only used in WHOIS replies."
 
 ServerWelcomeDescription = "The welcome message echoed to the client on initial connection. " \
                 "The client's nickname is appended to the end of it."

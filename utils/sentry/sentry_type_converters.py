@@ -1,7 +1,9 @@
 from .sentry_criteria import SentryCriteria
 
 """ Predefined conversion objects. These will (attempt to) convert any values before they get set to the
-appropriate config object's attribute. """
+appropriate config object's attribute. You can of course optionally just make the conversion happen along with
+ criteria checks in one SentryCriteria instance, but if you have multiple options of the same type, then that may
+ get annoying. """
 
 
 class StringRequired(SentryCriteria):
