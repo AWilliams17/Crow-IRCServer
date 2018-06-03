@@ -82,9 +82,11 @@ class SentrySection:
         option = getattr(self, option_name)
 
         if isinstance(option, SentryOption):
-            converted = option.criteria_met(option_name, value)
-            if converted is not None:
-                value = converted
+            criteria_return = option.criteria_met(option_name, value)
+            if criteria_return is not None:
+                value = criteria_return
+            if criteria_return == "":  # This is a hack to make actual empty options in config have a value of None.
+                value = None            # This should be changed to be not stupid.
         setattr(self, option_name, value)
 
     def set_default(self, option_name):
@@ -164,7 +166,7 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                     try:
                         option_value = str(section.get_option(option))
                     except NoDefaultGivenError:
-                        option_value = "None"
+                        option_value = ""
                     self._config.set(section_name, option, option_value)
 
             self._config.write(ini_file)

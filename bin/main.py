@@ -28,15 +28,13 @@ def setup_loopingcalls(server, maintenance_settings):
 
 
 def create_ssl_endpoint(ssl_settings):
-	"""
 	if server_config.SSLSettings.SSLEnabled:
 		ssl_key = ssl_settings.SSLKeyPath
 		ssl_cert = ssl_settings.SSLCertPath
 		if ssl_key is not None and ssl_cert is not None:
 			ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
 			return ssl_endpoint
-		return "SSL key/SSL cert not set. SSL endpoint not created."
-	"""
+		print("SSL key/SSL cert not set. SSL endpoint not created.")
 
 
 def create_endpoint(ports):
@@ -62,5 +60,6 @@ if __name__ == '__main__':
 	#if isinstance(ssl_endpoint, )
 
 	endpoint = serverFromString(reactor, "tcp:{}:interface={}".format(server_settings.Port, server_settings.Interface))
+	print(type(endpoint))
 	endpoint.listen(server_instance)
 	reactor.run()
