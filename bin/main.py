@@ -32,11 +32,19 @@ def create_ssl_endpoint(ssl_settings):
 		print("SSLEnabled is True - Attempting to construct an SSL Endpoint...")
 		ssl_key = ssl_settings.SSLKeyPath
 		ssl_cert = ssl_settings.SSLCertPath
-		if ssl_key is not None and ssl_cert is not None:
-			ssl_endpoint_out = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
-			print("SSL Endpoint was successfully made using keyfile '{}' and cert file '{}'".format(ssl_key, ssl_cert))
-			return ssl_endpoint_out
-		print("Error making SSL endpoint: SSL key/SSL cert not set.")
+		if ssl_key is None and ssl_cert is None:
+			print("Error constructing SSL Endpoint: No key file or cert file provided.")
+		else:
+			if ssl_key is None:
+				print("SSLKey not provided - assuming key is in cert file.")
+			elif ssl_cert is None:
+				print("SSLCert not provided - assuming certificate is in key file.")
+			else:
+				print("SSLCert and SSLKey both provided - using both.")
+			print("Constructing SSL Endpoint for port 6697.")
+			ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
+			ssl_endpoint.listen(server_instance)
+			print("SSL Endpoint will now listening on port 6697.")
 
 
 def create_endpoint(ports):
@@ -58,11 +66,7 @@ if __name__ == '__main__':
 	server_instance = ChatServer(server_config)
 	setup_loopingcalls(server_instance, server_config.MaintenanceSettings)
 
-	ssl_endpoint = create_ssl_endpoint(server_config.SSLSettings)
-	if ssl_endpoint is not None:
-		ssl_endpoint.listen(server_instance)
-		print("SSL Endpoint will now be listening on port 6697")
-
+	create_ssl_endpoint(server_config.SSLSettings)
 	endpoint = serverFromString(reactor, "tcp:{}:interface={}".format(server_settings.Port, server_settings.Interface))
 	endpoint.listen(server_instance)
 	reactor.run()
