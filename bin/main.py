@@ -36,7 +36,7 @@ def create_ssl_endpoint(ssl_settings):
 			ssl_endpoint_out = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
 			print("SSL Endpoint was successfully made using keyfile '{}' and cert file '{}'".format(ssl_key, ssl_cert))
 			return ssl_endpoint_out
-		print("Error making SSL endpoint: SSL key/SSL cert not set. SSL endpoint was not constructed.")
+		print("Error making SSL endpoint: SSL key/SSL cert not set.")
 
 
 def create_endpoint(ports):

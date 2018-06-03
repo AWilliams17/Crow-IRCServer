@@ -53,3 +53,4 @@ fabric.properties
 *.pyc
 .idea
 *.ini
+*.pem
