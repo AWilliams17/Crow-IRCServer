@@ -37,12 +37,13 @@ def create_ssl_endpoint(ssl_settings):
 		else:
 			if ssl_key is None:
 				print("SSLKey not provided - assuming key is in cert file.")
+				ssl_endpoint = serverFromString(reactor, "ssl:6697:certKey={}".format(ssl_cert))
 			elif ssl_cert is None:
 				print("SSLCert not provided - assuming certificate is in key file.")
+				ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}".format(ssl_key))
 			else:
 				print("SSLCert and SSLKey both provided - using both.")
-			print("Constructing SSL Endpoint for port 6697.")
-			ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
+				ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
 			ssl_endpoint.listen(server_instance)
 			print("SSL Endpoint will now listening on port 6697.")
 
