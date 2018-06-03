@@ -1,5 +1,4 @@
 # ToDo: Add optional output to read_config and flush_config to be returned if requested.
-# ToDo: Move Sentry into it's own
 from sentry.sentry_exceptions import *
 from sentry.sentry_criteria import SentryCriteria
 from configparser import ConfigParser
@@ -45,7 +44,7 @@ class SentryOption:
             criteria (ServerCriteria[] | ServerCriteria): A list of criteria objects, or a single criteria object.
             the object(s) can optionally be instantiated before being passed. If they aren't instantiated, they
             automatically will be instantiated.
-            description (str): A description which describes what the option is for. Optional.
+            description (str, optional): A description which describes what the option is for. Optional.
         """
         self.name = None
 

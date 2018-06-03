@@ -35,6 +35,12 @@ if __name__ == '__main__':
 	config_output = server_config.read_config()
 	server_settings = server_config.ServerSettings  # just for convenience
 
+	"""
+	if server ssl enabled, then create an endpoint for ssl port 6697 using the key and cert paths in the ini,
+	after verifying they are valid.
+	if ssl only enabled, then dont create any other endpoints but ssl ones.
+	"""
+
 	if config_output is not None:  # config output is not yet implemented so this does nothing
 		for output in config_output:
 			print(output)

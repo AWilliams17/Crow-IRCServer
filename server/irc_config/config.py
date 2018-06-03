@@ -1,5 +1,5 @@
 from sentry.sentry_config import *
-from sentry.sentry_type_converters import *
+from sentry.sentry_validators import *
 from server.irc_config.validators import *
 from server.irc_config.option_descriptions import *
 
@@ -86,15 +86,20 @@ class IRCConfig(SentryConfig):
         SSLEnabled = SentryOption(
             default=False,
             criteria=BoolRequired,
-            description=SSLEnabledDescription
+            description=None  # SSLEnabledDescription
+        )
+        SSLOnly = SentryOption(
+            default=False,
+            criteria=BoolRequired,
+            description=None  # SSLOnlyDescription
         )
         SSLKeyPath = SentryOption(
             default=None,
-            criteria=None,
-            description=SSLKeyPathDescription
+            criteria=SSLKeyPathCriteria,
+            description=None  # SSLKeyPathDescription
         )
         SSLCertPath = SentryOption(
             default=None,
-            criteria=None,
-            description=SSLCertPathDescription
+            criteria=SSLCertPathCriteria,
+            description=None  # SSLCertPathDescription
         )

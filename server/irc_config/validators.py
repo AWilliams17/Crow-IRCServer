@@ -1,4 +1,5 @@
 from sentry.sentry_criteria import *
+from os import path
 
 """
 This module contains the criteria checks for options in the config file.
@@ -21,3 +22,21 @@ class MaxClientsCriteria(SentryCriteria):
     def criteria(self, value):
         if value == 0:
             return "The max clients per user can not be 0."
+
+
+# kind of un-necessary to have these both be two separate criteria checks.
+# ToDo: Combine maybe
+class SSLCertPathCriteria(SentryCriteria):
+    def criteria(self, value):
+        if not path.exists(value):
+            return "The cert file was not found at the specified location."
+        if not value.endswith(".pem"):
+            return "The cert file must be a .pem file."
+
+
+class SSLKeyPathCriteria(SentryCriteria):
+    def criteria(self, value):
+        if not path.exists(value):
+            return "The key file was not found at the specified location."
+        if not value.endswith(".pem"):
+            return "The key file must be a .pem file."
