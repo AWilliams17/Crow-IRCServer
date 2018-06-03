@@ -17,7 +17,7 @@ def setup_loopingcalls(server, maintenance_settings):
 	if ratelimitclearinterval != 0:
 		task.LoopingCall(server.maintenance_ratelimiter).start(ratelimitclearinterval)
 
-	if flushinterval != 0:
+	if flushinterval != 0:  # not implemented
 		task.LoopingCall(server.maintenance_flush_server).start(flushinterval)
 
 	if channelscaninterval != 0:

@@ -81,3 +81,20 @@ class IRCConfig(SentryConfig):
             criteria=None,
             description=OperatorsDescription
         )
+
+    class SSLSettings(SentrySection):
+        SSLEnabled = SentryOption(
+            default=False,
+            criteria=BoolRequired,
+            description=SSLEnabledDescription
+        )
+        SSLKeyPath = SentryOption(
+            default=None,
+            criteria=None,
+            description=SSLKeyPathDescription
+        )
+        SSLCertPath = SentryOption(
+            default=None,
+            criteria=None,
+            description=SSLCertPathDescription
+        )

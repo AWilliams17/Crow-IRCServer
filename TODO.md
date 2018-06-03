@@ -24,6 +24,8 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] Ban time limits
 * [ ] Server monitoring console/command for ops
 * [ ] NickServ/CrowBot (maybe)
+* [ ] Store things in a database and not a text file...
+* [ ] Allow multiple plain-text and SSL ports
 
 ## Channels:
 * [x] Owners
