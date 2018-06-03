@@ -2,7 +2,6 @@ from sentry.sentry_config import *
 from sentry.sentry_validators import *
 from server.irc_config.validators import *
 from server.irc_config.option_descriptions import *
-from os import getcwd
 
 
 class IRCConfig(SentryConfig):
