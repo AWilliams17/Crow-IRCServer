@@ -65,3 +65,9 @@ OperatorsDescription = "A list of operator usernames and their associated passwo
                        "Note, if a username is the same as a previous username, " \
                        "that previous username will have it's password value replaced " \
                        "by the subsequent username's associated password."
+
+# SSLSettings option descriptions
+SSLEnabledDescription = ""
+SSLOnlyDescription = ""
+SSLKeyPathDescription = ""
+SSLCertPathDescription = ""

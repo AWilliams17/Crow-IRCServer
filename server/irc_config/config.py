@@ -2,6 +2,7 @@ from sentry.sentry_config import *
 from sentry.sentry_validators import *
 from server.irc_config.validators import *
 from server.irc_config.option_descriptions import *
+from os import getcwd
 
 
 class IRCConfig(SentryConfig):
@@ -86,20 +87,20 @@ class IRCConfig(SentryConfig):
         SSLEnabled = SentryOption(
             default=False,
             criteria=BoolRequired,
-            description=None  # SSLEnabledDescription
+            description=SSLEnabledDescription
         )
         SSLOnly = SentryOption(
             default=False,
             criteria=BoolRequired,
-            description=None  # SSLOnlyDescription
+            description=SSLOnlyDescription
         )
         SSLKeyPath = SentryOption(
             default=None,
-            criteria=SSLKeyPathCriteria,
-            description=None  # SSLKeyPathDescription
+            criteria=[StringRequired, SSLKeyPathCriteria],
+            description=SSLKeyPathDescription
         )
         SSLCertPath = SentryOption(
             default=None,
-            criteria=SSLCertPathCriteria,
-            description=None  # SSLCertPathDescription
+            criteria=[StringRequired, SSLCertPathCriteria],
+            description=SSLCertPathDescription
         )

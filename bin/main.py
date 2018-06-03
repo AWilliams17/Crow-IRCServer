@@ -27,6 +27,22 @@ def setup_loopingcalls(server, maintenance_settings):
 		task.LoopingCall(server.do_pings).start(pinginterval)
 
 
+def create_ssl_endpoint(ssl_settings):
+	"""
+	if server_config.SSLSettings.SSLEnabled:
+		ssl_key = ssl_settings.SSLKeyPath
+		ssl_cert = ssl_settings.SSLCertPath
+		if ssl_key is not None and ssl_cert is not None:
+			ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
+			return ssl_endpoint
+		return "SSL key/SSL cert not set. SSL endpoint not created."
+	"""
+
+
+def create_endpoint(ports):
+	pass
+
+
 if __name__ == '__main__':
 	ini_path = getcwd().strip("bin") + "/crow.ini"
 	server_config = IRCConfig(ini_path)
@@ -35,18 +51,15 @@ if __name__ == '__main__':
 	config_output = server_config.read_config()
 	server_settings = server_config.ServerSettings  # just for convenience
 
-	"""
-	if server ssl enabled, then create an endpoint for ssl port 6697 using the key and cert paths in the ini,
-	after verifying they are valid.
-	if ssl only enabled, then dont create any other endpoints but ssl ones.
-	"""
-
 	if config_output is not None:  # config output is not yet implemented so this does nothing
 		for output in config_output:
 			print(output)
 
 	server_instance = ChatServer(server_config)
 	setup_loopingcalls(server_instance, server_config.MaintenanceSettings)
+
+	ssl_endpoint = create_ssl_endpoint(server_config.SSLSettings)
+	#if isinstance(ssl_endpoint, )
 
 	endpoint = serverFromString(reactor, "tcp:{}:interface={}".format(server_settings.Port, server_settings.Interface))
 	endpoint.listen(server_instance)

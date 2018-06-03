@@ -1,4 +1,5 @@
 # ToDo: Add optional output to read_config and flush_config to be returned if requested.
+# ToDo: Make it put the sections & options in the order in which they are defined in the config representation class
 from sentry.sentry_exceptions import *
 from sentry.sentry_criteria import SentryCriteria
 from configparser import ConfigParser
@@ -26,11 +27,12 @@ class _SentryConfigMetaclass(type):
                 setattr(cls, section_name, section_object)
 
                 for option_name, option_object in getmembers(section_object, lambda x: isinstance(x, SentryOption)):
-                    setattr(option_object, "name", option_name)
+                    option_object.name = option_name
                     section_object.options[option_name] = option_object
+                    setattr(section_object, option_name, option_object)
                 sections[section_name] = section_object
 
-        setattr(cls, "_sections", sections)
+        cls._sections = sections
 
         super().__init__(name, bases, d)
 
@@ -46,7 +48,6 @@ class SentryOption:
             automatically will be instantiated.
             description (str, optional): A description which describes what the option is for. Optional.
         """
-        self.name = None
 
         if type(criteria) is not list:
             if criteria is None:
@@ -62,9 +63,9 @@ class SentryOption:
         self.criteria = criteria
         self.description = description
 
-    def criteria_met(self, value):
+    def criteria_met(self, option_name, value):
         for criteria in self.criteria:
-            return criteria(self.name, value)
+            return criteria(option_name, value)
 
     def about(self):
         if self.description is None:
@@ -74,9 +75,6 @@ class SentryOption:
 
 class SentrySection:
     """ Represent the section in the config. Contains the methods for manipulating the options in the section. """
-    def __init__(self):
-        self.name = None  # automatically set
-
     def set_option(self, option_name, value):
         if not hasattr(self, option_name):
             raise MissingOptionError(self.name, option_name)
@@ -84,10 +82,9 @@ class SentrySection:
         option = getattr(self, option_name)
 
         if isinstance(option, SentryOption):
-            converted = option.criteria_met(value)
+            converted = option.criteria_met(option_name, value)
             if converted is not None:
                 value = converted
-
         setattr(self, option_name, value)
 
     def set_default(self, option_name):
@@ -164,7 +161,10 @@ class SentryConfig(metaclass=_SentryConfigMetaclass):
                     self._config.add_section(section_name)
 
                 for option in section.options:
-                    option_value = str(section.get_option(option))
+                    try:
+                        option_value = str(section.get_option(option))
+                    except NoDefaultGivenError:
+                        option_value = "None"
                     self._config.set(section_name, option, option_value)
 
             self._config.write(ini_file)
