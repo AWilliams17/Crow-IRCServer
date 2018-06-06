@@ -88,6 +88,11 @@ class IRCConfig(SentryConfig):
             criteria=BoolRequired,
             description=SSLEnabledDescription
         )
+        SSLPort = SentryOption(
+            default=6697,
+            criteria=[ListRequired, IntRequired],
+            description=SSLPortDescription
+        )
         SSLOnly = SentryOption(
             default=False,
             criteria=BoolRequired,
