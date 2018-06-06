@@ -4,13 +4,10 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] Server Bans
 * [ ] Server Kicks
 * [X] TLS
-* [ ] IPV6(?)
-* [ ] TCP6(?)
 * [x] Ping everyone after a certain amount of time and kick those that haven't responded by the next ping
 * [x] Scan and delete/warn inactive channels
 * [ ] Save current server details (channels, banlists, etc)
 * [ ] Load server details previously saved on server restart
-* [ ] Server restart command for Server OPs
 * [ ] Setup.py
 * [ ] Logging
 * [ ] MOTD
@@ -21,7 +18,6 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] CAP
 * [ ] CTCPs
 * [ ] Server OP alerts
-* [ ] Ban time limits
 * [ ] Server monitoring console/command for ops
 * [ ] ^On that note, have a module, irc_console, with neat formatting things for printing to the console.
 * [ ] NickServ/CrowBot (maybe)
@@ -66,6 +62,8 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [x] Unknown Command error
 * [x] Minimum parameter enforcement
 * [x] Rate limits
+* [ ] ACTION
+* [ ] NOTICE
 * [ ] Do all the unimplemented commands in commands.MD
 
 ## MODES
