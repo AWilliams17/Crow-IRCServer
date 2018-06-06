@@ -67,9 +67,10 @@ OperatorsDescription = "A list of operator usernames and their associated passwo
                        "by the subsequent username's associated password."
 
 # SSLSettings option descriptions
-SSLEnabledDescription = ""
+SSLEnabledDescription = "Attempt to use SSL on the given SSL port. Must set the keypath and certpath options."
 SSLPortDescription = "What port to use for SSL. The default port of 6697 should suffice. Other valid SSL ports are " \
                      "7000 and 7070."
-SSLOnlyDescription = ""
-SSLKeyPathDescription = ""
-SSLCertPathDescription = ""
+SSLOnlyDescription = "Only allow for the SSL endpoint to be created. If the SSL endpoint fails to be made, " \
+                     "then the application terminates."
+SSLKeyPathDescription = "Set the path to the SSL .pem key file, this is usually key.pem"
+SSLCertPathDescription = "Set the path to the SSL .pem cert file, this is usually cert.pem"
