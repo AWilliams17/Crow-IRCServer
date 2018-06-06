@@ -68,7 +68,8 @@ OperatorsDescription = "A list of operator usernames and their associated passwo
 
 # SSLSettings option descriptions
 SSLEnabledDescription = ""
-SSLPortDescription = ""
+SSLPortDescription = "What port to use for SSL. The default port of 6697 should suffice. Other valid SSL ports are " \
+                     "7000 and 7070."
 SSLOnlyDescription = ""
 SSLKeyPathDescription = ""
 SSLCertPathDescription = ""
