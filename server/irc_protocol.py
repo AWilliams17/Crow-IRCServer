@@ -1,3 +1,4 @@
+# ToDo: Seperate commands into their own modules by category or something, this is getting ridiculous.
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
 from server.irc_channel import IRCChannel, QuitReason
 from server.irc_user import IRCUser
@@ -297,14 +298,36 @@ class IRCProtocol(IRC):
     @rate_limiter("CHOPER", 5)
     def irc_CHOPER(self, prefix, params):
         """ Not implemented - This is for logging in as a channel operator. """
+        """
+        Usage will be:
+            /CHOPER <channel> <account name> <password>
+        """
         pass
 
-    def irc_MAKENEWOP(self, prefix, params):
+    def irc_CHOPERADD(self, prefix, params):
         """ Create a new channel operator account. Only usable by channel owner. """
+        """
+        Usage will be:
+            /CHOPERADD <channel> <account name> <password>
+            if password is not supplied, generate one automatically and pm it to the owner.
+            if nothing is supplied, then generate an account name and a password and pm to the owner.
+        """
         pass
 
-    def irc_COMMANDS(self, prefix, params):
-        """ Not implemented - return a list of commands the server uses """
+    def irc_CHOPERDEL(self, prefix, params):
+        """ Remove a channel operator account. Only usable by channel owner. """
+        """
+        Usage will be:
+            /CHOPERDEL <channel> <account name>
+        """
+        pass
+
+    def irc_CHOPERS(self, prefix, params):
+        """ Show a list of channel operator account details. Only usable by channel owner. """
+        """
+        Usage will be:
+            /CHOPERS <channel>
+        """
         pass
 
     @rate_limiter("CHOWNER", 10)
@@ -321,3 +344,7 @@ class IRCProtocol(IRC):
         if channel_name not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())
         self.sendLine(self.channels[channel_name].login_owner(name, password, user))
+
+    def irc_COMMANDS(self, prefix, params):
+        """ Not implemented - return a list of commands the server uses """
+        pass
