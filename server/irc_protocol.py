@@ -299,6 +299,10 @@ class IRCProtocol(IRC):
         """ Not implemented - This is for logging in as a channel operator. """
         pass
 
+    def irc_MAKENEWOP(self, prefix, params):
+        """ Create a new channel operator account. Only usable by channel owner. """
+        pass
+
     def irc_COMMANDS(self, prefix, params):
         """ Not implemented - return a list of commands the server uses """
         pass
