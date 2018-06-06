@@ -6,6 +6,12 @@ This module contains the criteria checks for options in the config file.
 """
 
 
+class NotRootPort(SentryCriteria):
+    def criteria(self, value):
+        if value in range(0-1025):
+            return "You can not use a port between 0-1024 - these are restricted for root services."
+
+
 class MaxUsernameLengthCriteria(SentryCriteria):
     def criteria(self, value):
         if value <= 5:

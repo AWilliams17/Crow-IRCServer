@@ -68,6 +68,7 @@ OperatorsDescription = "A list of operator usernames and their associated passwo
 
 # SSLSettings option descriptions
 SSLEnabledDescription = ""
+SSLPortDescription = ""
 SSLOnlyDescription = ""
 SSLKeyPathDescription = ""
 SSLCertPathDescription = ""

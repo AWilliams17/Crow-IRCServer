@@ -9,7 +9,7 @@ class IRCConfig(SentryConfig):
     class ServerSettings(SentrySection):
         Port = SentryOption(
             default=6667,
-            criteria=PortCriteria,
+            criteria=NotRootPort,
             description=PortDescription
         )
         Interface = SentryOption(
@@ -88,9 +88,9 @@ class IRCConfig(SentryConfig):
             criteria=BoolRequired,
             description=SSLEnabledDescription
         )
-        SSLPorts = SentryOption(
+        SSLPort = SentryOption(
             default=6697,
-            criteria=SSLPortCriteria,
+            criteria=NotRootPort,
             description=SSLPortDescription
         )
         SSLOnly = SentryOption(

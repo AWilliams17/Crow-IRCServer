@@ -2,7 +2,8 @@ from server.irc_config.config import IRCConfig
 from server.irc_server import ChatServer
 from twisted.internet import reactor, task
 from twisted.internet.endpoints import serverFromString
-from os import getcwd, path
+from os import getcwd, path, getuid
+
 
 import twisted.internet.defer
 twisted.internet.defer.setDebugging(True)
@@ -41,6 +42,9 @@ def create_ssl_endpoint(ssl_settings):
 
 
 if __name__ == '__main__':
+	if getuid() == 0:
+		print("Error: You can not run this application as root.")
+
 	ini_path = getcwd().strip("bin") + "/crow.ini"
 	server_config = IRCConfig(ini_path)
 	if not path.exists(ini_path):
