@@ -26,7 +26,6 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] ^On that note, have a module, irc_console, with neat formatting things for printing to the console.
 * [ ] NickServ/CrowBot (maybe)
 * [ ] Store things in a database and not a text file...
-* [ ] Allow multiple ports
 
 ## Channels:
 * [x] Owners

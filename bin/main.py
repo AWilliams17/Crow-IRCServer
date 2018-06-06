@@ -2,7 +2,8 @@ from server.irc_config.config import IRCConfig
 from server.irc_server import ChatServer
 from twisted.internet import reactor, task
 from twisted.internet.endpoints import serverFromString
-from os import getcwd, path
+from os import getcwd, path, getuid
+
 
 import twisted.internet.defer
 twisted.internet.defer.setDebugging(True)
@@ -30,21 +31,21 @@ def setup_loopingcalls(server, maintenance_settings):
 def create_ssl_endpoint(ssl_settings):
 	if server_config.SSLSettings.SSLEnabled:
 		print("SSLEnabled is True - Attempting to construct an SSL Endpoint...")
+		ssl_port = ssl_settings.SSLPort
 		ssl_key = ssl_settings.SSLKeyPath
 		ssl_cert = ssl_settings.SSLCertPath
 		if ssl_key is None or ssl_cert is None:
 			print("Error constructing SSL Endpoint: Missing key/cert file.")
 		else:
-			ssl_endpoint = serverFromString(reactor, "ssl:6697:privateKey={}:certKey={}".format(ssl_key, ssl_cert))
+			ssl_endpoint = serverFromString(reactor, "ssl:{}:privateKey={}:certKey={}".format(ssl_port, ssl_key, ssl_cert))
 			ssl_endpoint.listen(server_instance)
 			print("SSL Endpoint is now listening on port 6697.")
 
 
-def create_endpoint(ports):
-	pass
-
-
 if __name__ == '__main__':
+	if getuid() == 0:  # Prevent from running as root
+		print("Error: You can not run this application as root.")
+
 	ini_path = getcwd().strip("bin") + "/crow.ini"
 	server_config = IRCConfig(ini_path)
 	if not path.exists(ini_path):
