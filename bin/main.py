@@ -40,10 +40,6 @@ def create_ssl_endpoint(ssl_settings):
 			print("SSL Endpoint is now listening on port 6697.")
 
 
-def create_endpoint(ports):
-	pass
-
-
 if __name__ == '__main__':
 	ini_path = getcwd().strip("bin") + "/crow.ini"
 	server_config = IRCConfig(ini_path)

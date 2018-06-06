@@ -8,9 +8,9 @@ class IRCConfig(SentryConfig):
     """ Represents the server configuration file. """
     class ServerSettings(SentrySection):
         Port = SentryOption(
-            default=[6665, 6666, 6667, 8000, 8001, 8002],
-            criteria=PortsCriteria,
-            description=PortsDescription
+            default=6667,
+            criteria=PortCriteria,
+            description=PortDescription
         )
         Interface = SentryOption(
             default="127.0.0.1",
@@ -89,9 +89,9 @@ class IRCConfig(SentryConfig):
             description=SSLEnabledDescription
         )
         SSLPorts = SentryOption(
-            default=[6697, 7000, 7070],
-            criteria=SSLPortsCriteria,
-            description=SSLPortsDescription
+            default=6697,
+            criteria=SSLPortCriteria,
+            description=SSLPortDescription
         )
         SSLOnly = SentryOption(
             default=False,
