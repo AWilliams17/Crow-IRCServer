@@ -304,29 +304,41 @@ class IRCProtocol(IRC):
         """
         pass
 
-    def irc_CHOPERADD(self, prefix, params):
-        """ Create a new channel operator account. Only usable by channel owner. """
-        """
-        Usage will be:
-            /CHOPERADD <channel> <account name> <password>
-            if password is not supplied, generate one automatically and pm it to the owner.
-            if nothing is supplied, then generate an account name and a password and pm to the owner.
-        """
-        pass
-
-    def irc_CHOPERDEL(self, prefix, params):
-        """ Remove a channel operator account. Only usable by channel owner. """
-        """
-        Usage will be:
-            /CHOPERDEL <channel> <account name>
-        """
-        pass
+    # def irc_CHOPERADD(self, prefix, params):
+    #     """ Create a new channel operator account. Only usable by channel owner. """
+    #     """
+    #     Usage will be:
+    #         /CHOPERADD <channel> <account name> <password>
+    #         if password is not supplied, generate one automatically and pm it to the owner.
+    #         if nothing is supplied, then generate an account name and a password and pm to the owner.
+    #     """
+    #     pass
+    #
+    # def irc_CHOPERDEL(self, prefix, params):
+    #     """ Remove a channel operator account. Only usable by channel owner. """
+    #     """
+    #     Usage will be:
+    #         /CHOPERDEL <channel> <account name>
+    #     """
+    #     pass
+    #
+    # def irc_CHOPERS(self, prefix, params):
+    #     """ Show a list of channel operator account details. Only usable by channel owner. """
+    #     """
+    #     Usage will be:
+    #         /CHOPERS <channel>
+    #     """
+    #     pass
 
     def irc_CHOPERS(self, prefix, params):
-        """ Show a list of channel operator account details. Only usable by channel owner. """
         """
-        Usage will be:
-            /CHOPERS <channel>
+        Channel owner usage only.
+        Usage will be"
+            /CHOPERS - <channel> - list all operator accounts on a channel.
+            /CHOPERS <channel> <operator> <del, add, None>
+                if None, list all details pertaining to that operator
+                if Add, and there is no additional parameter for a pass, generate a new operator account with that name
+                if Del, delete the operator account
         """
         pass
 
