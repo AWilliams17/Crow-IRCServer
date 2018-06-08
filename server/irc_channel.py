@@ -11,7 +11,18 @@ class IRCChannel:
         self.scheduled_for_deletion = False
         self.deleted = False
         self.users = []
+
+        """
+        Op_Accounts = {
+            Account_Name: {
+                    "Password": Password,
+                    "Permissions": Permissions,
+                }
+            }
+        """
         self.op_accounts = {}
+        self.op_default_perms = []
+
         self.channel_modes = []
         self.channel_owner_account = []
         self.channel_manager = channelmanager

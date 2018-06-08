@@ -298,7 +298,7 @@ class IRCProtocol(IRC):
     def irc_CHOPERPERMS(self, prefix, params):
         """
         Usage will be: CHOPERPERMS <channel> <operator> <add, remove, None> <perms>
-        List or set permissions an operator has. If operator == *, then list or set permissions for all
+        List or set permissions an operator has. If operator == *, then list or set default permissions for all
         operators.
         """
         pass
@@ -312,6 +312,13 @@ class IRCProtocol(IRC):
         """
         pass
 
+    def irc_CHOPERPASS(self, prefix, params):
+        """
+        This is for changing a channel operator's password.
+        Usage: /CHOPERPASS <channel> <account name> <old password> <new password>
+        Can be used by a channel owner, or by the operator using the account.
+        """
+
     def irc_CHOPERS(self, prefix, params):
         """
         Channel owner usage only.
@@ -319,7 +326,7 @@ class IRCProtocol(IRC):
             /CHOPERS - <channel> - list all operator accounts on a channel.
             /CHOPERS <channel> <operator> <del, add, None>
                 if None, list all details pertaining to that operator
-                if Add, and there is no additional parameter for a pass, generate a new operator account with that name
+                if Add, generate a new operator account with that name
                 if Del, delete the operator account
         """
         pass
