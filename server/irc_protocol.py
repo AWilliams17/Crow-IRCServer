@@ -295,6 +295,14 @@ class IRCProtocol(IRC):
                 return self.sendLine(user.set_mode("+o") + "\r\n" + self.rplhelper.rpl_youreoper())
         self.sendLine(self.rplhelper.err_passwordmismatch())
 
+    def irc_CHOPERPERMS(self, prefix, params):
+        """
+        Usage will be: CHOPERPERMS <channel> <operator> <add, remove, None> <perms>
+        List or set permissions an operator has. If operator == *, then list or set permissions for all
+        operators.
+        """
+        pass
+
     @rate_limiter("CHOPER", 5)
     def irc_CHOPER(self, prefix, params):
         """ Not implemented - This is for logging in as a channel operator. """
@@ -303,32 +311,6 @@ class IRCProtocol(IRC):
             /CHOPER <channel> <account name> <password>
         """
         pass
-
-    # def irc_CHOPERADD(self, prefix, params):
-    #     """ Create a new channel operator account. Only usable by channel owner. """
-    #     """
-    #     Usage will be:
-    #         /CHOPERADD <channel> <account name> <password>
-    #         if password is not supplied, generate one automatically and pm it to the owner.
-    #         if nothing is supplied, then generate an account name and a password and pm to the owner.
-    #     """
-    #     pass
-    #
-    # def irc_CHOPERDEL(self, prefix, params):
-    #     """ Remove a channel operator account. Only usable by channel owner. """
-    #     """
-    #     Usage will be:
-    #         /CHOPERDEL <channel> <account name>
-    #     """
-    #     pass
-    #
-    # def irc_CHOPERS(self, prefix, params):
-    #     """ Show a list of channel operator account details. Only usable by channel owner. """
-    #     """
-    #     Usage will be:
-    #         /CHOPERS <channel>
-    #     """
-    #     pass
 
     def irc_CHOPERS(self, prefix, params):
         """
