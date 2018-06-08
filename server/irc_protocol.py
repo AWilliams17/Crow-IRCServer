@@ -1,4 +1,5 @@
 # ToDo: Separate commands into their own modules by category or something, this is getting ridiculous.
+# ToDo: Maybe a command manager is in order? Such as every command is handled by it, and it lists the categories?
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
 from server.irc_channel import IRCChannel, QuitReason
 from server.irc_user import IRCUser

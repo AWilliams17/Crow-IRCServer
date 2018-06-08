@@ -21,7 +21,7 @@ class IRCChannel:
             }
         """
         self.op_accounts = {}
-        self.op_default_perms = []
+        self.op_default_perms = ["ban", "kick", "mute"]
 
         self.channel_modes = []
         self.channel_owner_account = []
