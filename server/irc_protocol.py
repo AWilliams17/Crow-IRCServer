@@ -1,4 +1,4 @@
-# ToDo: Seperate commands into their own modules by category or something, this is getting ridiculous.
+# ToDo: Separate commands into their own modules by category or something, this is getting ridiculous.
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
 from server.irc_channel import IRCChannel, QuitReason
 from server.irc_user import IRCUser
@@ -331,15 +331,15 @@ class IRCProtocol(IRC):
         pass
 
     @rate_limiter("CHOWNER", 10)
-    @min_param_count(3, "Usage: CHOWNER <owner_name> <pass> <channel> - Logs in to the specified channel as an owner.")
+    @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")
     def irc_CHOWNER(self, prefix, params):
         if len(params) < 3:
             self.sendLine(self.rplhelper.err_needmoreparams("CHOWNER"))
-        if params[2][0] != "#":
-            params[2] = "#" + params[2]
-        name = params[0]
-        password = params[1]
-        channel_name = params[2]
+        if params[0][0] != "#":
+            params[0] = "#" + params[2]
+        channel_name = params[0]
+        name = params[1]
+        password = params[2]
         user = self.user_instance
         if channel_name not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())

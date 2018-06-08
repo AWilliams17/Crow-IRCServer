@@ -14,6 +14,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [x] Server Title
 * [x] Server Welcome
 * [x] Server Description
+* [x] Configuration file
 * [ ] ISUPPORT
 * [ ] CAP
 * [ ] CTCPs
@@ -22,6 +23,7 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] ^On that note, have a module, irc_console, with neat formatting things for printing to the console.
 * [ ] NickServ/CrowBot (maybe)
 * [ ] Store things in a database and not a text file...
+* [ ] Set modes on user when they connect. Get the modes to use from the config file.
 
 ## Channels:
 * [x] Owners
