@@ -1,3 +1,4 @@
+# ToDo: ChannelOwner required, ChannelOperator required decorators (although it might be unneeded)
 from utils.irc_quitreason_enum import QuitReason
 from time import time
 
@@ -16,6 +17,7 @@ class IRCChannel:
         """
         Op_Accounts = {
             Account_Name: {
+                    "Current_User": User, - this is like channel_owner being set to the current logged user instance
                     "Password": Password,
                     "Permissions": Permissions,
                 }
