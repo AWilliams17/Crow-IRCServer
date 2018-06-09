@@ -4,6 +4,7 @@ from time import time
 
 class IRCChannel:
     """ Represent channels on the server and implement methods for handling them and participants. """
+    # ToDo: A lot of these can be combined into one property I think.
     def __init__(self, name, channelmanager):
         self.channel_name = name
         self.channel_owner = None
@@ -22,6 +23,7 @@ class IRCChannel:
         """
         self.op_accounts = {}
         self.op_default_perms = ["ban", "kick", "mute"]
+        self.valid_perms = ["ban", "kick", "mute", "topic", "motd"]  # bad, but will do for now.
 
         self.channel_modes = []
         self.channel_owner_account = []
