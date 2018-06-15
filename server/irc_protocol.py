@@ -326,8 +326,7 @@ class IRCProtocol(IRC):
         # ...like irc_MODE... *shudders from PTSD*
         param_count = len(params)
         target_channel = params[0]
-        channel = [i for i in self.channels if i.channel_name == target_channel]
-        print(channel)
+        channel = [i for i in self.channels if i == target_channel]
         if param_count == 1:
             pass
         if param_count == 2:
