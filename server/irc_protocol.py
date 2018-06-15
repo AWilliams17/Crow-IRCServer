@@ -320,7 +320,7 @@ class IRCProtocol(IRC):
         Can be used by a channel owner, or by the operator using the account.
         """
 
-    @min_param_count(1, "Usage: blah")
+    @min_param_count(1, "Usage: blahg")
     def irc_CHOPERS(self, prefix, params):
         # actually might just split this up into separate commands, this might get very hairy.
         # ...like irc_MODE... *shudders from PTSD*
