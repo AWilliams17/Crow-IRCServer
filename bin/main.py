@@ -35,6 +35,7 @@ def create_endpoints(server, server_settings, ssl_settings):
 	ssl_key = ssl_settings.SSLKeyPath
 	ssl_cert = ssl_settings.SSLCertPath
 	ssl_only = ssl_settings.SSLOnly
+	print(server_config.ServerSettings.Interface)
 	if server_config.SSLSettings.SSLEnabled:
 		print("SSLEnabled is True - Attempting to construct an SSL Endpoint...")
 		if ssl_key is None or ssl_cert is None:

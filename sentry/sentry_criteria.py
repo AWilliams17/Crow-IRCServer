@@ -29,6 +29,8 @@ class SentryCriteria:
 
     def convert(self, option_name, value):
         try:
+            if self.required_type is bool:  # Another hack to make sure booleans work
+                value = value == "True" or value == "1"
             value = self.required_type(value)
             return value
         except ValueError:
