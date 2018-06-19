@@ -330,24 +330,21 @@ class IRCProtocol(IRC):
 
         So I need methods for the following:
               1: Listing operator accounts on a channel                 [ ]
+                CHOPERS #example
               2: Adding operator accounts to a channel                  [ ]
+                CHOPERS #example add (name=(name), password=(password) - both params optional)
               3: Deleting operator accounts in a channel                [ ]
+                CHOPERS #example del (name)
               4: Listing all details pertaining to a specified operator [ ]
+                CHOPERS #example (name)
               5: Changing an operator account's password                [ ]
+                CHOPERS #example (name) password (new password)
               6: Changing an operator account's name                    [ ]
+                CHOPERS #example (name) name (new name)
         """
         param_count = len(params)
         target_channel = params[0]
         channel = [i for i in self.channels if i == target_channel]
-        if len(channel) != 0:
-            channel = self.channels[channel]
-            if param_count == 1:
-                pass
-            if param_count == 2:
-                pass
-            if param_count >= 3:
-                pass
-        return self.rplhelper.err_nosuchchannel()
 
     @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")
