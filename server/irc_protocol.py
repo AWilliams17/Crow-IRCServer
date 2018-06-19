@@ -313,36 +313,41 @@ class IRCProtocol(IRC):
         """
         pass
 
-    def irc_CHOPERPASS(self, prefix, params):
-        """
-        This is for changing a channel operator's password.
-        Usage: /CHOPERPASS <channel> <account name> <old password> <new password>
-        Can be used by a channel owner, or by the operator using the account.
-        """
-
     @min_param_count(1, "Usage: blahg")
     def irc_CHOPERS(self, prefix, params):
         # actually might just split this up into separate commands, this might get very hairy.
         # ...like irc_MODE... *shudders from PTSD*
-        param_count = len(params)
-        target_channel = params[0]
-        channel = [i for i in self.channels if i == target_channel]
-        if param_count == 1:
-            pass
-        if param_count == 2:
-            pass
-        if param_count == 3:
-            pass
+
         """
-        Channel owner usage only.
         Usage will be"
             /CHOPERS - <channel> - list all operator accounts on a channel.
             /CHOPERS <channel> <operator> <del, add, None>
                 if None, list all details pertaining to that operator
                 if Add, generate a new operator account with that name
                 if Del, delete the operator account
+                if Pass, change the password to the specified param
+                if Name, change the name to the specified param
+
+        So I need methods for the following:
+              1: Listing operator accounts on a channel                 [ ]
+              2: Adding operator accounts to a channel                  [ ]
+              3: Deleting operator accounts in a channel                [ ]
+              4: Listing all details pertaining to a specified operator [ ]
+              5: Changing an operator account's password                [ ]
+              6: Changing an operator account's name                    [ ]
         """
-        pass
+        param_count = len(params)
+        target_channel = params[0]
+        channel = [i for i in self.channels if i == target_channel]
+        if len(channel) != 0:
+            channel = self.channels[channel]
+            if param_count == 1:
+                pass
+            if param_count == 2:
+                pass
+            if param_count >= 3:
+                pass
+        return self.rplhelper.err_nosuchchannel()
 
     @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")

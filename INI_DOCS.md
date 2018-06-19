@@ -1,3 +1,4 @@
+TODO: These are all out of date.
 # Setting up crow.ini
 The following serves as a reference for the settings outlined in the `crow.ini` file.
 I've tried to make the ini self documenting by making the setting names detailed,
