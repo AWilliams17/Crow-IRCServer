@@ -80,6 +80,27 @@ class IRCChannel:
         """ Get all the nicknames of the currently participating users in the channel. """
         return [x.nickname for x in self.users]
 
+    def get_operator(self, name=None):
+        """  If name is none, list all operator names in channel. otherwise, attempt to list all details which pertain
+        to an operator with the given name. """
+        pass
+
+    def add_operator(self, name):
+        """ Add a new operator account using the given name. """
+        pass
+
+    def del_operator(self, name):
+        """ Delete an operator account using the given name. """
+        pass
+
+    def set_operator_name(self, name, new_name):
+        """ Set an existing operator account's name to the specified new one. """
+        pass
+
+    def set_operator_password(self, name, new_password):
+        """ Set an existing operator account's password to the specified new one. """
+        pass
+
     def who(self, user, server_host):
         """ Return information about the channel to the caller. Used for WHO commands. """
         if user.nickname not in self.get_nicknames():

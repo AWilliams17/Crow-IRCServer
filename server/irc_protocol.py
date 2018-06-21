@@ -237,6 +237,7 @@ class IRCProtocol(IRC):
             E: Wants to set someone else's mode (params will be 3), [location, target_nick, mode]
             F: Wants to set a channel's mode. (params will be 2), [location, mode]
             ToDo: Slated for (another) rewrite
+            ToDo: This needs a usage: which is uh... lol
          """
         param_count = len(params)
         this_client = self.user_instance  # Check if this client's nickname is in the params.
@@ -313,11 +314,11 @@ class IRCProtocol(IRC):
         """
         pass
 
-    @min_param_count(1, "Usage: blahg")
+    @min_param_count(1)
     def irc_CHOPERS(self, prefix, params):
         # actually might just split this up into separate commands, this might get very hairy.
         # ...like irc_MODE... *shudders from PTSD*
-
+        # ToDo: This needs a usage:
         """
         Usage will be"
             /CHOPERS - <channel> - list all operator accounts on a channel.
@@ -327,24 +328,36 @@ class IRCProtocol(IRC):
                 if Del, delete the operator account
                 if Pass, change the password to the specified param
                 if Name, change the name to the specified param
-
-        So I need methods for the following:
-              1: Listing operator accounts on a channel                 [ ]
-                CHOPERS #example
-              2: Adding operator accounts to a channel                  [ ]
-                CHOPERS #example add (name=(name), password=(password) - both params optional)
-              3: Deleting operator accounts in a channel                [ ]
-                CHOPERS #example del (name)
-              4: Listing all details pertaining to a specified operator [ ]
-                CHOPERS #example (name)
-              5: Changing an operator account's password                [ ]
-                CHOPERS #example (name) password (new password)
-              6: Changing an operator account's name                    [ ]
-                CHOPERS #example (name) name (new name)
         """
         param_count = len(params)
         target_channel = params[0]
-        channel = [i for i in self.channels if i == target_channel]
+        if target_channel not in self.channels:
+            return self.sendLine(self.rplhelper.err_nosuchchannel())
+        target_channel = self.channels[target_channel]
+
+        if param_count == 1:  # List operator accounts
+            self.sendLine(target_channel.get_operators())
+        if param_count == 2:  # List all operators in a channel
+            self.sendLine(target_channel.get_operators(params[1]))
+        if param_count == 3:  # Adding, Deleting accounts + listing operator details
+            command = params[1].lower()
+            account_name = params[2].lower()
+            if command == "add":
+                self.sendLine(target_channel.add_operator(account_name))
+            elif command == "delete":
+                self.sendLine(target_channel.del_operator(account_name))
+            else:
+                self.sendLine(target_channel.get_operators(account_name))
+        if param_count == 4:  # Changing account name/password
+            command = params[1].lower()
+            account_name = params[2]
+            new_setting = params[3]
+            if command == "name":
+                self.sendLine(target_channel.set_operator_name(account_name, new_setting))
+            elif command == "password":
+                self.sendLine(target_channel.set_operator_password(account_name, new_setting))
+            else:
+                pass  # improper use
 
     @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")
