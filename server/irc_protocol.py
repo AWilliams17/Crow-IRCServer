@@ -345,19 +345,20 @@ class IRCProtocol(IRC):
             if command == "add":
                 self.sendLine(target_channel.add_operator(account_name))
             elif command == "delete":
-                self.sendLine(target_channel.del_operator(account_name))
+                self.sendLine(target_channel.delete_operator(account_name))
             else:
                 self.sendLine(target_channel.get_operators(account_name))
         if param_count == 4:  # Changing account name/password
             command = params[1].lower()
             account_name = params[2]
-            new_setting = params[3]
+            new_value = params[3]
             if command == "name":
-                self.sendLine(target_channel.set_operator_name(account_name, new_setting))
+                self.sendLine(target_channel.set_operator_name(account_name, new_value))
             elif command == "password":
-                self.sendLine(target_channel.set_operator_password(account_name, new_setting))
+                self.sendLine(target_channel.set_operator_password(account_name, new_value))
             else:
-                pass  # improper use
+                self.sendLine("Improper usage. Proper usage would be: \n"
+                              "'CHOPERS account_name name new_name' or 'CHOPERS account_name password new_password'")
 
     @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")

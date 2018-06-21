@@ -89,7 +89,7 @@ class IRCChannel:
         """ Add a new operator account using the given name. """
         pass
 
-    def del_operator(self, name):
+    def delete_operator(self, name):
         """ Delete an operator account using the given name. """
         pass
 
