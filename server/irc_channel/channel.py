@@ -1,4 +1,5 @@
 # ToDo: ChannelOwner required, ChannelOperator required decorators (although it might be unneeded)
+from .decorators import *
 from utils.irc_quitreason_enum import QuitReason
 from time import time
 
@@ -80,24 +81,28 @@ class IRCChannel:
         """ Get all the nicknames of the currently participating users in the channel. """
         return [x.nickname for x in self.users]
 
-    def get_operator(self, name=None):
+    @user_in_channel
+    def get_operator(self, caller, name=None):
         """  If name is none, list all operator names in channel. otherwise, attempt to list all details which pertain
         to an operator with the given name. """
         pass
 
-    def add_operator(self, name):
+    @user_in_channel
+    def add_operator(self, caller, name):
         """ Add a new operator account using the given name. """
         pass
 
-    def delete_operator(self, name):
+    @user_in_channel
+    def delete_operator(self, caller, name):
         """ Delete an operator account using the given name. """
         pass
 
-    def set_operator_name(self, name, new_name):
+    @user_in_channel
+    def set_operator_name(self, caller, name, new_name):
         """ Set an existing operator account's name to the specified new one. """
         pass
 
-    def set_operator_password(self, name, new_password):
+    def set_operator_password(self, caller, name, new_password):
         """ Set an existing operator account's password to the specified new one. """
         pass
 

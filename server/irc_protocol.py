@@ -1,7 +1,7 @@
 # ToDo: Separate commands into their own modules by category or something, this is getting ridiculous.
 # ToDo: Maybe a command manager is in order? Such as every command is handled by it, and it lists the categories?
 from twisted.words.protocols.irc import IRC, protocol, RPL_WELCOME
-from server.irc_channel import IRCChannel, QuitReason
+from server.irc_channel.channel import IRCChannel, QuitReason
 from server.irc_user import IRCUser
 from server.irc_ratelimiter import rate_limiter
 from server.irc_rplhelper import RPLHelper
@@ -336,26 +336,28 @@ class IRCProtocol(IRC):
         target_channel = self.channels[target_channel]
 
         if param_count == 1:  # List operator accounts
-            self.sendLine(target_channel.get_operators())
+            results = target_channel.get_operator(self)
+            if results is not None:
+                self.sendLine(results)
         if param_count == 2:  # List all operators in a channel
-            self.sendLine(target_channel.get_operators(params[1]))
+            self.sendLine(target_channel.get_operator(self, params[1]))
         if param_count == 3:  # Adding, Deleting accounts + listing operator details
             command = params[1].lower()
             account_name = params[2].lower()
             if command == "add":
-                self.sendLine(target_channel.add_operator(account_name))
+                self.sendLine(target_channel.add_operator(self, account_name))
             elif command == "delete":
-                self.sendLine(target_channel.delete_operator(account_name))
+                self.sendLine(target_channel.delete_operator(self, account_name))
             else:
-                self.sendLine(target_channel.get_operators(account_name))
+                self.sendLine(target_channel.get_operators(self, account_name))
         if param_count == 4:  # Changing account name/password
             command = params[1].lower()
             account_name = params[2]
             new_value = params[3]
             if command == "name":
-                self.sendLine(target_channel.set_operator_name(account_name, new_value))
+                self.sendLine(target_channel.set_operator_name(self, account_name, new_value))
             elif command == "password":
-                self.sendLine(target_channel.set_operator_password(account_name, new_value))
+                self.sendLine(target_channel.set_operator_password(self, account_name, new_value))
             else:
                 self.sendLine("Improper usage. Proper usage would be: \n"
                               "'CHOPERS account_name name new_name' or 'CHOPERS account_name password new_password'")
