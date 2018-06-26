@@ -1,4 +1,5 @@
 def user_in_channel(method):
+    # ToDo: Documentation
     def wrapper(self, *args):
         caller_protocol = args[0]
         caller_user = caller_protocol.user_instance
