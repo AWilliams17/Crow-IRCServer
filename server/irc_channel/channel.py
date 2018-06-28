@@ -94,7 +94,6 @@ class IRCChannel:
                 return self.op_accounts.get(name)  # ToDo: Exception handling
 
             return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-        return caller.rplhelper.err_notonchannel("")  # ToDo: Desc
 
     @user_in_channel
     def add_operator(self, caller, name):
@@ -112,7 +111,6 @@ class IRCChannel:
                 return "That name is already in use."  # ToDo
 
             return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-        return caller.rplhelper.err_notonchannel("")  # ToDo: Desc
 
     @user_in_channel
     def delete_operator(self, caller, name):
@@ -126,7 +124,6 @@ class IRCChannel:
                 return "That account does not exist"  # ToDo
 
             return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-        return caller.rplhelper.err_notonchannel("")  # ToDo: Desc
 
     @user_in_channel
     def set_operator_name(self, caller, name, new_name):
@@ -140,7 +137,6 @@ class IRCChannel:
                 return "That account does not exist"  # ToDo
 
             return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-        return caller.rplhelper.err_notonchannel("")  # ToDo: Desc
 
     def set_operator_password(self, caller, name, new_password):
         """ Set an existing operator account's password to the specified new one. """
@@ -153,7 +149,6 @@ class IRCChannel:
                 return "That account does not exist"  # ToDo
 
             return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-        return caller.rplhelper.err_notonchannel("")  # ToDo: Desc
 
     def who(self, user, server_host):
         """ Return information about the channel to the caller. Used for WHO commands. """

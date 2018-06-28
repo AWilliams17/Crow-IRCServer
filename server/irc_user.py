@@ -25,7 +25,7 @@ class IRCUser:
         self.server_host = serverhost
         self.modes = []
         self.status = "H"
-        self.operator = False
+        self.operator = False  # ToDo: Rename this
 
     def __str__(self):
         return "Username: {}\nNickname: {}\nHostmask: {}\nChannels: {}\nNickattempts: {}\n".format(
