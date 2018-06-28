@@ -82,73 +82,49 @@ class IRCChannel:
         return [x.nickname for x in self.users]
 
     # ToDo: ...DRY
-    @user_in_channel
+    @authorization_required(requires_channel_owner=True)
     def get_operator(self, caller, name=None):
         """  If name is none, list all operator names in channel. otherwise, attempt to list all details which pertain
         to an operator with the given name. """
-        if caller.nickname in self.get_nicknames():
-            if caller.operator or caller is self.channel_owner:
+        if name is None:
+            return self.op_accounts.keys()
+        return self.op_accounts.get(name)  # ToDo: Exception handling
 
-                if name is None:
-                    return self.op_accounts.keys()
-                return self.op_accounts.get(name)  # ToDo: Exception handling
-
-            return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-
-    @user_in_channel
+    @authorization_required(requires_channel_owner=True)
     def add_operator(self, caller, name):
         """ Add a new operator account using the given name. """
-        if caller.nickname in self.get_nicknames():
-            if caller.operator or caller is self.channel_owner:
+        if name not in self.op_accounts:
+            self.op_accounts[name] = {
+                "current_user": None,
+                "password": None,
+                "permissions": []
+            }
+            return "Account Details:"  # ToDo
+        return "That name is already in use."  # ToDo
 
-                if name not in self.op_accounts:
-                    self.op_accounts[name] = {
-                        "current_user": None,
-                        "password": None,
-                        "permissions": []
-                    }
-                    return "Account Details:"  # ToDo
-                return "That name is already in use."  # ToDo
-
-            return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-
-    @user_in_channel
+    @authorization_required(requires_channel_owner=True)
     def delete_operator(self, caller, name):
         """ Delete an operator account using the given name. """
-        if caller.nickname in self.get_nicknames():
-            if caller.operator or caller is self.channel_owner:
+            if name in self.op_accounts:  # ToDo: Pop anyone in the account off and tell them
+                del self.op_accounts[name]
+                return "Account Deleted"  # ToDo
+            return "That account does not exist"  # ToDo
 
-                if name in self.op_accounts:  # ToDo: Pop anyone in the account off and tell them
-                    del self.op_accounts[name]
-                    return "Account Deleted"  # ToDo
-                return "That account does not exist"  # ToDo
-
-            return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-
-    @user_in_channel
+    @authorization_required(requires_channel_owner=True)
     def set_operator_name(self, caller, name, new_name):
         """ Set an existing operator account's name to the specified new one. """
-        if caller.nickname in self.get_nicknames():
-            if caller.operator or caller is self.channel_owner:
+        if name in self.op_accounts:
+            self.op_accounts[new_name] = self.op_accounts.pop(name)
+            return "Account name changed"  # ToDo
+        return "That account does not exist"  # ToDo
 
-                if name in self.op_accounts:
-                    self.op_accounts[new_name] = self.op_accounts.pop(name)
-                    return "Account name changed"  # ToDo
-                return "That account does not exist"  # ToDo
-
-            return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
-
+    @authorization_required(requires_channel_owner=True)
     def set_operator_password(self, caller, name, new_password):
         """ Set an existing operator account's password to the specified new one. """
-        if caller.nickname in self.get_nicknames():
-            if caller.operator or caller is self.channel_owner:
-
-                if name in self.op_accounts:
-                    self.op_accounts[name]["password"] = new_password
-                    return "Account password"  # ToDo
-                return "That account does not exist"  # ToDo
-
-            return caller.rplhelper.err_noprivileges("")  # ToDo: Desc
+        if name in self.op_accounts:
+            self.op_accounts[name]["password"] = new_password
+            return "Account password"  # ToDo
+        return "That account does not exist"  # ToDo
 
     def who(self, user, server_host):
         """ Return information about the channel to the caller. Used for WHO commands. """
