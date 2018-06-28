@@ -42,7 +42,7 @@ class IRCChannel:
         """ Map a user to the channel, send a JOIN notice to everyone currently in it. """
 
         if self.deleted:
-            return "The channel is being deleted. \nWait a moment and try again to create a new channel with it's name."
+            return "The channel is being deleted. \nWait a moment and try again to create a new channel with its name."
 
         if user in self.users:
             return
@@ -81,7 +81,6 @@ class IRCChannel:
         """ Get all the nicknames of the currently participating users in the channel. """
         return [x.nickname for x in self.users]
 
-    # ToDo: ...DRY
     @authorization_required(requires_channel_owner=True)
     def get_operator(self, caller, name=None):
         """  If name is none, list all operator names in channel. otherwise, attempt to list all details which pertain
