@@ -40,6 +40,8 @@ A (semi incomplete) list of things currently implemented/unimplemented. will def
 * [ ] Hash Owner + Oper passwords instead of using plaintext
 * [ ] NOOPERHOST
 * [ ] Sub-Channels (might be a dumb idea)
+* [ ] Change Channel Name Command for owners
+* [ ] Co-Owners
 
 ## Users:
 * [x] Join channels
