@@ -2,6 +2,7 @@
 from .decorators import *
 from utils.irc_quitreason_enum import QuitReason
 from time import time
+from secrets import token_urlsafe
 
 
 class IRCChannel:
@@ -93,12 +94,15 @@ class IRCChannel:
     def add_operator(self, caller, name):
         """ Add a new operator account using the given name. """
         if name not in self.op_accounts:
+            account_password = token_urlsafe(32)
             self.op_accounts[name] = {
                 "current_user": None,
-                "password": None,
+                "password": account_password,
                 "permissions": []
             }
-            return "Account Details:"  # ToDo
+            return "Added account: (Channel: {} - Username: {} - Password: {})".format(
+                self.channel_name, name, account_password
+            )
         return "That name is already in use."  # ToDo
 
     @authorization_required(requires_channel_owner=True)
