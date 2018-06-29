@@ -125,7 +125,7 @@ class IRCChannel:
         if name in self.op_accounts:
             logged_user = self.op_accounts[name]["current_user"]
             if logged_user is not None:
-                logged_user.protocol.send_msg(logged_user.nickname, "{}: The name of the account you were logged into has been changed to {}.".format(self.channel_name, new_name))
+                logged_user.protocol.send_msg(logged_user.nickname, "{}: The name of the account you were logged into has been changed to '{}'".format(self.channel_name, new_name))
             self.op_accounts[new_name] = self.op_accounts.pop(name)
             return "Set Account Name: (Channel: {} - Username: {} - Account name changed.)".format(self.channel_name, name)
         return "Set Account Name: (Channel: {} - Username: {} - Account with that name does not exist.)".format(self.channel_name, name)
@@ -134,9 +134,12 @@ class IRCChannel:
     def set_operator_password(self, caller, name, new_password):
         """ Set an existing operator account's password to the specified new one. """
         if name in self.op_accounts:
+            logged_user = self.op_accounts[name]["current_user"]
+            if logged_user is not None:
+                logged_user.protocol.send_msg(logged_user.nickname, "{}: The name of the account you were logged into has been changed to '{}'".format(self.channel_name, new_password))
             self.op_accounts[name]["password"] = new_password
-            return "Account password"  # ToDo
-        return "That account does not exist"  # ToDo
+            return "Set Account Password: (Channel: {} - Username: {} - Account Password changed.)".format(self.channel_name, name)
+        return "Set Account Password: (Channel: {} - Username: {} - Account with that name does not exist.)".format(self.channel_name, name)
 
     def who(self, user, server_host):
         """ Return information about the channel to the caller. Used for WHO commands. """
