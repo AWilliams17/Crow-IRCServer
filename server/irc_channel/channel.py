@@ -100,10 +100,10 @@ class IRCChannel:
                 "password": account_password,
                 "permissions": []
             }
-            return "Added account: (Channel: {} - Username: {} - Password: {})".format(
+            return "Add Account: (Channel: {} - Username: {} - Password: {} - Account added.)".format(
                 self.channel_name, name, account_password
             )
-        return "That name is already in use."  # ToDo
+        return "Add Account: (Channel: {} - Username: {} That name is already in use.)".format(self.channel_name, name)
 
     @authorization_required(requires_channel_owner=True)
     def delete_operator(self, caller, name):

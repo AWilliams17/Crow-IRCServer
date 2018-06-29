@@ -336,31 +336,29 @@ class IRCProtocol(IRC):
         target_channel = self.channels[target_channel]
 
         if param_count == 1:  # List operator accounts
-            results = target_channel.get_operator(self)
-            if results is not None:
-                self.sendLine(results)
+            self.user_instance.send_msg(self.user_instance.nickname, target_channel.get_operator(self))
         if param_count == 2:  # List all operators in a channel
-            self.sendLine(target_channel.get_operator(self, params[1]))
+            self.user_instance.send_msg(self.user_instance.nickname, target_channel.get_operator(self, params[1]))
         if param_count == 3:  # Adding, Deleting accounts + listing operator details
             command = params[1].lower()
             account_name = params[2].lower()
             if command == "add":
-                self.sendLine(target_channel.add_operator(self.user_instance, account_name))
+                self.user_instance.send_msg(self.user_instance.nickname, target_channel.add_operator(self.user_instance, account_name))
             elif command == "delete":
-                self.sendLine(target_channel.delete_operator(self, account_name))
+                self.user_instance.send_msg(self.user_instance.nickname, target_channel.delete_operator(self, account_name))
             else:
-                self.sendLine(target_channel.get_operators(self, account_name))
+                self.user_instance.send_msg(self.user_instance.nickname, target_channel.get_operators(self, account_name))
         if param_count == 4:  # Changing account name/password
             command = params[1].lower()
             account_name = params[2]
             new_value = params[3]
             if command == "name":
-                self.sendLine(target_channel.set_operator_name(self, account_name, new_value))
+                self.user_instance.send_msg(self.user_instance.nickname, target_channel.set_operator_name(self, account_name, new_value))
             elif command == "password":
-                self.sendLine(target_channel.set_operator_password(self, account_name, new_value))
+                self.user_instance.send_msg(self.user_instance.nickname, target_channel.set_operator_password(self, account_name, new_value))
             else:
-                self.sendLine("Improper usage. Proper usage would be: \n"
-                              "'CHOPERS account_name name new_name' or 'CHOPERS account_name password new_password'")
+                self.user_instance.send_msg(self.user_instance.nickname, "Improper usage. Proper usage would be: \n "
+                                                                         "'CHOPERS #channel account_name name new_name' or 'CHOPERS #channel account_name password new_password'")
 
     @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")
