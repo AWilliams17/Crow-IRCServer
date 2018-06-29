@@ -112,16 +112,19 @@ class IRCChannel:
     def delete_operator(self, caller, name):
         """ Delete an operator account using the given name. """
         if name in self.op_accounts:  # ToDo: Pop anyone in the account off and tell them
+            logged_user = self.op_accounts[name]["current_user"]
+            if logged_user is not None:
+                logged_user.protocol.send_msg(logged_user.nickname, "{}: The account you were logged into has been deleted.".format(self.channel_name))
             del self.op_accounts[name]
-            return "Account Deleted"  # ToDo
-        return "That account does not exist"  # ToDo
+            return "Delete Account: (Channel: {} - Username: {} - Account was Deleted.)".format(self.channel_name, name)
+        return "Delete Account: (Channel: {} - Username: {} - Account with that name does not exist.)".format(self.channel_name, name)
 
     @authorization_required(requires_channel_owner=True)
     def set_operator_name(self, caller, name, new_name):
         """ Set an existing operator account's name to the specified new one. """
         if name in self.op_accounts:
             self.op_accounts[new_name] = self.op_accounts.pop(name)
-            return "Account name changed"  # ToDo
+            return "Set Account Name: (Channel: {} - Username: {} - Account name changed.)".format(self.channel_name, name)
         return "That account does not exist"  # ToDo
 
     @authorization_required(requires_channel_owner=True)
