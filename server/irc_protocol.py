@@ -357,7 +357,7 @@ class IRCProtocol(IRC):
             elif command == "password":
                 self.user_instance.send_msg(self.user_instance.nickname, target_channel.set_operator_password(self, account_name, new_value))
             else:
-                self.user_instance.send_msg(self.user_instance.nickname, "Improper usage. Proper usage would be: \n "
+                self.user_instance.send_msg(self.user_instance.nickname, "Improper usage. Proper usage would be: \n"
                                                                          "'CHOPERS #channel account_name name new_name' or 'CHOPERS #channel account_name password new_password'")
 
     @rate_limiter("CHOWNER", 10)
