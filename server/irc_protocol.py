@@ -345,7 +345,7 @@ class IRCProtocol(IRC):
             command = params[1].lower()
             account_name = params[2].lower()
             if command == "add":
-                self.sendLine(target_channel.add_operator(self, account_name))
+                self.sendLine(target_channel.add_operator(self.user_instance, account_name))
             elif command == "delete":
                 self.sendLine(target_channel.delete_operator(self, account_name))
             else:
