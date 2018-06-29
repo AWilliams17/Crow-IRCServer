@@ -88,7 +88,10 @@ class IRCChannel:
         to an operator with the given name. """
         if name is None:
             return self.op_accounts.keys()
-        return self.op_accounts.get(name)  # ToDo: Exception handling
+        account_details = next((x for x in self.op_accounts if x == name), None)
+        if account_details is not None:
+            return "Get Account: (Channel: {} - Username: {} - results: {})".format(self.channel_name, name, self.op_accounts.get(name))
+        return "Get Account: (Channel: {} - Username: {} - An account with that name does not exist.)".format(self.channel_name, name)
 
     @authorization_required(requires_channel_owner=True)
     def add_operator(self, caller, name):
@@ -103,7 +106,7 @@ class IRCChannel:
             return "Add Account: (Channel: {} - Username: {} - Password: {} - Account added.)".format(
                 self.channel_name, name, account_password
             )
-        return "Add Account: (Channel: {} - Username: {} That name is already in use.)".format(self.channel_name, name)
+        return "Add Account: (Channel: {} - Username: {} - That name is already in use.)".format(self.channel_name, name)
 
     @authorization_required(requires_channel_owner=True)
     def delete_operator(self, caller, name):
