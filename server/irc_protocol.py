@@ -236,7 +236,6 @@ class IRCProtocol(IRC):
             D: Wants to set their own mode (params will be 2), [their_nickname, mode]
             E: Wants to set someone else's mode (params will be 3), [location, target_nick, mode]
             F: Wants to set a channel's mode. (params will be 2), [location, mode]
-            ToDo: Slated for (another) rewrite
             ToDo: This needs a usage: which is uh... lol
          """
         param_count = len(params)
@@ -252,6 +251,8 @@ class IRCProtocol(IRC):
             _target_protocol = next((x for x in self.users if x.users[x].nickname == target_nick), None)
             return _target_protocol
 
+        # getting ready for rewrite
+        """
         if param_count == 1:  # Checking a channel's modes, checking this client's modes.
             if client_nickname_in_list is None and location_name is not None and location_name in self.channels:
                 return self.sendLine(self.channels[location_name].get_modes())
@@ -282,6 +283,7 @@ class IRCProtocol(IRC):
                 return self.sendLine(self.rplhelper.err_unknownmode())
             else:
                 return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
+        """
 
     @rate_limiter("OPER", 10)
     @min_param_count(2, "Usage: OPER <username> <password> - Logs you in as an IRC operator.")
@@ -337,7 +339,6 @@ class IRCProtocol(IRC):
             "password": target_channel.set_operator_password
         }
 
-        output = None
         if target_operator is None:
             output = target_channel.get_operator(self.user_instance)
         else:
@@ -348,12 +349,20 @@ class IRCProtocol(IRC):
                     account_name = params[2]
                 method = command_method_dict.get(command)
                 output = method(self.user_instance, account_name)
-            elif command == "name" or command == "password":
-                if param_count >= 4:
-                    account_name = params[2]
-                    param = params[3]
-                method = command_method_dict.get(command)
-                output = method(self.user_instance, account_name, param)
+            else:
+                command = None
+                if param_count >= 2:
+                    account_name = params[1]
+                if param_count >= 3:
+                    command = params[2]
+
+                if command == "name" or command == "password":
+                    if param_count >= 4:
+                        param = params[3]
+                    method = command_method_dict.get(command)
+                    output = method(self.user_instance, account_name, param)
+                else:
+                    output = target_channel.get_operator(self.user_instance, account_name)
         return self.sendLine(output)
 
     @rate_limiter("CHOWNER", 10)
