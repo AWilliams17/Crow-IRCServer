@@ -314,21 +314,10 @@ class IRCProtocol(IRC):
         """
         pass
 
-    @min_param_count(1)
+    @min_param_count(1, "Usage: CHOPERS <channel> <None, Operator_Name> <None, Add, Delete, Password, Name> "
+                        "<New Name/New Password> - Manage a channel's operator accounts. "
+                        "Refer to COMMANDS.md for more information.")
     def irc_CHOPERS(self, prefix, params):
-        # actually might just split this up into separate commands, this might get very hairy.
-        # ...like irc_MODE... *shudders from PTSD*
-        # ToDo: This needs a usage:
-        """
-        Usage will be"
-            /CHOPERS - <channel> - list all operator accounts on a channel.
-            /CHOPERS <channel> <operator> <del, add, None>
-                if None, list all details pertaining to that operator
-                if Add, generate a new operator account with that name
-                if Del, delete the operator account
-                if Pass, change the password to the specified param
-                if Name, change the name to the specified param
-        """
         param_count = len(params)
         if params[0] not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())
