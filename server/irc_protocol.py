@@ -251,8 +251,6 @@ class IRCProtocol(IRC):
             _target_protocol = next((x for x in self.users if x.users[x].nickname == target_nick), None)
             return _target_protocol
 
-        # getting ready for rewrite
-        """
         if param_count == 1:  # Checking a channel's modes, checking this client's modes.
             if client_nickname_in_list is None and location_name is not None and location_name in self.channels:
                 return self.sendLine(self.channels[location_name].get_modes())
@@ -283,7 +281,6 @@ class IRCProtocol(IRC):
                 return self.sendLine(self.rplhelper.err_unknownmode())
             else:
                 return self.sendLine(self.users[target_protocol].set_mode(mode, this_client.nickname, this_client.operator))
-        """
 
     @rate_limiter("OPER", 10)
     @min_param_count(2, "Usage: OPER <username> <password> - Logs you in as an IRC operator.")
