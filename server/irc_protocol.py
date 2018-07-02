@@ -335,6 +335,7 @@ class IRCProtocol(IRC):
             return self.sendLine(self.rplhelper.err_nosuchchannel())
         target_channel = self.channels[target_channel]
 
+        """
         if param_count == 1:  # List operator accounts
             self.user_instance.send_msg(self.user_instance.nickname, target_channel.get_operator(self.user_instance))
         if param_count == 2:  # List all operators in a channel
@@ -359,6 +360,7 @@ class IRCProtocol(IRC):
             else:
                 self.user_instance.send_msg(self.user_instance.nickname, "Improper usage. Proper usage would be: \n"
                                                                          "'CHOPERS #channel account_name name new_name' or 'CHOPERS #channel account_name password new_password'")
+        """
 
     @rate_limiter("CHOWNER", 10)
     @min_param_count(3, "Usage: CHOWNER <channel> <owner_name> <pass> - Logs in to the specified channel as an owner.")
