@@ -330,10 +330,18 @@ class IRCProtocol(IRC):
                 if Name, change the name to the specified param
         """
         param_count = len(params)
-        target_channel = params[0]
-        if target_channel not in self.channels:
+        if params[0] not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())
-        target_channel = self.channels[target_channel]
+        target_channel = self.channels[params[0]]
+        target_operator = None
+        command = None
+        if param_count != 1:
+            target_operator = params[0]
+            if param_count >= 2:
+                command = params[1]
+        
+
+
 
         """
         if param_count == 1:  # List operator accounts
