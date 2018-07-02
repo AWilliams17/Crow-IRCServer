@@ -317,6 +317,7 @@ class IRCProtocol(IRC):
                         "<New Name/New Password> - Manage a channel's operator accounts. "
                         "Refer to COMMANDS.md for more information.")
     def irc_CHOPERS(self, prefix, params):
+        """ Manages the operator accounts on a supplied channel. """
         param_count = len(params)
         if params[0] not in self.channels:
             return self.sendLine(self.rplhelper.err_nosuchchannel())
