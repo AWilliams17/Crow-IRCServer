@@ -236,7 +236,6 @@ class IRCProtocol(IRC):
             D: Wants to set their own mode (params will be 2), [their_nickname, mode]
             E: Wants to set someone else's mode (params will be 3), [location, target_nick, mode]
             F: Wants to set a channel's mode. (params will be 2), [location, mode]
-            ToDo: This needs a usage: which is uh... lol
          """
         param_count = len(params)
         this_client = self.user_instance  # Check if this client's nickname is in the params.
@@ -337,9 +336,9 @@ class IRCProtocol(IRC):
             "password": target_channel.set_operator_password
         }
 
-        if target_operator is None:
+        if target_operator is None:  # List all operator names on the channel
             output = target_channel.get_operator(self.user_instance)
-        else:
+        else:  # Manage a specific account/Add and Delete accounts
             account_name = None
             param = None
             if command == "add" or command == "delete" or command is None:
@@ -347,11 +346,11 @@ class IRCProtocol(IRC):
                     account_name = params[2]
                 method = command_method_dict.get(command)
                 output = method(self.user_instance, account_name)
-            else:
+            else:  # Changing the name/password of an account, listing details pertaining to a specific account.
                 command = None
                 if param_count >= 2:
                     account_name = params[1]
-                if param_count >= 3:
+                if param_count >= 3:  # Managing an account
                     command = params[2]
 
                 if command == "name" or command == "password":
@@ -359,7 +358,7 @@ class IRCProtocol(IRC):
                         param = params[3]
                     method = command_method_dict.get(command)
                     output = method(self.user_instance, account_name, param)
-                else:
+                else:  # List account details
                     output = target_channel.get_operator(self.user_instance, account_name)
         return self.sendLine(output)
 
