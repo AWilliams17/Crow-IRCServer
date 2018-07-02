@@ -84,7 +84,6 @@ class IRCChannel:
 
     @authorization_required(requires_channel_owner=True)
     def get_operator(self, caller, name=None):
-        print("Received")
         return get_operator(self, caller, name)
 
     @authorization_required(requires_channel_owner=True)
