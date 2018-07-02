@@ -1,5 +1,5 @@
 from twisted.internet.protocol import Factory
-from server.irc_protocol import IRCProtocol
+from server.irc_protocol.protocol import IRCProtocol
 from server.irc_ratelimiter import RateLimiter
 from server.irc_clientlimiter import ClientLimiter
 from server.irc_ping_manager import PingManager

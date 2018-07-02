@@ -5,7 +5,7 @@ from server.irc_channel.channel import IRCChannel, QuitReason
 from server.irc_user import IRCUser
 from server.irc_ratelimiter import rate_limiter
 from server.irc_rplhelper import RPLHelper
-from server.irc_param_count import min_param_count
+from server.irc_protocol.param_count import min_param_count
 from server.irc_config.config import IRCConfig
 from time import time
 from socket import getfqdn
