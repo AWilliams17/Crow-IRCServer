@@ -1,6 +1,6 @@
 # ToDo: ChannelOwner required, ChannelOperator required decorators (although it might be unneeded)
 from .decorators import *
-from .operator_account_methods import *
+from .op_account_mgt_methods import *
 from utils.irc_quitreason_enum import QuitReason
 from time import time
 
