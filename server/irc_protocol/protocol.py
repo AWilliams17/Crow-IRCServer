@@ -86,8 +86,8 @@ class IRCProtocol(IRC):
             return self.sendLine("Failed to join channel: Your nickname is not set.")
 
         channel = params[0].lower()
-        if channel[0] != "#":
-            channel = "#" + channel
+        if channel[0] != '#':
+            channel = '#' + channel
 
         if channel not in self.channels:
             owner_name = token_urlsafe(16)
@@ -240,8 +240,8 @@ class IRCProtocol(IRC):
         param_count = len(params)
         this_client = self.user_instance  # Check if this client's nickname is in the params.
         client_nickname_in_list = next((x for x in params if x == this_client.nickname), None)
-        mode = next((x for x in params if x[0] in "+-" and len(x) >= 2), None)
-        location_name = next((x for x in params if x[0] == "#"), None)
+        mode = next((x for x in params if x[0] in '+-' and len(x) >= 2), None)
+        location_name = next((x for x in params if x[0] == '#'), None)
 
         # Make this an anonymous function since I don't want to do this loop unless I need to.
         def get_target_protocol():
@@ -292,7 +292,7 @@ class IRCProtocol(IRC):
         if username in self.operators:
             if self.operators[username] == password:
                 user.operator = True
-                return self.sendLine(user.set_mode("+o") + "\r\n" + self.rplhelper.rpl_youreoper())
+                return self.sendLine(user.set_mode('+o') + "\r\n" + self.rplhelper.rpl_youreoper())
         self.sendLine(self.rplhelper.err_passwordmismatch())
 
     def irc_CHOPERPERMS(self, prefix, params):
@@ -367,8 +367,8 @@ class IRCProtocol(IRC):
     def irc_CHOWNER(self, prefix, params):
         if len(params) < 3:
             self.sendLine(self.rplhelper.err_needmoreparams("CHOWNER"))
-        if params[0][0] != "#":
-            params[0] = "#" + params[2]
+        if params[0][0] != '#':
+            params[0] = '#' + params[2]
         channel_name = params[0]
         name = params[1]
         password = params[2]

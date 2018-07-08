@@ -100,11 +100,11 @@ class IRCConfig(SentryConfig):
         )
         SSLKeyPath = SentryOption(
             default=None,
-            criteria=[StringRequired, SSLKeyPathCriteria],
+            criteria=[StringRequired, SSLFilePathCriteria],
             description=SSLKeyPathDescription
         )
         SSLCertPath = SentryOption(
             default=None,
-            criteria=[StringRequired, SSLCertPathCriteria],
+            criteria=[StringRequired, SSLFilePathCriteria],
             description=SSLCertPathDescription
         )

@@ -37,14 +37,14 @@ class IRCUser:
         return self.__hostmask
 
     def set_hostmask(self, nickname=None, username=None):
-        nickname_part = "*"
-        username_part = "*"
+        nickname_part = '*'
+        username_part = '*'
         host_part = self.host
 
         if username is None:  # Called by nickname setter - self.username MAY be None depending on if hostmask was set.
             nickname_part = nickname
             if self.__hostmask is not None:  # Hostmask exists, so check if the username in the hostmask was set.
-                if self.__hostmask.split("@")[0].split("!")[1] != "*":  # Username in hostmask was set. Preserve it.
+                if self.__hostmask.split('@')[0].split('!')[1] != '*':  # Username in hostmask was set. Preserve it.
                     username_part = self.username
 
         if nickname is None:  # Called by username setter
@@ -83,7 +83,7 @@ class IRCUser:
         Keep track of how many times a client has attempted to change their nickname if a nick collision occurs
         the first time they connect. If they try twice, then generate a nickname for theme.
         """
-        if self.hostmask is None or "*" in self.hostmask:
+        if self.hostmask is None or '*' in self.hostmask:
             self.set_hostmask(nickname=desired_nickname)
 
         if self.nickname is not None and desired_nickname == self.nickname:
@@ -137,9 +137,9 @@ class IRCUser:
 
     def send_msg(self, destination, message):
         """ Determine if a client is sending a message to a channel or user and handle appropriately. """
-        if "*" in destination or "?" in destination:
+        if '*' in destination or '?' in destination:
             return self.rplhelper.err_badchanmask(destination)
-        elif destination[0] == "#":
+        elif destination[0] == '#':
             if destination not in self.protocol.channels:
                 return self.rplhelper.err_nosuchchannel()
             if self not in self.protocol.channels[destination].users:
@@ -160,10 +160,10 @@ class IRCUser:
     def away(self, reason):
         """ Mark a user as either away or unaway. If supplying no reason, assume they are marking as unaway. """
         if reason is None:
-            self.status = "H"
+            self.status = 'H'
             return self.rplhelper.rpl_unaway()
         else:
-            self.status = "G"
+            self.status = 'G'
             return self.rplhelper.rpl_nowaway()
 
     def set_mode(self, mode, accessor_nickname=None, accessor_is_operator=None):
@@ -173,7 +173,7 @@ class IRCUser:
             accessor_nickname = self.nickname
             accessor_is_operator = self.operator
         mode_char = mode[1]
-        mode_addition = mode[0] == "+"
+        mode_addition = mode[0] == '+'
         mode_change_message = ":{} MODE {} :{}".format(accessor_nickname, self.nickname, mode)
         changing_own_modes = accessor_nickname == self.nickname
 

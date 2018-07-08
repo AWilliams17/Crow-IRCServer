@@ -30,19 +30,9 @@ class MaxClientsCriteria(SentryCriteria):
             return "The max clients per user can not be 0."
 
 
-# kind of un-necessary to have these both be two separate criteria checks.
-# ToDo: Combine maybe
-class SSLCertPathCriteria(SentryCriteria):
+class SSLFilePathCriteria(SentryCriteria):
     def criteria(self, value):
         if not path.exists(value):
-            return "The cert file was not found at the specified location."
+            return "The file ({}) was not found at the specified location.".format(value)
         if not value.endswith(".pem"):
-            return "The cert file must be a .pem file."
-
-
-class SSLKeyPathCriteria(SentryCriteria):
-    def criteria(self, value):
-        if not path.exists(value):
-            return "The key file was not found at the specified location."
-        if not value.endswith(".pem"):
-            return "The key file must be a .pem file."
+            return "The file must be a .pem file."

@@ -1,5 +1,6 @@
 # Methods related to the management of operator accounts (adding them, deleting them, etc) since they were
 # bloating up channel.py - could use some refactoring.
+# ToDo: Actually this is horrible, refactor this.
 from secrets import token_urlsafe
 
 
