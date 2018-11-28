@@ -23,7 +23,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
 
-    keywords='flask pastebin flask-vue flask-pastebin',
+    keywords='twisted twisted-irc irc-server',
     packages=find_packages(exclude=['tests']),
 
     install_requires=['twisted'],
