@@ -1,4 +1,4 @@
-from sentry.sentry_criteria import *
+from sentry_config.criteria import *
 from os import path
 
 """

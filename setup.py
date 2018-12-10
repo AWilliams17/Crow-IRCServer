@@ -26,7 +26,7 @@ setup(
     keywords='twisted twisted-irc irc-server',
     packages=find_packages(exclude=['tests']),
 
-    install_requires=['twisted'],
+    install_requires=['twisted, sentry-config'],
 
     entry_points={
         'console_scripts': [
